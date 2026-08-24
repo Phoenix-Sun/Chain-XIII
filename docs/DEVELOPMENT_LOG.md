@@ -44,3 +44,12 @@
 - `npm run deploy:dry`：通過，Worker 讀到 `env.DB` 與 `env.ASSETS`
 - remote D1 查詢 `save_slots`：通過
 - production Worker health smoke test：通過
+
+### P0 手機優先垂直切片
+
+- 實作 52 張標準牌、seed 可重現洗牌與抽 13。
+- 實作 3 張頭墩、5 張中墩、5 張尾墩的 layout validation。
+- 實作 3 張與 5 張牌型評估、同類牌型 tie-breaker 與順子／同花順。
+- 建立 14 個規則與 UI 測試，全部通過。
+- 建立手機優先 P0 實驗台：點選牌、放入墩位、退回手牌、即時牌型提示與合法性提示。
+- CSS 以 mobile-first 為預設，桌面在 560px / 860px 以上逐步擴展。

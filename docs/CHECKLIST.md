@@ -18,14 +18,14 @@
 
 ## 每次提交前
 
-- [ ] 不包含 token、密碼、`.env`、`.dev.vars` 或私有憑證
-- [ ] `npm run typecheck`
-- [ ] `npm test`
-- [ ] `npm run build`
-- [ ] `git diff --check`
-- [ ] 更新 `docs/PROGRESS.md`（若進度有變）
-- [ ] 更新 `docs/DEVELOPMENT_LOG.md`（若完成可驗證工作）
-- [ ] 使用清楚的 commit message
+- [x] 不包含 token、密碼、`.env`、`.dev.vars` 或私有憑證
+- [x] `npm run typecheck`
+- [x] `npm test`
+- [x] `npm run build`
+- [x] `git diff --check`
+- [x] 更新 `docs/PROGRESS.md`（若進度有變）
+- [x] 更新 `docs/DEVELOPMENT_LOG.md`（若完成可驗證工作）
+- [x] 使用清楚的 commit message
 
 ## GitHub CI/CD
 
@@ -45,9 +45,9 @@
 - [x] `migrations/0001_initial.sql` 已提交
 - [x] remote D1 有 `save_slots` 表
 - [x] `/api/health` 回報 D1 connected
-- [ ] 新增 migration 後先 local apply
-- [ ] 確認 migration 可重複執行且不破壞既有資料
-- [ ] 部署後執行 production health smoke test
+- [x] 新增 migration 後先 local apply
+- [x] 確認 migration 可重複執行且不破壞既有資料
+- [x] 部署後執行 production health smoke test
 
 ## 絕對不要提交
 

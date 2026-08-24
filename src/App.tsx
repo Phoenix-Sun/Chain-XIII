@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import P0BattleLab from "./features/p0/P0BattleLab";
 
 const progress = [
   { label: "P0 規則核心", value: 15 },
@@ -39,25 +40,27 @@ export default function App() {
         <div>
           <p className="eyebrow">CHAIN XIII · V3 花色鍊成版</p>
           <h1>先規劃，再遇到隨機，最後用十三支驗證 Build。</h1>
-          <p className="lede">React + TypeScript + Vite 前端，Cloudflare Worker 靜態資產入口；D3.js 先用於開發進度與未來戰鬥資料視覺化。</p>
+          <p className="lede">手機優先的 P0 垂直切片：用固定 seed 抽牌，點選並排出一副合法的 3 / 5 / 5 十三支。</p>
         </div>
-        <span className="badge">MVP 基線</span>
+        <span className="badge">P0 開發中</span>
       </header>
 
       <section className="grid">
         <article className="card feature-card">
           <span className="card-kicker">目前狀態</span>
           <h2>P0 規則核心</h2>
-          <p>先驗證 52 張牌、抽 13、十三支合法性、牌型比較與元素判定，再往 UI 和內容擴張。</p>
+          <p>先驗證 52 張牌、抽 13、十三支合法性與牌型比較，再往花色模板與基因鍊成擴張。</p>
           <a href="https://github.com/Phoenix-Sun/Chain-XIII/blob/main/MVP%E9%96%8B%E7%99%BC%E6%96%87%E4%BB%B6_v0.1.md" className="text-link" target="_blank" rel="noreferrer">查看企劃基線 →</a>
         </article>
         <article className="card feature-card dark-card">
           <span className="card-kicker">Cloudflare</span>
-          <h2>Worker health endpoint</h2>
-          <p>部署後可用 <code>/api/health</code> 驗證 Worker；SPA 其他路由由 static assets 接手。</p>
+          <h2>Worker + D1</h2>
+          <p>部署後可用 <code>/api/health</code> 驗證 Worker 與 `save_slots`；SPA 其他路由由 static assets 接手。</p>
           <code className="endpoint">GET /api/health</code>
         </article>
       </section>
+
+      <P0BattleLab />
 
       <section className="card chart-card">
         <div className="section-heading">
@@ -67,7 +70,7 @@ export default function App() {
         <ProgressChart />
       </section>
 
-      <footer>Local-first · Seed 可重現 · IndexedDB 預留 · D1 migration 已建立</footer>
+      <footer>Mobile-first · Seed 可重現 · P0 rule tests · IndexedDB 預留 · D1 migration 已建立</footer>
     </main>
   );
 }
