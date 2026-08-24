@@ -49,7 +49,7 @@ export default function App() {
           <span className="card-kicker">目前狀態</span>
           <h2>P0 規則核心</h2>
           <p>先驗證 52 張牌、抽 13、十三支合法性、牌型比較與元素判定，再往 UI 和內容擴張。</p>
-          <a href="/MVP開發文件_v0.1.md" className="text-link">查看企劃基線 →</a>
+          <a href="https://github.com/Phoenix-Sun/Chain-XIII/blob/main/MVP%E9%96%8B%E7%99%BC%E6%96%87%E4%BB%B6_v0.1.md" className="text-link" target="_blank" rel="noreferrer">查看企劃基線 →</a>
         </article>
         <article className="card feature-card dark-card">
           <span className="card-kicker">Cloudflare</span>
