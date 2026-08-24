@@ -2,54 +2,41 @@
 
 ## 2026-08-24
 
-### 基礎工程
+### 基礎工程與像素介面
 
-- 建立 React + TypeScript + Vite Browser SPA 基線。
-- 建立 Vitest 測試環境與第一個 shell render test。
-- 保留 `MVP開發文件_v0.1.md` 作為目前遊戲設計基線。
-- 加入 D3.js prototype 進度圖。
+- 建立 React + TypeScript + Vite Browser SPA、Vitest、GitHub Actions、Cloudflare Worker、D1 `save_slots` migration 與部署 smoke test。
+- 依開羅遊戲公開畫面與訪談整理固定 HUD、像素場景、底部主選單、短訊息回饋與 data-driven view 架構。
+- 新增 `GameShell`、領地像素地圖、Seed 節點路線、開發卷宗與 pixel UI styles。
+- 研究結論寫入 `docs/PIXEL_UI_FOUNDATION.md`。
 
-### GitHub
+### P0 / P1 / P2
 
-- Repository：<https://github.com/Phoenix-Sun/Chain-XIII>
-- 預設分支：`main`
-- GitHub Actions workflow：`.github/workflows/ci.yml`
-- Pull Request 與 Dependabot 設定已加入。
+- 所有抽牌亂數集中到 `SeededRandom`，並以 `originalSuit`／`currentSuit` 保留花色改造前後狀態。
+- 新增元素克制、水 → 火 → 風 → 地 → 水、墩屬性判定、三墩逐墩比較與整場勝負服務。
+- 新增 13 格模板建構與套用；模板不覆寫原始牌實體身份。
+- 新增基因鏈預覽／確認鍊成、同接點升階、異接點串接、前端擠出與 3/5/5 裝備限制。
+- 新增花色鍊成工房 UI，可操作預覽、不可逆確認、換裝與 13 張 current suit preview。
 
-### Cloudflare
+### P3 / P4 / content / save
 
-- 建立 Workers Static Assets 部署入口。
-- Worker URL：<https://chain-xiii.napoleon-sun.workers.dev>
-- `GET /api/health` 可檢查 Worker 與 D1 連線。
-- 建立 D1 database：`chain-xiii`。
-- 建立並套用 migration：`migrations/0001_initial.sql`。
-- 第一張資料表：`save_slots`。
-- 遠端驗證結果：`d1.connected = true`、`d1.saveSlotsTable = true`。
-
-### CI/CD
-
-- Pull Request 與 `main` push 會執行 typecheck、test、build。
-- 有 Cloudflare API Token 後，`main` push 的部署順序為：
-  1. 驗證專案
-  2. 套用 D1 remote migrations
-  3. 部署 Cloudflare Worker
-- `CLOUDFLARE_ACCOUNT_ID` 已加入 GitHub repository secret。
-- `CLOUDFLARE_API_TOKEN` 已加入 GitHub repository secret，內容未讀取或寫入 repository。
-- GitHub Actions end-to-end run：<https://github.com/Phoenix-Sun/Chain-XIII/actions/runs/32710438621>
-- GitHub runner 已成功完成 D1 migration、frontend build 與 Worker deploy。
+- 新增可測試敵方 AI，從 13 張牌搜尋合法 3/5/5 排列。
+- P0 合法提交現在會呼叫 `resolveBattle`，以固定敵方 seed 產生三墩結果，UI 顯示牌型、元素與勝負理由。
+- 新增共用 `GameEffect` lifecycle；9 名角色 catalog 的 active ability ID 可在指定 phase 執行並寫回 RunState。
+- 新增 deterministic D6 exploration service，支援總和門檻、pair 與 straight 目標。
+- 新增 seed-driven forward-only Run map 與可操作路線 UI，終點公開 Boss。
+- 新增 data-driven catalog：9 角色、12 普通怪、4 Elite、3 Boss、15 神器、12 事件；加入 catalog validator。
+- 新增 `RunState`、`MetaState`、versioned `SaveEnvelope`、JSON migration boundary 與 IndexedDB adapter。
 
 ### 驗證
 
-- `npm run check`：通過
-- `npm run deploy:dry`：通過，Worker 讀到 `env.DB` 與 `env.ASSETS`
-- remote D1 查詢 `save_slots`：通過
-- production Worker health smoke test：通過
+- `tsc -b --pretty false`：通過。
+- Vitest：21 個 test files、45 個 tests 通過。
+- Vite production build：通過。
+- `git diff --check`：通過。
+- 架構掃描：未發現 `Math.random()`、暫存 `next.tsx` 或 UI 內直接埋入核心規則的遺留。
 
-### P0 手機優先垂直切片
+### 下一步
 
-- 實作 52 張標準牌、seed 可重現洗牌與抽 13。
-- 實作 3 張頭墩、5 張中墩、5 張尾墩的 layout validation。
-- 實作 3 張與 5 張牌型評估、同類牌型 tie-breaker 與順子／同花順。
-- 建立 14 個規則與 UI 測試，全部通過。
-- 建立手機優先 P0 實驗台：點選牌、放入墩位、退回手牌、即時牌型提示與合法性提示。
-- CSS 以 mobile-first 為預設，桌面在 560px / 860px 以上逐步擴展。
+- 讓 Run 節點觸發戰鬥／事件／神器並保存到 IndexedDB。
+- 補 Boss 招牌規則與一次探索骰 UI，完成第一個可走到結算的 Seed Run。
+- 建立最小 Meta Hub 與三人隊伍選擇。
