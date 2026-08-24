@@ -11,12 +11,13 @@
   },
   "observability": {
     "enabled": true
-  }
-  // D1 預留：確認 Cloudflare 帳號與資料庫名稱後，再加入：
-  // "d1_databases": [{
-  //   "binding": "DB",
-  //   "database_name": "chain-xiii",
-  //   "database_id": "<由 wrangler d1 create 取得>",
-  //   "migrations_dir": "./migrations"
-  // }]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "chain-xiii",
+      "database_id": "55e86a5f-e41b-4b18-95a3-281d9cc31f8a",
+      "migrations_dir": "./migrations"
+    }
+  ]
 }

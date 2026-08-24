@@ -14,6 +14,8 @@
     "check": "npm run typecheck && npm run test && npm run build",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry": "npm run build && wrangler deploy --dry-run",
+    "db:migrate:local": "wrangler d1 migrations apply chain-xiii --local",
+    "db:migrate:remote": "wrangler d1 migrations apply chain-xiii --remote",
     "cf:types": "wrangler types"
   },
   "dependencies": {

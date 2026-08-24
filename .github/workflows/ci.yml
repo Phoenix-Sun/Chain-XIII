@@ -58,6 +58,13 @@ jobs:
       - name: Install dependencies
         if: steps.cloudflare.outputs.enabled == 'true'
         run: npm ci
+      - name: Apply D1 migrations
+        if: steps.cloudflare.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply chain-xiii --remote
       - name: Build and deploy Worker
         if: steps.cloudflare.outputs.enabled == 'true'
         uses: cloudflare/wrangler-action@v3
