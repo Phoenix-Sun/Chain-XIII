@@ -66,6 +66,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply chain-xiii --remote
+      - name: Build frontend
+        if: steps.cloudflare.outputs.enabled == 'true'
+        run: npm run build
       - name: Build and deploy Worker
         if: steps.cloudflare.outputs.enabled == 'true'
         uses: cloudflare/wrangler-action@v3
