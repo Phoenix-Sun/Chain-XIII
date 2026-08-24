@@ -40,3 +40,14 @@
 - 讓 Run 節點觸發戰鬥／事件／神器並保存到 IndexedDB。
 - 補 Boss 招牌規則與一次探索骰 UI，完成第一個可走到結算的 Seed Run。
 - 建立最小 Meta Hub 與三人隊伍選擇。
+
+### Mobile Pixel Shell v1
+
+- 依 Kairosoft 官方 Android／iOS 列表與官方商店頁面研究手機 UI：場景優先、固定資源 HUD、底部拇指操作、短面板回饋與觸控縮放。
+- 以原創像素城鎮圖取代 CSS 方塊地圖，加入三個設施熱點、選取狀態、設施資訊、角色對話與立即回饋。
+- GameShell 改為 `100dvh` mobile-first 遊戲視窗，支援 safe-area、極小手機、平板／桌機與低高度橫向 RWD。
+- 遠征改為獨立底部指令，不再與城鎮上下堆成長網頁。
+- 生成素材轉成 lossless WebP，約由 4.31 MB 降至 2.83 MB；未提交的 PNG 副本已移除。
+- 新增 `docs/MOBILE_PIXEL_UI_PLAN.md`，記錄設計依據、斷點規格、完成範圍與下一階段。
+- 驗證更新為 22 個 test files、48 個 tests；typecheck 與 production build 通過。
+- 瀏覽器手機尺寸截圖因 Windows sandbox refresh 錯誤未完成，明列為下一階段第一個 QA 任務。

@@ -33,7 +33,15 @@
 4. 角色能力已透過共用 `GameEffect` lifecycle 執行，效果只能在指定 phase 使用且同一 Run 不重複觸發。
 5. 探索骰支援 deterministic D6、總和門檻與相同點數目標。
 6. 內容 validator 會檢查 ID、模板長度、掉落池、Boss 規則與鏈長。
-7. 像素風 HUD、領地、Seed 節點路線、對局、鍊成與開發卷宗均已接入 GameShell。
+7. Mobile-first 像素遊戲殼層已接入：原創城鎮場景、設施熱點、固定 HUD、角色對話、底部拇指指令列與 safe-area RWD。
+8. 城鎮與 Seed 路線已拆成獨立畫面；手機導覽、系統選單與設施互動已有 UI 測試。
+
+## Mobile Pixel Shell v1
+
+- ✅ mobile-first GameShell 與原創像素城鎮。
+- ✅ lossless WebP 素材與手機／平板／橫向 RWD。
+- ✅ 22 個 test files、48 個 tests。
+- ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
 ## 下一個自主目標
 

@@ -12,7 +12,8 @@ import BattleArenaView from "./features/p0/BattleArenaView";
 import type { GameView } from "./game/types";
 
 const views: Record<GameView, ReactNode> = {
-  town: <><TownView /><RunRouteView /></>,
+  town: <TownView />,
+  route: <RunRouteView />,
   battle: <BattleArenaView />,
   workshop: <GeneWorkshopView />,
   development: <DevelopmentView />,
