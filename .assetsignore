@@ -1,0 +1,4 @@
+# Source and deployment metadata must not be published as browser assets.
+MVP開發文件_v0.1.md
+wrangler.jsonc
+migrations/
