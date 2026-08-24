@@ -10,6 +10,8 @@
 - D1：`chain-xiii` 已建立並綁定 Worker，migration 會在 CI/CD 部署前自動套用
 - GitHub Actions：Pull Request / `main` push 自動 typecheck、test、build；設定 Cloudflare secrets 後自動套用 D1 migration 並 deploy
 
+協作文件集中在 [`docs/`](./docs/)，包含開發紀錄、目前進度、架構決策與跨電腦檢核表。
+
 ## 本機開發
 
 ```bash
