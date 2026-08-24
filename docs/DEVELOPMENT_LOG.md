@@ -34,7 +34,9 @@
   2. 套用 D1 remote migrations
   3. 部署 Cloudflare Worker
 - `CLOUDFLARE_ACCOUNT_ID` 已加入 GitHub repository secret。
-- `CLOUDFLARE_API_TOKEN` 尚待在 GitHub repository secrets 設定；不寫入 repository，也不放入本文件。
+- `CLOUDFLARE_API_TOKEN` 已加入 GitHub repository secret，內容未讀取或寫入 repository。
+- GitHub Actions end-to-end run：<https://github.com/Phoenix-Sun/Chain-XIII/actions/runs/32710438621>
+- GitHub runner 已成功完成 D1 migration、frontend build 與 Worker deploy。
 
 ### 驗證
 

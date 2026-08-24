@@ -13,8 +13,8 @@
 | Cloudflare Worker | ✅ 完成 | Static Assets + `/api/health` |
 | Cloudflare D1 | ✅ 完成 | `chain-xiii` 已建立 |
 | D1 `save_slots` migration | ✅ 完成 | local / remote 都已套用 |
-| CI 自動 D1 migration | 🟡 待啟用 | 需 GitHub `CLOUDFLARE_API_TOKEN` |
-| CI 自動 Worker deploy | 🟡 待啟用 | 需 GitHub `CLOUDFLARE_API_TOKEN` |
+| CI 自動 D1 migration | ✅ 完成 | GitHub runner 已成功執行 remote migration |
+| CI 自動 Worker deploy | ✅ 完成 | GitHub runner 已成功部署 |
 
 ## 遊戲開發階段
 
@@ -31,7 +31,5 @@
 
 ## 目前下一步
 
-1. 在 GitHub 設定 `CLOUDFLARE_API_TOKEN`。
-2. 重新執行一次 GitHub Actions，確認 D1 migration 與 Worker deploy 都由 GitHub runner 完成。
-3. 開始 P0 規則核心，先用純 domain tests 驗證，不先堆 UI。
-4. 將 IndexedDB save envelope 與 D1 `save_slots` 的資料格式對齊。
+1. 開始 P0 規則核心，先用純 domain tests 驗證，不先堆 UI。
+2. 將 IndexedDB save envelope 與 D1 `save_slots` 的資料格式對齊。

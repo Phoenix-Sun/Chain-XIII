@@ -33,10 +33,10 @@
 - [x] Pull Request 會執行 typecheck / test / build
 - [x] `main` push 會觸發 deployment job
 - [x] `CLOUDFLARE_ACCOUNT_ID` 已設定
-- [ ] `CLOUDFLARE_API_TOKEN` 已設定
-- [ ] GitHub runner 成功套用 D1 remote migrations
-- [ ] GitHub runner 成功部署 Worker
-- [ ] GitHub Actions log 沒有 secret 輸出
+- [x] `CLOUDFLARE_API_TOKEN` 已設定
+- [x] GitHub runner 成功套用 D1 remote migrations
+- [x] GitHub runner 成功部署 Worker
+- [x] GitHub Actions log 沒有 secret 輸出
 
 ## Cloudflare / D1
 
