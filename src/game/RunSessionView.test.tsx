@@ -36,6 +36,9 @@ describe("RunSessionView", () => {
     fireEvent.click(screen.getByRole("button", { name: /^事件・第 2 層/ }));
     expect(screen.getByRole("heading", { name: "路線事件" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
+    expect(screen.getByRole("status")).toHaveTextContent(/總和|相同點數/);
+    expect(screen.getByRole("button", { name: "查看事件獎勵" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "查看事件獎勵" }));
     expect(screen.getByRole("button", { name: "領取獎勵" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));

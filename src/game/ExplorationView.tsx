@@ -12,7 +12,6 @@ export default function ExplorationView({ node, seed, onResolved }: { node: RunM
   function roll() {
     const next = rollExploration(seed, node.eventId ?? "event-1");
     setResult(next);
-    onResolved(next);
   }
 
   return <section className="exploration-card" aria-labelledby="exploration-title">
@@ -21,6 +20,6 @@ export default function ExplorationView({ node, seed, onResolved }: { node: RunM
     <p>{event?.content ?? "石桌上的骰子等待你做出決定。"}</p>
     <div className="exploration-objective"><strong>本次目標</strong><span>{objective}</span></div>
     {result && <div className={`exploration-roll${result.success ? " is-success" : " is-failed"}`} role="status"><strong>{result.rolls.join(" · ")}</strong><span>總和 {result.total}・{result.hasPair ? "有相同點數" : "沒有相同點數"}</span><small>{result.success ? "目標達成，取得完整事件獎勵。" : "未達成目標，但仍取得保底水晶。"}</small></div>}
-    <button type="button" className="primary-button" onClick={roll} disabled={Boolean(result)}>{result ? "事件已處理" : "擲出 3 顆骰子"}</button>
+    <button type="button" className="primary-button" onClick={() => result ? onResolved(result) : roll()}>{result ? "查看事件獎勵" : "擲出 3 顆骰子"}</button>
   </section>;
 }
