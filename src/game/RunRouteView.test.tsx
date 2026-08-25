@@ -86,4 +86,40 @@ describe("RunRouteView", () => {
 
     expect(screen.getByText("可取得：古代神器 3")).toBeInTheDocument();
   });
+
+  it("renders a connected expedition map instead of a disconnected row list", () => {
+    render(<RunRouteView run={{
+      seed: "map-stage",
+      partyCharacterIds: ["water-scout"],
+      map: {
+        seed: "map-stage",
+        startNodeId: "start",
+        bossNodeId: "boss",
+        nodes: [
+          { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
+          { id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },
+          { id: "relic", row: 1, column: 1, type: "relic", relicId: "relic-3", nextNodeIds: ["boss"] },
+          { id: "boss", row: 2, column: 0, type: "boss", monsterId: "boss-lava-turtle", nextNodeIds: [] },
+        ],
+      },
+      geneInventory: [],
+      geneCapacity: 6,
+      equippedGenes: {},
+      relicIds: [],
+      discoveredRunFlags: [],
+      completedNodeIds: ["start"],
+      claimedRewardNodeIds: [],
+      earnedCrystals: 0,
+      earnedGeneChainIds: [],
+      currentNodeId: "start",
+      finalBossId: "boss",
+      status: "active",
+    }} />);
+
+    expect(screen.getByRole("region", { name: "遠征地圖" })).toBeInTheDocument();
+    expect(screen.getAllByText("目前位置").length).toBeGreaterThan(0);
+    expect(screen.getByText(/距離 Boss/)).toBeInTheDocument();
+    expect(screen.getAllByTestId("route-path")).toHaveLength(4);
+    expect(screen.getAllByRole("button", { name: /可前往/ })).toHaveLength(2);
+  });
 });
