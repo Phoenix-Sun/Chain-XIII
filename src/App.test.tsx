@@ -41,4 +41,11 @@ describe("Chain XIII game shell", () => {
     fireEvent.click(screen.getByRole("button", { name: "返回遊戲" }));
     expect(screen.queryByRole("dialog", { name: "系統選單" })).not.toBeInTheDocument();
   });
+
+  it("routes a first-time player through party setup instead of starting a Run directly", () => {
+    render(<App initialSeed="CHAIN-XIII-RUN-001" />);
+    fireEvent.click(screen.getByRole("button", { name: "路線桌" }));
+    fireEvent.click(screen.getByRole("button", { name: "選擇隊伍" }));
+    expect(screen.getByRole("heading", { name: "選擇這次遠征的角色" })).toBeInTheDocument();
+  });
 });

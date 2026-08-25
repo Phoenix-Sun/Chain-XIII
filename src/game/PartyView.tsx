@@ -18,7 +18,7 @@ const RARITY_LABELS = { R: "R", SR: "SR", SSR: "SSR" } as const;
 const SUIT_LABELS = { water: "水", fire: "火", wind: "風", earth: "地" } as const;
 
 export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onConfirm, onNavigate, meta, onMetaChange }: PartyViewProps) {
-  const [selected, setSelected] = useState(selectedCharacterIds);
+  const [selected, setSelected] = useState(() => selectedCharacterIds.filter((id) => ownedCharacterIds.includes(id)).slice(0, MAX_PARTY_SIZE));
   const [upgradeMessage, setUpgradeMessage] = useState<string>();
   const ownedCharacters = useMemo(() => ownedCharacterIds.map((id) => characters.find((character) => character.id === id)).filter((character): character is (typeof characters)[number] => Boolean(character)), [ownedCharacterIds]);
   const errors = validatePartyCharacterIds(selected);

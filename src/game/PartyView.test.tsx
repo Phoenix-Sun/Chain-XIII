@@ -24,4 +24,10 @@ describe("PartyView", () => {
     fireEvent.click(screen.getByRole("button", { name: /earth guard/ }));
     expect(screen.getByText("3/3")).toBeInTheDocument();
   });
+
+  it("caps an oversized restored selection at the three-person party limit", () => {
+    render(<PartyView ownedCharacterIds={["water-scout", "fire-smith", "wind-oracle", "earth-guard"]} selectedCharacterIds={["water-scout", "fire-smith", "wind-oracle", "earth-guard"]} onConfirm={vi.fn()} onNavigate={vi.fn()} />);
+    expect(screen.getByText("3/3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /開始遠征/ })).not.toBeDisabled();
+  });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createEmptyMeta, createSaveEnvelope, mergeRunIntoMeta } from "../domain/save";
-import type { RunState } from "../domain/run";
+import { MAX_PARTY_SIZE, type RunState } from "../domain/run";
 import { loadFromIndexedDb, saveToIndexedDb } from "../services/persistence/indexedDb";
 import GeneWorkshopView from "./GeneWorkshopView";
 import GachaView from "./GachaView";
@@ -40,7 +40,7 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
         setMeta(save.meta);
         setActiveRun(save.activeRun);
         if (save.activeRun) setActiveView("route");
-        setPartyCharacterIds(save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId));
+        setPartyCharacterIds((save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId)).slice(0, MAX_PARTY_SIZE));
       })
       .catch(() => setPersistenceFailed(true))
       .finally(() => setHydrated(true));
@@ -52,6 +52,11 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   }, [activeRun, hydrated, meta, persistenceFailed, persistenceSupported]);
 
   function navigate(view: GameView) {
+    if (view === "route" && !activeRun && activeView !== "party") {
+      setActiveView("party");
+      setMenuOpen(false);
+      return;
+    }
     if (activeRun && view !== "route") return;
     setActiveView(view);
     setMenuOpen(false);
