@@ -17,4 +17,10 @@ describe("RunRouteView", () => {
     expect(reachable.length).toBeGreaterThan(0);
     expect(reachable[0]).toHaveAccessibleName(/第 2 層・第 1 格|第 2 層・第 2 格|第 2 層・第 3 格/);
   });
+
+  it("does not expose internal monster ids in route labels", () => {
+    render(<RunRouteView />);
+    const routeNodes = screen.getAllByRole("button").filter((button) => button.classList.contains("route-node"));
+    expect(routeNodes.every((button) => !/monster (normal|elite)|boss (lava|storm|deep)/.test(button.getAttribute("aria-label") ?? ""))).toBe(true);
+  });
 });

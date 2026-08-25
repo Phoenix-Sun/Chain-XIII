@@ -36,6 +36,13 @@ describe("BattleArenaView", () => {
     expect(screen.getByText(/完成一副合法牌組/)).toBeInTheDocument();
   });
 
+  it("uses a player-facing enemy label instead of an internal monster id", () => {
+    render(<BattleArenaView node={{ id: "battle", row: 0, column: 0, type: "battle", monsterId: "monster-normal-6", nextNodeIds: [] }} />);
+
+    expect(screen.getByText(/普通怪物 6/)).toBeInTheDocument();
+    expect(screen.queryByText(/monster normal 6/)).not.toBeInTheDocument();
+  });
+
   it("commits a winning batch layout and returns the result to the run", () => {
     const cards = drawThirteen("CHAIN-XIII-P0-001");
     const enemy = arrangeEnemyHand(drawThirteen("enemy:preview"));
