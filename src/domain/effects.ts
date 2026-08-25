@@ -20,7 +20,7 @@ export const EFFECTS: Record<string, GameEffect> = {
   "ability-map": flaggingEffect("ability-map", "map-preview", "石碑揭示了下一層的節點類型。"),
   "ability-sight": flaggingEffect("ability-sight", "battle-ready", "風之預視讓敵方模板多顯示一格。"),
   "ability-ripple": flaggingEffect("ability-ripple", "battle-ready", "水紋回響：本場可重新選擇一次一張牌的配置。"),
-  "ability-forge": flaggingEffect("ability-forge", "fusion-preview", "鍛造師保留了融合預覽，不會直接消耗素材。"),
+  "ability-forge": flaggingEffect("ability-forge", "fusion-preview", "鍛造師保留了融合預覽；下一次確認鍊成時會保留左鏈素材。"),
   "ability-shell": flaggingEffect("ability-shell", "battle-resolved", "岩甲守護：本次失敗保留一件 Run 內獎勵。"),
   "ability-flow": flaggingEffect("ability-flow", "battle-ready", "潮汐流轉：一個已形成的元素墩可調整一次。"),
   "ability-spark": flaggingEffect("ability-spark", "battle-ready", "火花決鬥：頭墩牌型比較獲得一次主動昇華機會。"),

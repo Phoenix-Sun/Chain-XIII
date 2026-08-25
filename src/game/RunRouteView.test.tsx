@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import RunRouteView from "./RunRouteView";
 
 describe("RunRouteView", () => {
@@ -85,6 +85,37 @@ describe("RunRouteView", () => {
     }} />);
 
     expect(screen.getByText("可取得：沉星尾墩")).toBeInTheDocument();
+  });
+
+  it("lets the cartographer reveal the next layer once during a run", () => {
+    const onRunUpdated = vi.fn();
+    render(<RunRouteView
+      partyCharacterIds={["stone-cartographer"]}
+      onRunUpdated={onRunUpdated}
+      run={{
+        seed: "map-ability",
+        partyCharacterIds: ["stone-cartographer"],
+        map: {
+          seed: "map-ability",
+          startNodeId: "start",
+          bossNodeId: "boss",
+          nodes: [
+            { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
+            { id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },
+            { id: "relic", row: 1, column: 1, type: "relic", relicId: "relic-3", nextNodeIds: ["boss"] },
+            { id: "boss", row: 2, column: 0, type: "boss", monsterId: "boss-lava-turtle", nextNodeIds: [] },
+          ],
+        },
+        geneInventory: [], geneCapacity: 6, equippedGenes: {}, relicIds: [], discoveredRunFlags: [],
+        completedNodeIds: ["start"], claimedRewardNodeIds: [], earnedCrystals: 0, earnedGeneChainIds: [],
+        currentNodeId: "start", finalBossId: "boss", status: "active",
+      }}
+    />);
+
+    fireEvent.click(screen.getByRole("button", { name: /石碑揭示下一層/ }));
+    expect(screen.getByRole("status")).toHaveTextContent(/下一層揭示/);
+    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-map"] }));
+    expect(screen.getByRole("button", { name: /石碑揭示下一層・已用/ })).toBeDisabled();
   });
 
   it("renders a connected expedition map instead of a disconnected row list", () => {

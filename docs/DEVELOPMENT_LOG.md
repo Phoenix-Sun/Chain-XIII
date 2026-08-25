@@ -129,3 +129,14 @@
 - targeted Vitest：3 個 test files、12 個 tests 通過。
 - `npm run typecheck`：通過。
 - `git diff --check`：通過。
+
+### 2026-08-25：路線情報與鍛造師能力接入
+
+- 將石碑製圖師的 `ability-map` 接入實際遠征路線：玩家可在地圖 phase 一次揭示下一層節點類型，結果寫入 RunState 的 `discoveredRunFlags`，重整後仍維持已使用狀態。
+- 將鍛造師的 `ability-forge` 接入 Run 內鍊成工房：玩家啟用後下一次確認融合會保留左鏈素材，並以測試驗證融合結果與素材庫的差異。
+- `RunSessionView` 將 party、RunState 與回寫 callback 傳入路線及鍊成畫面，避免能力只存在 domain catalog 而無法由玩家觸發。
+
+### 驗證
+
+- targeted Vitest：4 個 test files、17 個 tests 通過。
+- `npm run typecheck`：通過。

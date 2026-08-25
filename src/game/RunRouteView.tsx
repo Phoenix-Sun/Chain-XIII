@@ -5,6 +5,7 @@ import type { Navigate } from "./types";
 import { catalog } from "../content/catalog";
 import { monsterDisplayName } from "../content/display";
 import { rewardForNode } from "../domain/runRewards";
+import { executeEffect } from "../domain/effects";
 
 const NODE_LABELS: Record<MapNodeType, string> = { battle: "戰", elite: "強", event: "事", relic: "遺", boss: "王" };
 const NODE_NAMES: Record<MapNodeType, string> = { battle: "戰鬥", elite: "強敵", event: "事件", relic: "遺物", boss: "Boss" };
@@ -52,16 +53,33 @@ interface RunRouteViewProps {
   onNodeSelected?: (run: RunState, node: RunMapNode) => void;
   onNavigate?: Navigate;
   onOpenWorkshop?: () => void;
+  onRunUpdated?: (run: RunState) => void;
 }
 
-export default function RunRouteView({ partyCharacterIds = ["water-scout"], run, onNodeSelected, onNavigate, onOpenWorkshop }: RunRouteViewProps) {
+export default function RunRouteView({ partyCharacterIds = ["water-scout"], run, onNodeSelected, onNavigate, onOpenWorkshop, onRunUpdated }: RunRouteViewProps) {
   const [internalRun, setInternalRun] = useState<RunState>(() => createRunState("CHAIN-XIII-RUN-001", partyCharacterIds));
+  const [mapNotice, setMapNotice] = useState<string>();
+  const [mapUsed, setMapUsed] = useState(false);
   const activeRun = run ?? internalRun;
   const current = activeRun.map.nodes.find((node) => node.id === activeRun.currentNodeId)!;
   const reachableIds = useMemo(() => new Set(current.nextNodeIds), [current.nextNodeIds]);
   const completedIds = useMemo(() => new Set(activeRun.completedNodeIds), [activeRun.completedNodeIds]);
   const rows = useMemo(() => Array.from(new Set(activeRun.map.nodes.map((node) => node.row))).sort((a, b) => a - b), [activeRun.map.nodes]);
   const reachableNodes = current.nextNodeIds.map((id) => activeRun.map.nodes.find((node) => node.id === id)).filter((node): node is RunMapNode => Boolean(node));
+  const hasMapAbility = partyCharacterIds.some((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-map");
+
+  function revealNextLayer() {
+    if (!hasMapAbility || mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")) return;
+    const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-map") ?? "ability-map";
+    const effectResult = executeEffect("ability-map", { phase: "map-preview", run: activeRun, sourceId });
+    if (!effectResult.applied) return;
+    const nextLayer = activeRun.map.nodes.filter((node) => node.row === current.row + 1);
+    const layerSummary = nextLayer.length > 0 ? nextLayer.map((node) => NODE_NAMES[node.type]).join("、") : "已經抵達終點";
+    setMapNotice(`下一層揭示：${layerSummary}。石碑記錄已加入本趟遠征。`);
+    setMapUsed(true);
+    if (run) onRunUpdated?.(effectResult.run);
+    else setInternalRun(effectResult.run);
+  }
 
   function travel(nodeId: string) {
     if (!canMoveToNode(activeRun, nodeId)) return;
@@ -83,6 +101,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
     <div className="route-heading"><div><span className="pixel-kicker">遠征地圖</span><h2 id="route-title">選擇下一站</h2></div><span className="route-boss">終點：Boss</span></div>
     <div className="route-status route-status-top"><span><b>目前位置</b>・{NODE_NAMES[current.type]}</span><span>距離 Boss：{Math.max(maxRow - current.row, 0)} 層</span><span>已完成：{activeRun.completedNodeIds.length} 個節點</span></div>
     <p className="route-intro">沿著發光路線向上前進。只有和目前位置相連的節點可以前往。</p>
+    {hasMapAbility && <div className="route-ability-panel"><button type="button" className="ability-button" onClick={revealNextLayer} disabled={mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")}>石碑揭示下一層{mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map") ? "・已用" : ""}</button>{mapNotice && <p role="status">{mapNotice}</p>}</div>}
     <section className="expedition-map" aria-label="遠征地圖">
       <div className="expedition-map-legend" aria-label="路線圖例"><span><i className="legend-dot legend-current" />目前</span><span><i className="legend-dot legend-reachable" />可前往</span><span><i className="legend-dot legend-locked" />未開放</span></div>
       <div className="expedition-map-canvas" style={{ height: `${mapHeight}px` }}>
