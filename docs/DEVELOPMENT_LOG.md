@@ -51,3 +51,49 @@
 - 新增 `docs/MOBILE_PIXEL_UI_PLAN.md`，記錄設計依據、斷點規格、完成範圍與下一階段。
 - 驗證更新為 22 個 test files、48 個 tests；typecheck 與 production build 通過。
 - 瀏覽器手機尺寸截圖因 Windows sandbox refresh 錯誤未完成，明列為下一階段第一個 QA 任務。
+
+## 2026-08-25
+
+### 角色隊伍與十三支手機操作收斂
+
+- 將角色收藏 `ownedCharacterIds` 與本次出戰 `partyCharacterIds` 分離；Run 隊伍改為可選 1～3 名，不再假設每位玩家開局固定三人。
+- 營地、隊伍、路線、戰鬥與鍊成改用白話詞彙，移除玩家畫面上的 seed、節點 ID 與實驗台語氣。
+- 新增 `docs/BATTLE_UI_UX.md`：手牌可依原始牌序、點數、花色／點數排序；選取 3 張或 5 張後一次歸入指定墩位；同一墩可多選後退回手牌。
+- P0 戰鬥 UI 改為手機優先的多選批次分墩，加入選取順序標記、張數提示、排序控制與合法性回饋。
+
+### 驗證
+
+- `npm run typecheck`：通過。
+- `npm test -- --reporter=verbose`：23 個 test files、57 個 tests 通過。
+- `git diff --check`：通過。
+
+## 2026-08-25
+
+### 完整 Run MVP 閉環
+
+- 新增 `runRewards.ts`，集中普通戰鬥、事件、獎勵、強敵與 Boss 的水晶／基因鏈獎勵規則。
+- 擴充 `RunState`：已完成節點、已領獎節點、Run 內水晶與基因鏈，並加入 Boss won／戰鬥 loss 狀態轉移。
+- 新增 `RunSessionView`、`RunRewardView`、`RunSettlementView`，將路線、戰鬥、領獎與結算拆成獨立模組。
+- 路線節點現在會實際觸發對應 phase；事件／獎勵節點不再讓玩家卡在路線畫面；Boss 勝利後可進入結算。
+- `GameShell` 持有 active Run 與 Meta，Run phase 透過 callback 回寫純狀態；戰鬥與獎勵細節仍不塞回 shell。
+
+### 驗證
+
+- deterministic domain simulation：可從起點一路完成至 Boss。
+- `npm test -- --reporter=dot`：24 個 test files、62 個 tests 通過。
+
+## 2026-08-25
+
+### 規格審閱與核心狀態修正
+
+- 修正 `Card` 的 `originalSuit`／`currentSuit` 資料，讓實際戰鬥 UI、牌型、元素與排序都能使用套用後花色，同時保留原始牌面。
+- `BattleArenaView` 現在依 Run seed 與節點抽牌，套用玩家裝備模板與怪物 13 格模板；熔岩巨龜的尾墩地元素中和規則已進入比較。
+- `RunState` 提升到 `GameShell`，遠征中鎖定營地／鍊成／抽卡導覽；Meta 與 active Run 透過 IndexedDB 自動保存。
+- Run reward 的基因鏈不再只顯示 ID，會進入基因庫；容量滿時可只領水晶並放棄基因鏈，不會卡死。
+- 節點之間可直接開啟鍊成，鍊成／裝備結果會回寫 Run 並影響下一場戰鬥。
+- 新增最小角色抽卡：100 水晶消耗、新角色入收藏、重複角色轉角色印記。
+- 路線新增可達節點的怪物與掉落摘要；16 層 deterministic map 對齊規格的 15–18 節點 Run 目標；續玩時依 RunState 重建 route／battle／reward／settlement phase。
+
+### 審閱結論
+
+- 角色 active Effect、神器、探索骰 UI、其餘 Boss 規則、怪物圖鑑、升星與 Permanent Skill Tree 仍未視為完成；catalog 或 domain foundation 不再等同於玩家可用功能。

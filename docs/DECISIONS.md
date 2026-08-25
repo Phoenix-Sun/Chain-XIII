@@ -29,3 +29,34 @@
 - 狀態：採用
 - 原因：開發紀錄、進度與檢核表需要隨 Git 同步，避免只存在單一電腦或聊天紀錄。
 - 限制：不得記錄 token、密碼、私鑰、`.env`、`.dev.vars` 或私人帳務資訊。
+
+## ADR-006：畫面採 Kairosoft 風格、流程採卡牌 Roguelike
+
+- 狀態：採用
+- 畫面方向：可愛、清楚、手機優先的像素場景與短回饋；營地只作為遠征流程入口，不做城市經營。
+- 流程方向：營地 → 選隊伍 → 選路線 → 戰鬥／事件／獎勵 → 鍊成 → 繼續前進 → Boss。
+- 原因：保留 Kairosoft 式場景親和力，同時讓玩家像 Slay the Spire 一樣一次只處理當前決策。
+
+## ADR-007：角色收藏與出戰隊伍分離
+
+- 狀態：採用
+- 新帳號：至少有 1 名預設角色。
+- 角色取得：玩家透過遊戲取得水晶並抽卡，可能在第一趟 Run 前就擁有多名角色。
+- 出戰規則：每趟 Run 從已擁有角色中選 1～3 名；3 人是隊伍上限，不是固定的新手解鎖順序。
+- 原因：符合角色抽卡遊戲的長期循環，也避免劇情與玩家實際抽卡結果互相矛盾。
+
+## ADR-008：以 RunSession phase 協調一趟完整遠征
+
+- 狀態：採用
+- phase：`route`、`battle`、`reward`、`settlement`。
+- Domain：`RunState` 只處理節點移動、完成、失敗與獎勵領取；`runRewards.ts` 集中節點獎勵規則。
+- UI：`RunRouteView`、`BattleArenaView`、`RunRewardView`、`RunSettlementView` 各自只處理一種主要任務。
+- 原因：讓一趟 Run 可以完整走到 Boss，同時避免把節點規則、戰鬥結果與 Meta 回寫全部塞進 `GameShell`，方便後續加入事件、商店、抽卡與存檔續玩。
+
+## ADR-009：active Run 由 GameShell 持有並 local-first 保存
+
+- 狀態：採用
+- `GameShell` 持有 `activeRun` 與 `MetaState`；`RunSessionView` 只負責 phase 協調，透過 `onRunUpdated` 回傳新的純資料狀態。
+- IndexedDB slot `default` 保存 versioned `SaveEnvelope`，包含 Meta 與未完成 Run；重新載入時依當前節點與完成／領獎狀態重建 phase，不保存 React UI state。
+- 遠征進行中鎖住營地、抽卡與全域鍊成導覽；鍊成只從 Run route 的節點間入口進入，避免繞過單向流程或重置 Run。
+- 原因：修正 view unmount 造成 Run 遺失的風險，同時保留未來 D1 cloud save 的 service 邊界。

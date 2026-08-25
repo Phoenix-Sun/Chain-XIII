@@ -1,0 +1,29 @@
+.party-view { max-width: 720px; margin: 0 auto; }
+.party-intro { margin: 7px 0 12px; color: #80665c; font-size: 0.68rem; line-height: 1.5; }
+.party-roster { display: grid; gap: 8px; }
+.character-card { display: flex; min-height: 66px; align-items: center; gap: 9px; padding: 8px; border: 3px solid #a78059; background: #f4dda8; color: #503747; cursor: pointer; font: inherit; text-align: left; box-shadow: 3px 3px #49384533; }
+.character-card.is-selected { border-color: #73516a; background: #ffe49b; box-shadow: inset 0 -4px #d29753, 3px 3px #49384555; }
+.character-mark { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border: 3px solid #493845; color: #fff3c5; font-size: 0.75rem; font-weight: 900; }
+.character-mark.suit-water { background: #4a8291; }
+.character-mark.suit-fire { background: #af5d4f; }
+.character-mark.suit-wind { background: #65936b; }
+.character-mark.suit-earth { background: #9d7c55; }
+.character-info { min-width: 0; flex: 1; }
+.character-info strong, .character-info small { display: block; }
+.character-info strong { overflow: hidden; color: #382a39; font-size: 0.72rem; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
+.character-info small { margin-top: 4px; color: #80665c; font-size: 0.58rem; }
+.character-check { display: grid; width: 28px; height: 28px; place-items: center; border: 2px solid #73516a; color: #73516a; font-size: 1rem; font-weight: 900; }
+.party-hint, .party-error { margin: 10px 0 0; padding: 8px 10px; border: 3px solid #73516a; background: #f1ddad; color: #503747; font-size: 0.63rem; line-height: 1.4; }
+.party-error { border-color: #af5d4f; background: #f1c6b4; color: #8e4a46; }
+.character-roster-entry { display: grid; gap: 5px; }
+.character-star { color: #b36c4e; font-size: 0.62rem; letter-spacing: -0.08em; }
+.character-upgrade { min-height: 34px; border: 2px solid #b36c4e; border-radius: 7px; background: #ffe1aa; color: #603c36; font-size: 0.62rem; font-weight: 800; }
+.character-upgrade:disabled { opacity: 0.45; }
+.party-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.party-actions .secondary-button { min-height: 52px; padding: 0 12px; border: 3px solid #503747; border-radius: 0; background: #f1d898; color: #503747; cursor: pointer; font: inherit; font-size: 0.62rem; font-weight: 900; }
+.party-actions .enter-button { min-width: 130px; }
+.party-actions .enter-button:disabled { cursor: not-allowed; filter: grayscale(0.7); opacity: 0.45; }
+
+@media (min-width: 560px) {
+  .party-roster { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

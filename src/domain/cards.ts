@@ -10,7 +10,12 @@ export interface Card {
   id: string;
   rank: Rank;
   suit: Suit;
+  /** 原始牌面與目前顯示花色；未套模板時兩者相同。 */
+  originalSuit?: Suit;
+  currentSuit?: Suit;
 }
+
+export type CardSortMode = "deal" | "rank" | "suit-rank";
 
 export const SUIT_SYMBOLS: Record<Suit, string> = { water: "💧", fire: "🔥", wind: "🍃", earth: "🪨" };
 export const SUIT_LABELS: Record<Suit, string> = { water: "水", fire: "火", wind: "風", earth: "地" };
@@ -28,7 +33,7 @@ export function rankValue(rank: Rank): number {
 }
 
 export function createStandardDeck(): Card[] {
-  return SUITS.flatMap((suit) => RANKS.map((rank) => ({ id: `${suit}-${rank}`, rank, suit })));
+  return SUITS.flatMap((suit) => RANKS.map((rank) => ({ id: `${suit}-${rank}`, rank, suit, originalSuit: suit, currentSuit: suit })));
 }
 
 export function shuffleDeck(deck: Card[], seed: string): Card[] {
@@ -43,4 +48,21 @@ export function shuffleDeck(deck: Card[], seed: string): Card[] {
 
 export function drawThirteen(seed: string): Card[] {
   return shuffleDeck(createStandardDeck(), seed).slice(0, 13);
+}
+
+export function sortCards(cards: Card[], mode: CardSortMode): Card[] {
+  if (mode === "deal") return [...cards];
+  const suitOrder = new Map(SUITS.map((suit, index) => [suit, index]));
+  return cards
+    .map((card, index) => ({ card, index }))
+    .sort((left, right) => {
+      const rankDifference = rankValue(left.card.rank) - rankValue(right.card.rank);
+      const leftSuit = left.card.currentSuit ?? left.card.suit;
+      const rightSuit = right.card.currentSuit ?? right.card.suit;
+      const suitDifference = (suitOrder.get(leftSuit) ?? 0) - (suitOrder.get(rightSuit) ?? 0);
+      const primaryDifference = mode === "rank" ? rankDifference : suitDifference;
+      const secondaryDifference = mode === "rank" ? suitDifference : rankDifference;
+      return primaryDifference || secondaryDifference || left.index - right.index;
+    })
+    .map(({ card }) => card);
 }

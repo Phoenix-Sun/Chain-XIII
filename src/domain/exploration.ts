@@ -1,13 +1,18 @@
 import { SeededRandom } from "./random";
 
-export type ExplorationObjective = { kind: "sum-at-least"; value: number } | { kind: "pair" } | { kind: "straight" };
-export interface ExplorationRoll { values: number[]; total: number; success: boolean; }
+export interface ExplorationResult {
+  rolls: number[];
+  total: number;
+  hasPair: boolean;
+  success: boolean;
+}
 
-export function rollExploration(seed: string, objective: ExplorationObjective, diceCount = 3): ExplorationRoll {
-  if (!Number.isInteger(diceCount) || diceCount <= 0) throw new Error("骰子數量必須是正整數");
-  const random = new SeededRandom(seed);
-  const values = Array.from({ length: diceCount }, () => random.int(6) + 1);
-  const total = values.reduce((sum, value) => sum + value, 0);
-  const success = objective.kind === "sum-at-least" ? total >= objective.value : objective.kind === "pair" ? new Set(values).size < values.length : values.some((value, index) => values.includes(value + 1) && index < values.length - 1);
-  return { values, total, success };
+export function rollExploration(seed: string, eventId: string, attempt = 0): ExplorationResult {
+  const random = new SeededRandom(`exploration:${seed}:${eventId}:${attempt}`);
+  const rolls = Array.from({ length: 3 }, () => random.int(6) + 1);
+  const total = rolls.reduce((sum, roll) => sum + roll, 0);
+  const hasPair = new Set(rolls).size < rolls.length;
+  const eventNumber = Number(eventId.replace("event-", "")) || 1;
+  const success = eventNumber % 2 === 0 ? hasPair : total >= 9;
+  return { rolls, total, hasPair, success };
 }

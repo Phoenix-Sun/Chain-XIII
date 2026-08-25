@@ -41,14 +41,14 @@ export function buildSuitTemplate(equipped: EquippedGenes): TemplateSlot[] {
 }
 
 export function currentSuitOf(card: Card | TemplateCard): Suit {
-  return "currentSuit" in card ? card.currentSuit : card.suit;
+  return card.currentSuit ?? card.suit;
 }
 
 export function applySuitTemplate(cards: Card[], template: TemplateSlot[]): TemplateCard[] {
   if (cards.length !== 13 || template.length !== 13) throw new Error("花色模板與牌組都必須是 13 格");
   return cards.map((card, index) => ({
     ...card,
-    originalSuit: card.suit,
-    currentSuit: template[index]?.suit ?? card.suit,
+    originalSuit: card.originalSuit ?? card.suit,
+    currentSuit: template[index]?.suit ?? card.currentSuit ?? card.suit,
   }));
 }

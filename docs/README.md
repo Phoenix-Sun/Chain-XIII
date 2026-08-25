@@ -8,6 +8,8 @@
 - [PROGRESS.md](./PROGRESS.md)：目前階段、功能進度與下一步
 - [CHECKLIST.md](./CHECKLIST.md)：跨電腦開發、Git、CI/CD、Cloudflare 與 D1 檢核表
 - [DECISIONS.md](./DECISIONS.md)：架構與工具決策，避免不同電腦各自走不同方向
+- [STORY_AND_FLOW.md](./STORY_AND_FLOW.md)：白話世界觀、角色抽卡脈絡與手機流程基準
+- [BATTLE_UI_UX.md](./BATTLE_UI_UX.md)：13 張牌排序、多選與批次分墩的手機互動規格
 - [CLOUDFLARE_TOKEN.md](./CLOUDFLARE_TOKEN.md)：安全取得與設定 GitHub Actions token 的流程
 
 ## 使用規則

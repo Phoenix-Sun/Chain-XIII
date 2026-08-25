@@ -70,6 +70,9 @@
 .game-brand strong, .game-brand span, .date-panel strong, .resource strong { display: block; }
 .game-brand strong { color: #fff1bf; font-size: 0.7rem; line-height: 1; letter-spacing: 0.04em; }
 .game-brand div > span { display: none; color: #bda6c0; font-size: 0.5rem; }
+.screen-context { min-width: 0; padding-left: 7px; border-left: 2px solid #59435a; }
+.screen-context strong { display: block; overflow: hidden; color: #fff3c8; font-size: 0.64rem; text-overflow: ellipsis; white-space: nowrap; }
+.menu-button { min-width: 40px; min-height: 40px; border: 3px solid #503747; background: var(--gold); color: #392536; cursor: pointer; font: inherit; font-size: 1rem; font-weight: 900; box-shadow: inset -3px -3px #b6783f, 2px 2px #0c0910; }
 .date-panel { display: none; }
 .hud-label, .resource small { color: #b8a0b7; font-size: 0.5rem; font-weight: 700; }
 
@@ -192,6 +195,7 @@
 }
 .hotspot-jade .hotspot-cursor { background: #3f8267e8; }
 .hotspot-violet .hotspot-cursor { background: #765284e8; }
+.hotspot-gold .hotspot-cursor { background: #b6783f; }
 .hotspot-label {
   position: absolute;
   top: 39px;
@@ -296,6 +300,22 @@
 .game-screen .lab-card .validation.is-invalid { background: #4a2934; }
 .game-screen .lab-card .validation.is-valid { background: #28503d; }
 .game-screen .lab-card .primary-button { background: #e8b85c; }
+.gacha-view { max-width: 920px; margin: 0 auto; color: #382a39; }
+.gacha-intro { margin: 0 0 12px; color: #735b54; font-size: 0.7rem; line-height: 1.5; }
+.gacha-panel, .character-pool { margin-bottom: 12px; padding: 14px; border: 4px solid #493845; background: #edd29d; box-shadow: 4px 4px #49384566; }
+.gacha-panel { display: grid; gap: 10px; justify-items: center; text-align: center; }
+.gacha-result { min-height: 42px; display: grid; place-items: center; padding: 8px; color: #503747; font-size: 0.7rem; font-weight: 800; }
+.gacha-panel small { color: #8a4f4f; font-size: 0.62rem; }
+.account-collection { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; padding: 10px; border: 3px solid #80658a; background: #f6dfa8; color: #503747; font-size: 0.62rem; font-weight: 800; text-align: center; }
+.account-collection strong { color: #73516a; }
+@media (max-width: 480px) { .account-collection { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.character-pool h2 { margin: 0 0 10px; color: #382a39; font-size: 0.9rem; }
+.character-pool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.character-pool-card { display: grid; gap: 3px; padding: 9px; border: 2px solid #a78059; background: #d5b27b; color: #503747; }
+.character-pool-card.is-owned { border-color: #4f8a6a; background: #cfe0a6; }
+.character-pool-card strong { font-size: 0.65rem; }
+.character-pool-card span, .character-pool-card small { color: #735b54; font-size: 0.55rem; }
+.character-pool-card small { font-weight: 900; }
 
 @media (min-width: 700px) {
   .game-app { padding: 16px; }
@@ -323,6 +343,7 @@
   .game-nav-item small { display: block; }
   .nav-icon { width: 31px; height: 29px; }
   .system-card { flex-direction: row; justify-content: space-between; align-items: center; }
+  .character-pool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 370px) {

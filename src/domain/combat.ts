@@ -30,7 +30,12 @@ export interface BattleResult {
   outcome: "win" | "loss" | "draw";
 }
 
-export function compareLane(lane: CombatLane, player: CombatCard[], enemy: CombatCard[]): LaneResult {
+export interface BattleRules {
+  bossRuleId?: string;
+  frontBonus?: number;
+}
+
+export function compareLane(lane: CombatLane, player: CombatCard[], enemy: CombatCard[], rules: BattleRules = {}): LaneResult {
   const playerRank = evaluateHand(player);
   const enemyRank = evaluateHand(enemy);
   const playerElement = resolveLaneElement(player);
@@ -39,18 +44,22 @@ export function compareLane(lane: CombatLane, player: CombatCard[], enemy: Comba
   if (categoryDifference !== 0) {
     return { lane, winner: categoryDifference > 0 ? "player" : "enemy", playerRank, enemyRank, playerElement, enemyElement, reason: "hand-category" };
   }
-  if (beats(playerElement, enemyElement)) {
+  const playerCounterDisabled = rules.bossRuleId === "boss-neutralize-earth" && lane === "back" && enemyElement === "earth";
+  if (rules.bossRuleId === "boss-water-advantage" && lane === "front" && enemyElement === "water" && playerElement !== "water") {
+    return { lane, winner: "enemy", playerRank, enemyRank, playerElement, enemyElement, reason: "element-counter" };
+  }
+  if (!playerCounterDisabled && beats(playerElement, enemyElement)) {
     return { lane, winner: "player", playerRank, enemyRank, playerElement, enemyElement, reason: "element-counter" };
   }
   if (beats(enemyElement, playerElement)) {
     return { lane, winner: "enemy", playerRank, enemyRank, playerElement, enemyElement, reason: "element-counter" };
   }
-  const difference = compareHandRanks(playerRank, enemyRank);
+  const difference = compareHandRanks(playerRank, enemyRank) + (lane === "front" ? rules.frontBonus ?? 0 : 0);
   return { lane, winner: difference > 0 ? "player" : difference < 0 ? "enemy" : "tie", playerRank, enemyRank, playerElement, enemyElement, reason: "tiebreaker" };
 }
 
-export function resolveBattle(player: BattleLayout, enemy: BattleLayout): BattleResult {
-  const lanes = (["front", "middle", "back"] as CombatLane[]).map((lane) => compareLane(lane, player[lane], enemy[lane]));
+export function resolveBattle(player: BattleLayout, enemy: BattleLayout, rules: BattleRules = {}): BattleResult {
+  const lanes = (["front", "middle", "back"] as CombatLane[]).map((lane) => compareLane(lane, player[lane], enemy[lane], rules));
   const playerWins = lanes.filter((result) => result.winner === "player").length;
   const enemyWins = lanes.filter((result) => result.winner === "enemy").length;
   return { lanes, playerWins, enemyWins, outcome: playerWins > enemyWins ? "win" : enemyWins > playerWins ? "loss" : "draw" };

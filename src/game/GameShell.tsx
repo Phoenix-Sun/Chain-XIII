@@ -1,62 +1,99 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import type { GameSpeed, GameView, ResourceAmount } from "./types";
+import { useEffect, useState } from "react";
+import { createEmptyMeta, createSaveEnvelope, mergeRunIntoMeta } from "../domain/save";
+import type { RunState } from "../domain/run";
+import { loadFromIndexedDb, saveToIndexedDb } from "../services/persistence/indexedDb";
+import GeneWorkshopView from "./GeneWorkshopView";
+import GachaView from "./GachaView";
+import PartyView from "./PartyView";
+import RunSessionView from "./RunSessionView";
+import TownView from "./TownView";
+import type { GameView } from "./types";
 
-const VIEW_ITEMS: Array<{ id: GameView; label: string; icon: string; hint: string }> = [
-  { id: "town", label: "城鎮", icon: "城", hint: "領地設施" },
-  { id: "route", label: "遠征", icon: "路", hint: "選擇路線" },
-  { id: "battle", label: "對局", icon: "牌", hint: "十三支戰" },
-  { id: "workshop", label: "鍊成", icon: "鍊", hint: "花色基因" },
-  { id: "development", label: "記錄", icon: "卷", hint: "開發卷宗" },
+const VIEW_ITEMS: Array<{ id: Exclude<GameView, "party" | "battle">; label: string; icon: string; hint: string }> = [
+  { id: "town", label: "營地", icon: "營", hint: "目前位置" },
+  { id: "route", label: "路線", icon: "路", hint: "選擇下一站" },
+  { id: "workshop", label: "鍊成", icon: "鍊", hint: "改造花色" },
+  { id: "gacha", label: "抽卡", icon: "抽", hint: "取得角色" },
 ];
-const RESOURCES: ResourceAmount[] = [
-  { label: "金幣", value: "12,480", icon: "G", tone: "gold" },
-  { label: "聲望", value: "246", icon: "★", tone: "jade" },
-  { label: "靈玉", value: "38", icon: "◆", tone: "violet" },
-];
-const WEEK_LABELS = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 
-function formatDate(week: number): string {
-  const monthIndex = Math.floor((week - 1) / 4) % WEEK_LABELS.length;
-  return `第 ${Math.floor((week - 1) / 48) + 1} 年 ${WEEK_LABELS[monthIndex]} 第 ${((week - 1) % 4) + 1} 週`;
-}
+const VIEW_LABELS: Record<GameView, string> = { town: "遠征營地", party: "出戰隊伍", route: "遠征進行中", battle: "十三支戰鬥", workshop: "基因鏈鍊成", gacha: "角色抽卡" };
+const createRunSeed = () => `run-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
-function SpeedButton({ speed, onChange }: { speed: GameSpeed; onChange: (speed: GameSpeed) => void }) {
-  const nextSpeed: GameSpeed = speed === 0 ? 1 : speed === 1 ? 2 : 0;
-  return <button type="button" className="clock-button" onClick={() => onChange(nextSpeed)} aria-label="切換遊戲速度"><span aria-hidden="true">{speed === 0 ? "▶" : speed === 1 ? "▶▶" : "▶▶▶"}</span><small>{speed === 0 ? "暫停" : `${speed}x`}</small></button>;
-}
-
-export default function GameShell({ views }: { views: Record<GameView, ReactNode> }) {
+export default function GameShell({ initialSeed }: { initialSeed?: string } = {}) {
+  const persistenceSupported = typeof indexedDB !== "undefined";
   const [activeView, setActiveView] = useState<GameView>("town");
-  const [week, setWeek] = useState(1);
-  const [speed, setSpeed] = useState<GameSpeed>(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [meta, setMeta] = useState(() => createEmptyMeta());
+  const [activeRun, setActiveRun] = useState<RunState>();
+  const [hydrated, setHydrated] = useState(!persistenceSupported);
+  const [persistenceFailed, setPersistenceFailed] = useState(false);
+  const [partyCharacterIds, setPartyCharacterIds] = useState(() => meta.characters.map((character) => character.characterId));
+  const [nextRunSeed, setNextRunSeed] = useState(() => initialSeed ?? createRunSeed());
+  const [hasStartedRun, setHasStartedRun] = useState(false);
+  const ownedCharacterIds = meta.characters.map((character) => character.characterId);
 
   useEffect(() => {
-    if (speed === 0) return;
-    const interval = window.setInterval(() => setWeek((current) => current + 1), speed === 1 ? 4500 : 1800);
-    return () => window.clearInterval(interval);
-  }, [speed]);
+    if (!persistenceSupported) return;
+    loadFromIndexedDb("default")
+      .then((save) => {
+        if (!save) return;
+        setMeta(save.meta);
+        setActiveRun(save.activeRun);
+        if (save.activeRun) setActiveView("route");
+        setPartyCharacterIds(save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId));
+      })
+      .catch(() => setPersistenceFailed(true))
+      .finally(() => setHydrated(true));
+  }, [persistenceSupported]);
 
-  const dateLabel = useMemo(() => formatDate(week), [week]);
+  useEffect(() => {
+    if (!hydrated || persistenceFailed || !persistenceSupported) return;
+    saveToIndexedDb("default", createSaveEnvelope(meta, activeRun)).catch(() => undefined);
+  }, [activeRun, hydrated, meta, persistenceFailed, persistenceSupported]);
+
   function navigate(view: GameView) {
+    if (activeRun && view !== "route") return;
     setActiveView(view);
     setMenuOpen(false);
   }
 
+  function settleRun(run: RunState) {
+    setMeta((current) => mergeRunIntoMeta(current, run));
+    setActiveRun(undefined);
+    setNextRunSeed(createRunSeed());
+    setActiveView("town");
+  }
+
+  function confirmParty(characterIds: string[]) {
+    setPartyCharacterIds(characterIds);
+    if (hasStartedRun) setNextRunSeed(createRunSeed());
+    setHasStartedRun(true);
+  }
+
+  function renderView() {
+    if (activeView === "town") return <TownView crystals={meta.crystals} onNavigate={navigate} />;
+    if (activeView === "party") return <PartyView ownedCharacterIds={ownedCharacterIds} selectedCharacterIds={partyCharacterIds} onConfirm={confirmParty} onNavigate={navigate} meta={meta} onMetaChange={setMeta} />;
+    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} />;
+    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} />;
+    if (activeView === "gacha") return <GachaView meta={meta} onMetaChange={setMeta} onNavigate={navigate} />;
+    return <GeneWorkshopView initialInventory={meta.geneInventory} onInventoryChange={(geneInventory) => setMeta((current) => ({ ...current, geneInventory }))} onExit={() => setActiveView("town")} />;
+  }
+
+  if (!hydrated) return <main className="game-app"><div className="game-frame"><section className="game-screen" aria-label="讀取進度"><div className="loading-card" role="status">正在讀取本機進度…</div></section></div></main>;
+
   return <main className="game-app"><div className="game-frame">
     <header className="game-hud">
-      <div className="game-brand"><span className="brand-mark">XIII</span><div><strong>CHAIN XIII</strong><span>十三城演武錄</span></div></div>
-      <div className="date-panel" aria-live="polite"><span className="hud-label">演武曆</span><strong>{dateLabel}</strong></div>
-      <div className="resource-row" aria-label="資源">{RESOURCES.map((resource) => <div className={`resource resource-${resource.tone}`} key={resource.label}><span className="resource-icon" aria-hidden="true">{resource.icon}</span><span><small>{resource.label}</small><strong>{resource.value}</strong></span></div>)}</div>
-      <SpeedButton speed={speed} onChange={setSpeed} />
+      <div className="game-brand"><span className="brand-mark">XIII</span><div><strong>CHAIN XIII</strong><span>花色鍊成版</span></div></div>
+      <div className="screen-context" aria-live="polite"><span className="hud-label">現在</span><strong>{VIEW_LABELS[activeView]}</strong></div>
+      <button type="button" className="menu-button" onClick={() => setMenuOpen(true)} aria-label="開啟選單">≡</button>
     </header>
 
     <div className="game-viewport">
-      <div className="quest-ribbon"><span className="status-dot" />主線：完成初次分墩</div>
-      <section className={`game-screen game-screen-${activeView}`} aria-label="遊戲畫面">{views[activeView]}</section>
-      {menuOpen && <div className="system-overlay" role="dialog" aria-modal="true" aria-label="系統選單"><div className="system-window"><span className="pixel-kicker">SYSTEM</span><h2>遊戲暫停</h2><p>目前進度保存在本機。關閉選單即可繼續。</p><button type="button" className="pixel-button" onClick={() => setMenuOpen(false)}>返回遊戲</button></div></div>}
+      <div className="quest-ribbon"><span className="status-dot" />{persistenceFailed ? "本機存檔暫時不可用，本次進度只保留在目前頁面。" : "先選擇目前要處理的事情"}</div>
+      <section className={`game-screen game-screen-${activeView}`} aria-label="遊戲畫面">{renderView()}</section>
+      {menuOpen && <div className="system-overlay" role="dialog" aria-modal="true" aria-label="系統選單"><div className="system-window"><span className="pixel-kicker">SYSTEM</span><h2>遊戲暫停</h2><p>目前進度會自動保存到這台裝置，回到遊戲即可繼續遠征。</p><button type="button" className="pixel-button" onClick={() => setMenuOpen(false)}>返回遊戲</button></div></div>}
     </div>
 
-    <nav className="game-nav" aria-label="主要選單">{VIEW_ITEMS.map((item) => <button type="button" key={item.id} className={`game-nav-item${activeView === item.id ? " is-active" : ""}`} onClick={() => navigate(item.id)} aria-current={activeView === item.id ? "page" : undefined}><span className="nav-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span><small>{item.hint}</small></button>)}<button type="button" className="game-nav-item nav-menu" onClick={() => { setSpeed(0); setMenuOpen(true); }}><span className="nav-icon" aria-hidden="true">≡</span><span>選單</span><small>系統</small></button></nav>
+    <nav className="game-nav" aria-label="主要選單">{VIEW_ITEMS.filter((item) => activeRun ? item.id === "route" : true).map((item) => <button type="button" key={item.id} className={`game-nav-item${activeView === item.id ? " is-active" : ""}`} onClick={() => navigate(item.id)} aria-current={activeView === item.id ? "page" : undefined}><span className="nav-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span><small>{item.hint}</small></button>)}</nav>
   </div></main>;
 }

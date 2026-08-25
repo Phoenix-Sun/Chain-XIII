@@ -1,17 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { rollExploration } from "./exploration";
 
-describe("low-frequency exploration dice", () => {
-  it("replays deterministic dice and evaluates a threshold", () => {
-    const first = rollExploration("event-seed", { kind: "sum-at-least", value: 3 });
-    expect(first).toEqual(rollExploration("event-seed", { kind: "sum-at-least", value: 3 }));
-    expect(first.values).toHaveLength(3);
-    expect(first.success).toBe(true);
+describe("deterministic exploration", () => {
+  it("repeats the same dice result for the same event attempt", () => {
+    expect(rollExploration("run-seed", "event-1")).toEqual(rollExploration("run-seed", "event-1"));
   });
 
-  it("supports a compact pair objective", () => {
-    const result = rollExploration("pair-seed", { kind: "pair" }, 5);
-    expect(result.values).toHaveLength(5);
-    expect(typeof result.success).toBe("boolean");
+  it("evaluates sum and pair objectives", () => {
+    const sumResult = rollExploration("run-seed", "event-1");
+    const pairResult = rollExploration("run-seed", "event-2");
+    expect(sumResult.rolls).toHaveLength(3);
+    expect(sumResult.success).toBe(sumResult.total >= 9);
+    expect(pairResult.success).toBe(pairResult.hasPair);
   });
 });

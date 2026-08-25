@@ -1,18 +1,20 @@
 import { useState } from "react";
 import townScene from "../assets/pixel/chain-xiii-town.webp";
 import tacticianPortrait from "../assets/pixel/tactician-portrait.webp";
+import type { Navigate } from "./types";
 
 const BUILDINGS = [
-  { id: "dojo", name: "十三演武場", note: "配置十三張牌，挑戰三墩對局。", action: "前往對局", x: 25, y: 72, tone: "brick" },
-  { id: "forge", name: "花色鍊成屋", note: "接合怪物基因，改寫卡牌花色。", action: "開始鍊成", x: 67, y: 27, tone: "jade" },
-  { id: "archive", name: "戰譜藏書閣", note: "檢視戰績、規則與城鎮紀錄。", action: "翻閱戰譜", x: 68, y: 72, tone: "violet" },
+  { id: "party", name: "隊伍帳篷", note: "選擇這次遠征要出戰的角色。", action: "選擇隊伍", target: "party", x: 25, y: 72, tone: "brick" },
+  { id: "route", name: "路線桌", note: "查看下一個節點，決定要往哪裡走。", action: "查看路線", target: "route", x: 67, y: 27, tone: "jade" },
+  { id: "workshop", name: "鍊成篝火", note: "合成基因鏈，調整牌的花色。", action: "開始鍊成", target: "workshop", x: 68, y: 72, tone: "violet" },
+  { id: "gacha", name: "角色召集處", note: "用遠征取得的水晶抽取角色。", action: "前往抽卡", target: "gacha", x: 26, y: 27, tone: "gold" },
 ] as const;
 
 type BuildingId = (typeof BUILDINGS)[number]["id"];
 
-export default function TownView() {
-  const [selectedId, setSelectedId] = useState<BuildingId>("dojo");
-  const [message, setMessage] = useState("城主，今日的十三支演武已經準備好了。");
+export default function TownView({ crystals = 0, onNavigate }: { crystals?: number; onNavigate: Navigate }) {
+  const [selectedId, setSelectedId] = useState<BuildingId>("party");
+  const [message, setMessage] = useState("先選擇這次遠征要處理的事情。");
   const selected = BUILDINGS.find((building) => building.id === selectedId) ?? BUILDINGS[0];
 
   function selectBuilding(id: BuildingId) {
@@ -22,15 +24,15 @@ export default function TownView() {
   }
 
   function enterBuilding() {
-    setMessage(`${selected.name}已標記。請從下方指令列進入對應系統。`);
+    setMessage(`${selected.name}：${selected.note}`);
+    onNavigate(selected.target);
   }
 
   return <div className="town-view">
-    <section className="town-map" aria-label="十三城地圖">
-      <img className="town-scene" src={townScene} alt="十三城像素地圖，包含演武場、鍊成屋與藏書閣" />
+    <section className="town-map" aria-label="遠征營地">
+      <img className="town-scene" src={townScene} alt="遠征營地像素場景，包含隊伍帳篷、路線桌與鍊成篝火" />
       <div className="town-vignette" aria-hidden="true" />
-      <div className="location-plaque"><span>十三城</span><strong>初陣之地</strong><small>Lv.1</small></div>
-      <div className="town-stats" aria-label="城鎮狀態"><span>熱 <strong>72</strong></span><span>民 <strong>13</strong></span><span>勝 <strong>03</strong></span></div>
+      <div className="location-plaque"><span>遠征營地</span><strong>出發前整備</strong><small>目前 · 水晶 {crystals}</small></div>
       {BUILDINGS.map((building) => <button
         type="button"
         key={building.id}
@@ -51,7 +53,7 @@ export default function TownView() {
 
     <section className="dialog-box" aria-live="polite">
       <div className="portrait-frame"><img src={tacticianPortrait} alt="牌術師玄離" /></div>
-      <div className="dialog-copy"><span className="speaker-name">牌術師・玄離</span><p>{message}</p></div>
+      <div className="dialog-copy"><span className="speaker-name">遠征提示</span><p>{message}</p></div>
       <span className="dialog-next" aria-hidden="true">▼</span>
     </section>
   </div>;

@@ -1,6 +1,6 @@
 # 目前進度
 
-最後更新：2026-08-24
+最後更新：2026-08-25
 
 ## 工程與部署基礎
 
@@ -18,12 +18,12 @@
 |---|---|---|
 | P0 | 52 張牌、抽 13、牌型、元素、三墩比較 | ✅ 核心完成 | 玩家排牌、AI 敵方、逐墩結果已接通 |
 | P1 | 13 格花色模板與 current/original suit | ✅ 完成 | `template.ts` 與 13 格預覽 |
-| P2 | 基因鏈掉落、預覽、不可逆融合、3/5/5 裝備 | ✅ 第一 slice | `genes.ts` + 花色鍊成工房 |
-| P3 | 可操作單場戰鬥、角色能力、敵 AI | 🟡 戰鬥與 Effect 完成第一 slice | 敵 AI、勝負回饋、資料驅動 Effect lifecycle 已完成 |
-| P4 | Seed 地圖、節點、普通怪、Elite、Boss 路線 | 🟡 路線骨架完成 | Seed map 與前進 UI 已接；節點內容待接 |
-| P5 | Boss 規則、神器、探索事件 | 🟡 catalog + 骰子 foundation | 15 神器／12 事件資料與 deterministic D6 已建立 |
-| P6 | Meta、角色、升星、圖鑑與 MVP 內容 | 🟡 資料模型完成 | 9 角色與基本 catalog 已建立，Meta UI 待接 |
-| P7 | Save migration、錯誤紀錄、效能與 UX polish | 🟡 local-first foundation | versioned save envelope + IndexedDB adapter 已建立 |
+| P2 | 基因鏈掉落、預覽、不可逆融合、3/5/5 裝備 | ✅ Run 已接入第一 slice | 獎勵進入 Run 基因庫，鍊成與裝備會影響下一場牌局 |
+| P3 | 可操作單場戰鬥、角色能力、敵 AI | 🟡 戰鬥完成、角色技能待接 | 13 張批次分墩、敵 AI、三墩結果與節點回寫已接；角色 Effect 尚未成為戰鬥操作入口 |
+| P4 | Seed 地圖、節點、普通怪、Elite、Boss 路線 | ✅ Run 閉環完成第一版 | 路線、戰鬥／事件／獎勵、Boss、結算可走通 |
+| P5 | Boss 規則、神器、探索事件 | 🟡 Boss 第一規則已接 | Boss 模板與熔岩巨龜規則已進戰鬥；神器與探索骰 UI 尚未接入 Run |
+| P6 | Meta、角色、升星、圖鑑與 MVP 內容 | 🟡 基本 Meta 已接 | 水晶抽卡、角色收藏、重複轉印記已可用；升星、圖鑑、Skill Tree 尚未完成 |
+| P7 | Save migration、錯誤紀錄、效能與 UX polish | 🟡 local-first 可續玩 | Meta 與 active Run 已接 IndexedDB；尚未完成 migration chain、錯誤紀錄與手機實機驗證 |
 
 ## 已驗證能力
 
@@ -31,20 +31,28 @@
 2. 元素環、牌型優先序、敵 AI 合法分牌、基因鍊成與 3/5/5 裝備均由純函式測試覆蓋。
 3. P0 合法提交會呼叫 `resolveBattle`，以固定敵方 seed 產生逐墩牌型／元素／勝負結果。
 4. 角色能力已透過共用 `GameEffect` lifecycle 執行，效果只能在指定 phase 使用且同一 Run 不重複觸發。
-5. 探索骰支援 deterministic D6、總和門檻與相同點數目標。
+5. 探索骰 domain 支援 deterministic D6、總和門檻與相同點數目標，但尚未由 Run event phase 呼叫。
 6. 內容 validator 會檢查 ID、模板長度、掉落池、Boss 規則與鏈長。
-7. Mobile-first 像素遊戲殼層已接入：原創城鎮場景、設施熱點、固定 HUD、角色對話、底部拇指指令列與 safe-area RWD。
-8. 城鎮與 Seed 路線已拆成獨立畫面；手機導覽、系統選單與設施互動已有 UI 測試。
+7. Mobile-first 像素遊戲殼層已接入：原創營地場景、設施熱點、固定 HUD、短提示、底部拇指指令列與 safe-area RWD。
+8. 角色收藏與本次出戰隊伍已分離；新帳號有預設角色，每趟 Run 支援 1～3 名出戰角色。
+9. 營地熱點已導向隊伍／路線／鍊成；戰鬥從路線節點進入，不再放在常駐底部選單。
+10. 十三支戰鬥支援原始牌序／點數／花色再點數排序，並可一次選 3 張或 5 張批次分墩與退回。
+11. 戰鬥正式畫面已移除 seed 與實驗台語氣；手機操作規格記錄於 `docs/BATTLE_UI_UX.md`。
+12. `RunSessionView` 將路線、戰鬥、獎勵、結算拆成 phase；`runRewards.ts` 集中節點獎勵規則。
+13. 一趟 deterministic Run 已能從起點經過節點、領取水晶／基因鏈，走到 Boss 並完成結算；重整頁面可依 active Run 狀態恢復 route／battle／reward／settlement。
+14. 玩家基因鏈現在真正進入 Run inventory；可在節點間開啟鍊成，裝備模板會改變下一場牌的 currentSuit。
+15. 路線會顯示可達節點的怪物與可能掉落摘要；遠征中底部導覽鎖定，避免跳出 Run 造成狀態重置。
+16. 最小角色抽卡已接入：100 水晶抽 1 次，新角色加入收藏，重複角色轉為角色印記。
 
 ## Mobile Pixel Shell v1
 
-- ✅ mobile-first GameShell 與原創像素城鎮。
+- ✅ mobile-first GameShell 與原創像素遠征營地。
 - ✅ lossless WebP 素材與手機／平板／橫向 RWD。
-- ✅ 22 個 test files、48 個 tests。
+- ✅ 25 個 test files、68 個 tests。
 - ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
 ## 下一個自主目標
 
-1. 讓 Run 節點移動觸發戰鬥／事件／神器獎勵，並用 IndexedDB 保存當前 Run。
-2. 補 Boss 招牌規則與一次探索骰 UI，讓一個 Seed Run 可以走到結算。
-3. 建立最小 Meta Hub：開始 Run、角色選 3 人、結算水晶／圖鑑。
+1. 將神器與探索骰做成真正的 Run phase，完成事件獎勵選擇而不是自動領獎。
+2. 將角色 active Effect 接入戰前／戰鬥操作，讓不同隊伍產生不同解法而不只是人數文字。
+3. 補齊其餘 Boss 規則、圖鑑掉落解鎖、升星與 Permanent Skill Tree，再做內容量與勝率 simulation。

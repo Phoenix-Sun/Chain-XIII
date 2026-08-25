@@ -46,10 +46,15 @@ h3 { margin: 0; font-size: 0.95rem; }
 .notice { min-height: 46px; display: flex; align-items: center; margin-bottom: 16px; padding: 10px 12px; border-left: 3px solid #38bdf8; border-radius: 8px; background: #071523; color: #a9c0d9; font-size: 0.82rem; line-height: 1.45; }
 .hand-area { padding: 14px 0 16px; border-top: 1px solid #28415f; border-bottom: 1px solid #28415f; }
 .subsection-heading { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.sort-control { display: flex; gap: 5px; align-items: center; margin-bottom: 9px; overflow-x: auto; }
+.sort-control > span { flex: 0 0 auto; color: #88a0bc; font-size: 0.7rem; font-weight: 800; }
+.sort-control button { min-height: 34px; padding: 5px 8px; border: 2px solid #395572; border-radius: 8px; background: #0b1828; color: #a9c0d9; cursor: pointer; font-size: 0.7rem; font-weight: 800; white-space: nowrap; }
+.sort-control button.is-active { border-color: #facc15; background: #5b4620; color: #fff0a8; }
 .card-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
 .playing-card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; aspect-ratio: 0.71; padding: 5px 3px; border: 2px solid transparent; border-radius: 10px; background: #f4f7fb; color: #162238; box-shadow: 0 7px 14px #00000025; cursor: pointer; }
 .playing-card:hover { transform: translateY(-2px); }
 .playing-card.is-selected { border-color: #facc15; box-shadow: 0 0 0 3px #facc1544, 0 8px 16px #00000035; transform: translateY(-4px); }
+.selection-order { position: absolute; top: 3px; right: 3px; display: grid; width: 17px; height: 17px; place-items: center; border-radius: 50%; background: #facc15; color: #3d2b18; font-size: 0.62rem; font-weight: 900; }
 .playing-card-rank { font-size: clamp(1rem, 5vw, 1.55rem); font-weight: 900; line-height: 1; }
 .playing-card-suit { margin-top: 4px; font-size: clamp(0.95rem, 5vw, 1.5rem); line-height: 1; }
 .playing-card-name { margin-top: 4px; font-size: 0.58rem; font-weight: 800; }

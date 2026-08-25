@@ -1,0 +1,43 @@
+.run-session { max-width: 920px; margin: 0 auto; }
+.run-progress { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding: 10px 12px; border: 3px solid #493845; border-radius: 10px; background: #e8c88f; color: #503747; font-size: 0.72rem; font-weight: 800; box-shadow: 3px 3px #2d202b; }
+.run-progress strong { color: #2d754d; }
+.run-reward-card, .run-settlement-card { max-width: 600px; margin: 24px auto; padding: 24px 18px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
+.run-reward-card h1, .run-settlement-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
+.run-reward-card p, .run-settlement-card p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
+.reward-source { margin: 0 auto 16px; color: #80665c; font-size: 0.7rem; font-weight: 800; }
+.reward-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 16px 0 20px; }
+.reward-item { display: grid; gap: 4px; padding: 13px 8px; border: 3px solid #80658a; border-radius: 10px; background: #f6dfa8; }
+.reward-item strong { color: #2d754d; font-size: 1.05rem; }
+.reward-item span { color: #735b54; font-size: 0.7rem; font-weight: 800; }
+.reward-capacity, .reward-error { margin: 0 auto 12px; color: #735b54; font-size: 0.68rem; font-weight: 800; }
+.reward-capacity.is-full, .reward-error { color: #8a4f4f; }
+.reward-actions { display: grid; gap: 8px; justify-items: center; }
+.route-preview { display: grid; gap: 7px; margin: 12px 0; padding: 10px; border: 2px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; }
+.route-preview > strong { font-size: 0.7rem; }
+.route-preview-item { display: flex; justify-content: space-between; gap: 10px; padding-top: 6px; border-top: 1px solid #d0a878; font-size: 0.68rem; }
+.route-preview-item small { color: #735b54; text-align: right; }
+.battle-rule-callout { display: grid; gap: 3px; margin: 10px 0; padding: 10px 12px; border: 3px solid #b36c4e; border-radius: 9px; background: #ffe1aa; color: #603c36; font-size: 0.7rem; line-height: 1.5; }
+.battle-rule-callout strong { color: #9b4e36; }
+.title-actions { display: flex; align-items: center; gap: 8px; }
+.settlement-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 18px 0 22px; }
+.settlement-stats div { display: grid; gap: 3px; padding: 10px 4px; border-radius: 8px; background: #f6dfa8; }
+.settlement-stats strong { color: #2d754d; font-size: 1.15rem; }
+.settlement-stats span { color: #735b54; font-size: 0.6rem; font-weight: 800; }
+.run-settlement-card.is-lost { border-color: #8a4f4f; }
+@media (max-width: 480px) { .route-preview-item { display: grid; gap: 3px; } .route-preview-item small { text-align: left; } }
+@media (min-width: 700px) { .run-progress { margin-bottom: 14px; } .run-reward-card, .run-settlement-card { padding: 32px; } }
+.exploration-card { max-width: 620px; margin: 24px auto; padding: 22px 16px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
+.exploration-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
+.exploration-card > p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
+.exploration-objective { display: grid; gap: 4px; margin: 14px 0; padding: 12px; border: 3px solid #80658a; border-radius: 10px; background: #f6dfa8; }
+.exploration-objective strong { color: #80658a; font-size: 0.68rem; }
+.exploration-objective span { color: #503747; font-size: 0.84rem; font-weight: 800; }
+.exploration-roll { display: grid; gap: 5px; margin: 14px 0; padding: 15px 10px; border: 3px solid #80658a; border-radius: 10px; background: #fff0bf; }
+.exploration-roll.is-success { border-color: #2d754d; }
+.exploration-roll.is-failed { border-color: #8a4f4f; }
+.exploration-roll strong { font-size: 1.5rem; letter-spacing: 0.16em; }
+.exploration-roll span, .exploration-roll small { color: #735b54; font-size: 0.7rem; font-weight: 800; }
+.battle-abilities { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+.ability-button { min-height: 38px; padding: 7px 10px; border: 2px solid #80658a; border-radius: 8px; background: #f6dfa8; color: #503747; font-size: 0.68rem; font-weight: 800; }
+.ability-button:disabled { opacity: 0.5; }
+.enemy-preview { margin: 10px 0; padding: 10px; border: 2px dashed #80658a; border-radius: 8px; background: #fff0bf; color: #503747; font-size: 0.68rem; line-height: 1.5; }

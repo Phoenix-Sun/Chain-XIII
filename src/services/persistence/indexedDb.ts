@@ -31,13 +31,21 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-export async function saveToIndexedDb(slotId: string, save: SaveEnvelope): Promise<void> {
+async function writeToIndexedDb(slotId: string, save: SaveEnvelope): Promise<void> {
   const database = await openDatabase();
   try {
     const transaction = database.transaction(STORE_NAME, "readwrite");
     transaction.objectStore(STORE_NAME).put(serializeSave(save), slotId);
     await transactionComplete(transaction);
   } finally { database.close(); }
+}
+
+let saveQueue: Promise<void> = Promise.resolve();
+
+export function saveToIndexedDb(slotId: string, save: SaveEnvelope): Promise<void> {
+  const next = saveQueue.then(() => writeToIndexedDb(slotId, save));
+  saveQueue = next.catch(() => undefined);
+  return next;
 }
 
 export async function loadFromIndexedDb(slotId: string): Promise<SaveEnvelope | null> {
