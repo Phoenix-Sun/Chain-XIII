@@ -33,13 +33,13 @@ describe("RunSessionView", () => {
     };
 
     render(<RunSessionView initialRun={initialRun} />);
-    fireEvent.click(screen.getByRole("button", { name: "事件" }));
+    fireEvent.click(screen.getByRole("button", { name: /^事件・第 2 層/ }));
     expect(screen.getByRole("heading", { name: "路線事件" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
     expect(screen.getByRole("button", { name: "領取獎勵" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
-    fireEvent.click(screen.getByRole("button", { name: "Boss" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Boss・第 3 層/ }));
     expect(screen.getByText(/Boss.*排好 13 張牌/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "排好這副牌" })).toBeInTheDocument();
   });

@@ -10,4 +10,11 @@ describe("RunRouteView", () => {
     fireEvent.click(reachable[0]);
     expect(screen.getByText(/下一步：/)).toBeInTheDocument();
   });
+
+  it("gives each reachable node a location so same-type choices are distinguishable", () => {
+    render(<RunRouteView />);
+    const reachable = screen.getAllByRole("button", { name: /第 2 層・第/ }).filter((button) => !button.hasAttribute("disabled"));
+    expect(reachable.length).toBeGreaterThan(0);
+    expect(reachable[0]).toHaveAccessibleName(/第 2 層・第 1 格|第 2 層・第 2 格|第 2 層・第 3 格/);
+  });
 });

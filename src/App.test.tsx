@@ -25,7 +25,7 @@ describe("Chain XIII game shell", () => {
     expect(screen.getByRole("heading", { name: "花色鍊成工房" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "回到路線" }));
 
-    const nextBattle = screen.getAllByRole("button", { name: "戰鬥" }).find((button) => !button.hasAttribute("disabled"));
+    const nextBattle = screen.getAllByRole("button", { name: /^戰鬥・第 2 層/ }).find((button) => !button.hasAttribute("disabled"));
     expect(nextBattle).toBeDefined();
     fireEvent.click(nextBattle!);
     expect(screen.getByRole("heading", { name: "排好這副牌" })).toBeInTheDocument();
