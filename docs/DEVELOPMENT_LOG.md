@@ -97,3 +97,12 @@
 ### 審閱結論
 
 - 角色 active Effect、神器、探索骰 UI、其餘 Boss 規則、怪物圖鑑、升星與 Permanent Skill Tree 仍未視為完成；catalog 或 domain foundation 不再等同於玩家可用功能。
+
+## 2026-08-25
+
+### Agent Sprite Forge 資產流程參考
+
+- 讀取 `0x0funky/agent-sprite-forge` 的繁中 README，將其可重現資產流程納入 Chain XIII 開發參考。
+- 採用 asset contract、可重用 sprite bundle、raw → cleanup → frame → metadata → QA 的思路，以及 base／props／placement／zones 的分層地圖概念。
+- 依 Chain XIII 的 Web 架構排除直接採用 Godot／Unity scene handoff；`$video2dsprite` 因依賴 Grok Build 的 `image_to_video`，目前不列為可用工具。
+- 新增 `docs/ASSET_PIPELINE_REFERENCE.md`，記錄適用範圍、資產優先順序、授權與安全邊界。

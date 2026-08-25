@@ -51,6 +51,12 @@
 - ✅ 25 個 test files、68 個 tests。
 - ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
+## 資產流程參考
+
+- ✅ 已納入 `docs/ASSET_PIPELINE_REFERENCE.md`，參考 Agent Sprite Forge 的 asset contract、可重用 bundle、deterministic cleanup、分層地圖與 QA metadata 方法。
+- 🟡 目前仍使用營地與角色 WebP baked assets；角色／怪物／技能／遺物 bundle 尚未逐項建立。
+- ⚠️ 不把 Godot／Unity scene handoff 或 Grok 專用 `$video2dsprite` 視為 Chain XIII 目前可用功能。
+
 ## 下一個自主目標
 
 1. 將神器與探索骰做成真正的 Run phase，完成事件獎勵選擇而不是自動領獎。
