@@ -26,4 +26,12 @@ describe("ExplorationView", () => {
     expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-trade"] }));
     expect(screen.getByRole("button", { name: "擲出 3 顆骰子" })).toBeInTheDocument();
   });
+
+  it("shows a distinct straight objective and result signal", () => {
+    render(<ExplorationView node={{ id: "event", row: 1, column: 0, type: "event", eventId: "event-3", nextNodeIds: [] }} seed="exploration-straight" onResolved={vi.fn()} />);
+
+    expect(screen.getByText("擲出一組連續點數")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
+    expect(screen.getByRole("status")).toHaveTextContent(/連續點數|非連續點數/);
+  });
 });

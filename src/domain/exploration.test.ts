@@ -13,4 +13,13 @@ describe("deterministic exploration", () => {
     expect(sumResult.success).toBe(sumResult.total >= 9);
     expect(pairResult.success).toBe(pairResult.hasPair);
   });
+
+  it("evaluates straight objectives for every third event", () => {
+    const straightResult = rollExploration("run-seed", "event-3");
+    const sorted = [...straightResult.rolls].sort((left, right) => left - right);
+    const isStraight = sorted[1] === sorted[0] + 1 && sorted[2] === sorted[1] + 1;
+
+    expect(straightResult.isStraight).toBe(isStraight);
+    expect(straightResult.success).toBe(isStraight);
+  });
 });

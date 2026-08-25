@@ -21,7 +21,7 @@
 | P2 | 基因鏈掉落、預覽、不可逆融合、3/5/5 裝備 | ✅ Run 已接入第一 slice | 獎勵進入 Run 基因庫，鍊成與裝備會影響下一場牌局 |
 | P3 | 可操作單場戰鬥、角色能力、敵 AI | 🟡 戰鬥完成、角色技能第一批接入 | 13 張批次分墩、敵 AI、三墩結果與節點回寫已接；水紋、風之預視、火花、四象、潮汐流轉、風行商人、石碑揭示與鍛造師保留素材已有 Run 內操作入口；其餘角色 Effect 待接 |
 | P4 | Seed 地圖、節點、普通怪、Elite、Boss 路線 | ✅ Run 閉環完成第一版 | 路線、戰鬥／事件／獎勵、Boss、結算可走通 |
-| P5 | Boss 規則、神器、探索事件 | 🟡 第一版已接入 | Boss 模板與三種規則已進戰鬥；事件骰會進入 Run phase，成功事件可在基因鏈／遺物間擇一，遺物會轉成三墩平手加成；其餘事件分歧與 Boss 內容待擴充 |
+| P5 | Boss 規則、神器、探索事件 | 🟡 第一版已接入 | Boss 模板與三種規則已進戰鬥；事件骰會進入 Run phase，成功事件可在基因鏈／遺物間擇一，事件現在有總和／對子／順子三種目標，遺物會轉成三墩平手加成；其餘事件分歧與 Boss 內容待擴充 |
 | P6 | Meta、角色、升星、圖鑑與 MVP 內容 | 🟡 基本 Meta 已接 | 水晶抽卡、角色收藏、重複轉印記已可用；升星、圖鑑、Skill Tree 尚未完成 |
 | P7 | Save migration、錯誤紀錄、效能與 UX polish | 🟡 local-first 可續玩 | Meta 與 active Run 已接 IndexedDB；尚未完成 migration chain、錯誤紀錄與手機實機驗證 |
 
@@ -63,7 +63,7 @@
 
 - ✅ mobile-first GameShell 與原創像素遠征營地。
 - ✅ lossless WebP 素材與手機／平板／橫向 RWD。
-- ✅ 30 個 test files、108 個 tests。
+- ✅ 30 個 test files、110 個 tests。
 - ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
 ## 資產流程參考
@@ -74,6 +74,6 @@
 
 ## 下一個人工審閱目標
 
-1. 擴充神器與探索骰的內容分歧，讓不同事件目標與更多角色 Effect 影響事件結果。
+1. 擴充神器與探索骰的內容分歧，讓更多事件目標與角色 Effect 影響事件結果。
 2. 補齊其餘 Boss 規則、圖鑑掉落解鎖、升星與 Permanent Skill Tree，再做內容量與勝率 simulation。
 3. 完成 390×844 真實 screenshot QA；目前仍受獨立瀏覽器 remote-debugging permission blocker 限制。

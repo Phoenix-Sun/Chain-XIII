@@ -1,6 +1,7 @@
 import type { Suit } from "../domain/cards";
 import type { GeneFactor, GeneChain } from "../domain/template";
 import type { CharacterDefinition, ContentCatalog, ExplorationEventDefinition, MonsterDefinition, RelicDefinition } from "./types";
+import { objectiveForEvent, objectiveLabel } from "../domain/exploration";
 
 const SUITS: Suit[] = ["water", "fire", "wind", "earth"];
 const factor = (index: number): GeneFactor => ({ suit: SUITS[index % SUITS.length], tier: (index % 3) + 1 as 1 | 2 | 3 });
@@ -27,5 +28,8 @@ export const monsters: MonsterDefinition[] = [
 ];
 const RELIC_NAMES = ["赤曜前鋒", "雙月中堅", "沉星尾墩", "三相羅盤", "王冠火炬", "深潮印記", "裂地長釘", "四象核心", "晨星徽章", "暮色徽章", "交界護符", "天穹王座", "赤王之眼", "潮汐王冠", "大地脈輪"];
 export const relics: RelicDefinition[] = Array.from({ length: 15 }, (_, index) => ({ id: `relic-${index + 1}`, rarity: index < 8 ? "common" : index < 13 ? "rare" : "legendary", passiveEffectIds: [`relic-effect-${index + 1}`], name: RELIC_NAMES[index] }));
-export const events: ExplorationEventDefinition[] = Array.from({ length: 12 }, (_, index) => ({ id: `event-${index + 1}`, name: `城外傳聞 ${index + 1}`, content: "骰子在石桌上滾動，新的路線露出一角。", objective: index % 2 === 0 ? "總和達到 9" : "配置一組相同點數", rewardIds: [geneChains[index % geneChains.length].id, relics[index % relics.length].id] }));
+export const events: ExplorationEventDefinition[] = Array.from({ length: 12 }, (_, index) => {
+  const objective = objectiveForEvent(`event-${index + 1}`);
+  return { id: `event-${index + 1}`, name: `城外傳聞 ${index + 1}`, content: objective === "straight" ? "三顆骰子在石桌上排成一線，遠處的路標逐一亮起。" : "骰子在石桌上滾動，新的路線露出一角。", objective: objectiveLabel(objective), rewardIds: [geneChains[index % geneChains.length].id, relics[index % relics.length].id] };
+});
 export const catalog: ContentCatalog = { characters, monsters, geneChains, relics, events };

@@ -154,3 +154,16 @@
 - GREEN：targeted Vitest 2 個 test files、13 個 tests 通過；`npm run typecheck` 通過。
 - 完整 `npm run check`：30 個 test files、108 個 tests 通過，production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：探索骰新增順子事件目標
+
+- 將探索事件目標由總和／相同點數擴充為總和、對子、順子三種，事件 3／6／9／12 使用連續點數目標。
+- `rollExploration` 現在回傳 `isStraight`，以排序後的三顆 D6 判定連續點數，並與事件目標共用 deterministic objective mapping。
+- 事件卡與事件結果同時顯示「擲出一組連續點數」及「連續／非連續點數」，讓玩家能理解成功條件與結果，而不是只看到泛用骰子提示。
+
+### 驗證
+
+- RED：新增 event-3 順子測試後，原實作 1 個測試失敗。
+- GREEN：targeted Vitest 2 個 test files、6 個 tests 通過。
+- 完整 `npm run check`：30 個 test files、110 個 tests 通過，production build 通過。
+- `git diff --check`：通過。
