@@ -180,3 +180,17 @@
 - GREEN：targeted Vitest 3 個 test files、20 個 tests 通過；PartyView skill purchase regression 通過。
 - 完整 `npm run check`：31 個 test files、114 個 tests 通過，production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：遠征圖鑑接入收藏與目標回顧
+
+- 新增 `CodexView`，把原本只存在 Meta 的 `unlockedMonsterCodexIds` 與 `relicIds` 變成玩家可進入的遠征圖鑑。
+- 怪物條目依實際遭遇狀態顯示；已發現內容會揭示普通怪物／強敵／Boss 及 Boss 規則，未遭遇條目維持「未知遭遇」，避免把 catalog 當成玩家已知情報。
+- 遺物收藏獨立顯示已帶回的名稱與稀有度，讓 Run 結算後的長期收集有可回看的目的；新增主導覽「圖鑑」入口與遠征圖鑑 ribbon。
+- 新增 CodexView 回歸測試，驗證已發現怪物、Boss 規則、未知遮蔽及遺物收藏計數。
+
+### 驗證
+
+- RED：CodexView 測試先因模組不存在而失敗。
+- GREEN：targeted Vitest `src/game/CodexView.test.tsx`：2 個 tests 通過。
+- 完整 `npm run check`：32 個 test files、116 個 tests 通過，production build 通過。
+- `git diff --check`：通過。

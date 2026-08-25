@@ -22,7 +22,7 @@
 | P3 | 可操作單場戰鬥、角色能力、敵 AI | 🟡 戰鬥完成、角色技能第一批接入 | 13 張批次分墩、敵 AI、三墩結果與節點回寫已接；水紋、風之預視、火花、四象、潮汐流轉、風行商人、石碑揭示與鍛造師保留素材已有 Run 內操作入口；其餘角色 Effect 待接 |
 | P4 | Seed 地圖、節點、普通怪、Elite、Boss 路線 | ✅ Run 閉環完成第一版 | 路線、戰鬥／事件／獎勵、Boss、結算可走通 |
 | P5 | Boss 規則、神器、探索事件 | 🟡 第一版已接入 | Boss 模板與三種規則已進戰鬥；事件骰會進入 Run phase，成功事件可在基因鏈／遺物間擇一，事件現在有總和／對子／順子三種目標，遺物會轉成三墩平手加成；其餘事件分歧與 Boss 內容待擴充 |
-| P6 | Meta、角色、升星、圖鑑與 MVP 內容 | 🟡 基本 Meta、升星與永久技能樹已接 | 水晶抽卡、角色收藏、重複轉印記、角色升星、3 個永久技能節點均可用；圖鑑畫面與更多 Skill Tree 節點尚未完成 |
+| P6 | Meta、角色、升星、圖鑑與 MVP 內容 | 🟡 基本 Meta、升星、永久技能樹與圖鑑已接 | 水晶抽卡、角色收藏、重複轉印記、角色升星、3 個永久技能節點與遠征圖鑑均可用；更多 Skill Tree 節點與圖鑑深度仍待擴充 |
 | P7 | Save migration、錯誤紀錄、效能與 UX polish | 🟡 local-first 可續玩 | Meta 與 active Run 已接 IndexedDB；尚未完成 migration chain、錯誤紀錄與手機實機驗證 |
 
 ## 已驗證能力
@@ -49,6 +49,7 @@
 - ✅ 石碑揭示已接入路線 phase，可由石碑製圖師查看下一層節點類型，並透過 `discoveredRunFlags` 持久化一次性使用狀態。
 - ✅ 鍛造師已接入鍊成 phase；啟用後下一次確認融合會保留左鏈素材，讓能力產生可驗證的 Run 內資源差異。
 - ✅ 永久技能樹已接入隊伍整備：擴充基因袋、開局演練、路線網絡可消耗水晶解鎖；技能節點會持久化到 Meta，並在新 Run 實際改變基因容量、頭墩比較或起始水晶。
+- ✅ 遠征圖鑑已接入主導覽：依 Meta 顯示已遭遇怪物、Boss 規則與永久遺物收藏；未知條目保持遮蔽，不把尚未取得的內容誤當成已解鎖。
 
 ## 遊戲化 UI system pass
 
@@ -64,7 +65,7 @@
 
 - ✅ mobile-first GameShell 與原創像素遠征營地。
 - ✅ lossless WebP 素材與手機／平板／橫向 RWD。
-- ✅ 31 個 test files、114 個 tests。
+- ✅ 32 個 test files、116 個 tests。
 - ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
 ## 資產流程參考
@@ -76,5 +77,5 @@
 ## 下一個人工審閱目標
 
 1. 擴充神器與探索骰的內容分歧，讓更多事件目標與角色 Effect 影響事件結果。
-2. 補齊其餘 Boss 規則、圖鑑掉落解鎖、升星與 Permanent Skill Tree，再做內容量與勝率 simulation。
+2. 補齊其餘 Boss 規則、圖鑑詳情、升星與 Permanent Skill Tree，再做內容量與勝率 simulation。
 3. 完成 390×844 真實 screenshot QA；目前仍受獨立瀏覽器 remote-debugging permission blocker 限制。
