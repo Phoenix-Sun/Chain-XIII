@@ -5,6 +5,8 @@ import { resolveBattle, type BattleResult } from "../../domain/combat";
 import type { Lanes } from "../../domain/layout";
 import type { RunMapNode } from "../../domain/map";
 import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes } from "../../domain/template";
+import { executeEffect } from "../../domain/effects";
+import type { RunState } from "../../domain/run";
 import { catalog } from "../../content/catalog";
 import { monsterDisplayName } from "../../content/display";
 import P0BattleLab from "./P0BattleLab";
@@ -22,7 +24,7 @@ function BattleResultPanel({ result, onContinue, onRetry, canRetry }: { result: 
   return <section className="battle-result-card" aria-live="polite"><div className="battle-result-heading"><div><span className="pixel-kicker">BATTLE RESULT</span><h2>{result.outcome === "win" ? "這場對局勝出" : result.outcome === "loss" ? "這場對局落敗" : "三墩平手"}</h2></div><strong className={`battle-score score-${result.outcome}`}>{result.playerWins} : {result.enemyWins}</strong></div><div className="lane-result-list">{result.lanes.map((lane) => <div className="lane-result" key={lane.lane}><span>{lane.lane === "front" ? "頭墩" : lane.lane === "middle" ? "中墩" : "尾墩"}</span><strong className={`winner-${lane.winner}`}>{lane.winner === "player" ? "我方勝" : lane.winner === "enemy" ? "敵方勝" : "平手"}</strong><small>{lane.playerRank.label} vs {lane.enemyRank.label} · {lane.playerElement ? ELEMENT_LABELS[lane.playerElement] : "無"} / {lane.enemyElement ? ELEMENT_LABELS[lane.enemyElement] : "無"}</small></div>)}</div>{canRetry && onRetry && <button type="button" className="secondary-button" onClick={onRetry}>使用岩甲守護・重新排牌</button>}{onContinue && <button type="button" className="primary-button" onClick={onContinue}>{result.outcome === "win" ? "領取獎勵" : "結束這趟遠征"}</button>}</section>;
 }
 
-export default function BattleArenaView({ partyCharacterIds = ["water-scout"], node, battleSeed = "CHAIN-XIII-P0-001", equippedGenes = {}, relicIds = [], onBattleComplete }: { partyCharacterIds?: string[]; node?: RunMapNode; battleSeed?: string; equippedGenes?: EquippedGenes; relicIds?: string[]; onBattleComplete?: (result: BattleResult) => void }) {
+export default function BattleArenaView({ partyCharacterIds = ["water-scout"], node, battleSeed = "CHAIN-XIII-P0-001", equippedGenes = {}, relicIds = [], run, onRunUpdated, onBattleComplete }: { partyCharacterIds?: string[]; node?: RunMapNode; battleSeed?: string; equippedGenes?: EquippedGenes; relicIds?: string[]; run?: RunState; onRunUpdated?: (run: RunState) => void; onBattleComplete?: (result: BattleResult) => void }) {
   const [result, setResult] = useState<BattleResult | null>(null);
   const [drawAttempt, setDrawAttempt] = useState(0);
   const [usedAbilities, setUsedAbilities] = useState<string[]>([]);
@@ -43,8 +45,17 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     const enemy = arrangeEnemyHand(enemyCards);
     setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId }));
   }
+  function applyBattleEffect(abilityId: string): boolean {
+    if (!run) return true;
+    const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === abilityId) ?? abilityId;
+    const effectResult = executeEffect(abilityId, { phase: "battle-ready", run, sourceId });
+    if (!effectResult.applied) return false;
+    onRunUpdated?.(effectResult.run);
+    return true;
+  }
   function useAbility(abilityId: string) {
-    if (usedAbilities.includes(abilityId)) return;
+    if (usedAbilities.includes(abilityId) || run?.discoveredRunFlags.includes(`effect:${abilityId}`)) return;
+    if (!applyBattleEffect(abilityId)) return;
     setUsedAbilities((current) => [...current, abilityId]);
     if (abilityId === "ability-ripple") { setResult(null); setDrawAttempt((current) => current + 1); }
     if (abilityId === "ability-sight") setShowEnemy(true);
@@ -52,6 +63,12 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     if (abilityId === "ability-spark") setFrontBonus(1);
   }
   function retryWithShell() {
+    if (run) {
+      const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-shell") ?? "ability-shell";
+      const effectResult = executeEffect("ability-shell", { phase: "battle-resolved", run, sourceId });
+      if (!effectResult.applied) return;
+      onRunUpdated?.(effectResult.run);
+    }
     setUsedAbilities((current) => [...current, "ability-shell"]);
     setResult(null);
     setDrawAttempt((current) => current + 1);
@@ -59,5 +76,5 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
   const nodeLabel = node?.type === "boss" ? "Boss" : node?.type === "elite" ? "強敵" : "怪物";
   const bossRule = monster?.bossRuleId ? BOSS_RULE_LABELS[monster.bossRuleId] : undefined;
   const abilityLabels: Record<string, string> = { "ability-ripple": "水紋回響・重抽", "ability-sight": "風之預視・看敵牌", "ability-harmony": "四象協調・看提示", "ability-spark": "火花決鬥・頭墩加成" };
-  return <div className="battle-arena"><div className="battle-context"><span>{nodeLabel}{monster ? `：${monsterDisplayName(monster)}` : ""}・排好 13 張牌</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>{bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}{relicFrontBonus > 0 && <p className="battle-rule-callout"><strong>遺物效果</strong>古代神器 1：頭墩同牌型比較獲得 +1。</p>}<div className="battle-abilities" aria-label="本場可用技能">{activeAbilityIds.filter((abilityId) => abilityLabels[abilityId]).map((abilityId) => <button type="button" key={abilityId} className="ability-button" disabled={usedAbilities.includes(abilityId) || Boolean(result)} onClick={() => useAbility(abilityId)}>{abilityLabels[abilityId]}{usedAbilities.includes(abilityId) ? "・已用" : ""}</button>)}</div>{showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}{showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}{!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} onLayoutConfirmed={(layout) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus: frontBonus + relicFrontBonus })); }} />}<BattleResultPanel result={result} canRetry={Boolean(result?.outcome === "loss" && activeAbilityIds.includes("ability-shell") && !usedAbilities.includes("ability-shell"))} onRetry={retryWithShell} onContinue={result && onBattleComplete ? () => onBattleComplete(result) : undefined} /></div>;
+  return <div className="battle-arena"><div className="battle-context"><span>{nodeLabel}{monster ? `：${monsterDisplayName(monster)}` : ""}・排好 13 張牌</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>{bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}{relicFrontBonus > 0 && <p className="battle-rule-callout"><strong>遺物效果</strong>古代神器 1：頭墩同牌型比較獲得 +1。</p>}<div className="battle-abilities" aria-label="本場可用技能">{activeAbilityIds.filter((abilityId) => abilityLabels[abilityId]).map((abilityId) => { const abilityUsed = usedAbilities.includes(abilityId) || Boolean(run?.discoveredRunFlags.includes(`effect:${abilityId}`)); return <button type="button" key={abilityId} className="ability-button" disabled={abilityUsed || Boolean(result)} onClick={() => useAbility(abilityId)}>{abilityLabels[abilityId]}{abilityUsed ? "・已用" : ""}</button>; })}</div>{showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}{showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}{!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} onLayoutConfirmed={(layout) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus: frontBonus + relicFrontBonus })); }} />}<BattleResultPanel result={result} canRetry={Boolean(result?.outcome === "loss" && activeAbilityIds.includes("ability-shell") && !usedAbilities.includes("ability-shell") && !run?.discoveredRunFlags.includes("effect:ability-shell"))} onRetry={retryWithShell} onContinue={result && onBattleComplete ? () => onBattleComplete(result) : undefined} /></div>;
 }

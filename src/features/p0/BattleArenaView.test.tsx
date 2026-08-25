@@ -4,6 +4,7 @@ import { arrangeEnemyHand } from "../../domain/ai";
 import { drawThirteen, rankLabel, SUIT_LABELS, type Card } from "../../domain/cards";
 import { resolveBattle } from "../../domain/combat";
 import { validateLayout, type Lanes } from "../../domain/layout";
+import { createRunState } from "../../domain/run";
 import BattleArenaView from "./BattleArenaView";
 
 function combinations<T>(items: T[], choose: number): T[][] {
@@ -64,5 +65,15 @@ describe("BattleArenaView", () => {
     expect(screen.getByRole("heading", { name: "這場對局勝出" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
     expect(onBattleComplete).toHaveBeenCalledWith(expect.objectContaining({ outcome: "win" }));
+  });
+
+  it("records a one-shot battle ability on the active run", () => {
+    const run = createRunState("ability-run", ["wind-oracle"]);
+    const onRunUpdated = vi.fn();
+    render(<BattleArenaView partyCharacterIds={["wind-oracle"]} run={run} onRunUpdated={onRunUpdated} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "風之預視・看敵牌" }));
+
+    expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-sight"] }));
   });
 });
