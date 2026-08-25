@@ -113,5 +113,6 @@
 - 將戰鬥外層由 P0 實驗台重組為敵方資訊、敵方意圖、本回合目標與十三支牌桌；3/5/5、active effect、Boss rule 與持久化邏輯維持原路徑。
 - 將營地入口重組為 RUN PREP 場景與單一「下一步／指揮台」；將隊伍入口重組為出戰隊列、待命槽與角色名冊。
 - GameShell ribbon 依目前畫面提供場景目標，避免每個畫面只顯示泛用的「選擇目前要處理的事情」。
+- RunSessionView 會將 route／battle／exploration／reward／workshop／settlement phase 回報給 GameShell，共用 HUD 會同步顯示正確的下一步。
 - Hermes preview 實際驗證營地 → 隊伍 → 遠征地圖 → 遺物 → 領取獎勵；完整品質閘門為 29 test files、97 tests、typecheck、build 通過。
 - 390×844 的獨立瀏覽器截圖仍受 remote-debugging permission blocker 限制，未將該部分宣稱完成。

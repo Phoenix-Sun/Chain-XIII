@@ -40,7 +40,7 @@ function partySummary(characterIds: string[]): string {
   return characterIds.map((id) => catalog.characters.find((character) => character.id === id)?.id.replaceAll("-", " ") ?? id).join("、");
 }
 
-export default function RunSessionView({ partyCharacterIds = ["water-scout"], seed = "CHAIN-XIII-RUN-001", initialRun, initialGeneInventory = [], onNavigate, onRunUpdated, onRunSettled }: { partyCharacterIds?: string[]; seed?: string; initialRun?: RunState; initialGeneInventory?: RunState["geneInventory"]; onNavigate?: Navigate; onRunUpdated?: (run: RunState) => void; onRunSettled?: (run: RunState) => void }) {
+export default function RunSessionView({ partyCharacterIds = ["water-scout"], seed = "CHAIN-XIII-RUN-001", initialRun, initialGeneInventory = [], onNavigate, onRunUpdated, onRunSettled, onPhaseChange }: { partyCharacterIds?: string[]; seed?: string; initialRun?: RunState; initialGeneInventory?: RunState["geneInventory"]; onNavigate?: Navigate; onRunUpdated?: (run: RunState) => void; onRunSettled?: (run: RunState) => void; onPhaseChange?: (phase: RunSessionPhase) => void }) {
   const initialSession = initialRun ?? createRunState(seed, partyCharacterIds, initialGeneInventory);
   const [run, setRun] = useState<RunState>(() => initialSession);
   const [phase, setPhase] = useState<RunSessionPhase>(() => initialPhaseForRun(initialSession));
@@ -56,6 +56,10 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], se
   useEffect(() => {
     onRunUpdated?.(run);
   }, [onRunUpdated, run]);
+
+  useEffect(() => {
+    onPhaseChange?.(phase);
+  }, [onPhaseChange, phase]);
 
   function rewardForCurrentNode(node: typeof currentNode): RunReward {
     return rewardForRunNode(node);

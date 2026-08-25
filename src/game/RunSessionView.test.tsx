@@ -1,9 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createRunState, type RunState } from "../domain/run";
 import RunSessionView from "./RunSessionView";
 
 describe("RunSessionView", () => {
+  it("reports the active phase to the shared game HUD", () => {
+    const base = createRunState("phase-report", ["water-scout"]);
+    const boss = base.map.nodes.find((node) => node.id === base.map.bossNodeId)!;
+    const onPhaseChange = vi.fn();
+    render(<RunSessionView initialRun={{ ...base, currentNodeId: boss.id }} onPhaseChange={onPhaseChange} />);
+    expect(onPhaseChange).toHaveBeenCalledWith("battle");
+  });
+
   it("restores an unclaimed Boss reward after reload even when the Run is already won", () => {
     const base = createRunState("boss-reward-reload", ["water-scout"]);
     const boss = base.map.nodes.find((node) => node.id === base.map.bossNodeId)!;

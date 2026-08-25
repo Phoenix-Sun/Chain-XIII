@@ -5,7 +5,7 @@ import { loadFromIndexedDb, saveToIndexedDb } from "../services/persistence/inde
 import GeneWorkshopView from "./GeneWorkshopView";
 import GachaView from "./GachaView";
 import PartyView from "./PartyView";
-import RunSessionView from "./RunSessionView";
+import RunSessionView, { type RunSessionPhase } from "./RunSessionView";
 import TownView from "./TownView";
 import type { GameView } from "./types";
 
@@ -18,6 +18,7 @@ const VIEW_ITEMS: Array<{ id: Exclude<GameView, "party" | "battle">; label: stri
 
 const VIEW_LABELS: Record<GameView, string> = { town: "遠征營地", party: "出戰隊伍", route: "遠征進行中", battle: "十三支戰鬥", workshop: "基因鏈鍊成", gacha: "角色抽卡" };
 const VIEW_RIBBONS: Record<GameView, string> = { town: "整備遠征隊：先選擇下一步要處理的事情", party: "隊伍編成：選 1～3 名角色組成出戰隊列", route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", workshop: "鍊成篝火：調整下一趟遠征的牌組方向", gacha: "角色召集：用水晶擴充你的出戰選擇" };
+const RUN_PHASE_RIBBONS: Record<RunSessionPhase, string> = { route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", exploration: "事件現場：完成目標，決定這趟遠征的代價與收穫", reward: "節點完成：領取獎勵，再選擇下一個方向", workshop: "鍊成篝火：調整下一場戰鬥的牌組方向", settlement: "遠征結算：確認本趟收穫並回到營地" };
 const createRunSeed = () => `run-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export default function GameShell({ initialSeed }: { initialSeed?: string } = {}) {
@@ -31,6 +32,7 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   const [partyCharacterIds, setPartyCharacterIds] = useState(() => meta.characters.map((character) => character.characterId));
   const [nextRunSeed, setNextRunSeed] = useState(() => initialSeed ?? createRunSeed());
   const [hasStartedRun, setHasStartedRun] = useState(false);
+  const [runPhase, setRunPhase] = useState<RunSessionPhase>("route");
   const ownedCharacterIds = meta.characters.map((character) => character.characterId);
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
     setMeta((current) => mergeRunIntoMeta(current, run));
     setActiveRun(undefined);
     setNextRunSeed(createRunSeed());
+    setRunPhase("route");
     setActiveView("town");
   }
 
@@ -79,8 +82,8 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   function renderView() {
     if (activeView === "town") return <TownView crystals={meta.crystals} onNavigate={navigate} />;
     if (activeView === "party") return <PartyView ownedCharacterIds={ownedCharacterIds} selectedCharacterIds={partyCharacterIds} onConfirm={confirmParty} onNavigate={navigate} meta={meta} onMetaChange={setMeta} />;
-    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} />;
-    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} />;
+    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
+    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
     if (activeView === "gacha") return <GachaView meta={meta} onMetaChange={setMeta} onNavigate={navigate} />;
     return <GeneWorkshopView initialInventory={meta.geneInventory} onInventoryChange={(geneInventory) => setMeta((current) => ({ ...current, geneInventory }))} onExit={() => setActiveView("town")} />;
   }
@@ -95,7 +98,7 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
     </header>
 
     <div className="game-viewport">
-      <div className="quest-ribbon"><span className="status-dot" />{persistenceFailed ? "本機存檔暫時不可用，本次進度只保留在目前頁面。" : VIEW_RIBBONS[activeView]}</div>
+      <div className="quest-ribbon"><span className="status-dot" />{persistenceFailed ? "本機存檔暫時不可用，本次進度只保留在目前頁面。" : activeRun ? RUN_PHASE_RIBBONS[runPhase] : VIEW_RIBBONS[activeView]}</div>
       <section className={`game-screen game-screen-${activeView}`} aria-label="遊戲畫面">{renderView()}</section>
       {menuOpen && <div className="system-overlay" role="dialog" aria-modal="true" aria-label="系統選單"><div className="system-window"><span className="pixel-kicker">SYSTEM</span><h2>遊戲暫停</h2><p>目前進度會自動保存到這台裝置，回到遊戲即可繼續遠征。</p><button type="button" className="pixel-button" onClick={() => setMenuOpen(false)}>返回遊戲</button></div></div>}
     </div>

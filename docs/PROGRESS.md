@@ -51,6 +51,7 @@
 - ✅ 營地改為「RUN PREP／下一步／營地指揮台」語言，不再把玩家面對的主要內容命名為 facility。
 - ✅ 隊伍改為「出戰隊列／角色名冊」編成畫面，明確呈現 1～3 人位置與待命槽。
 - ✅ GameShell ribbon 依場景提供下一步提示，讓營地、隊伍、地圖、戰鬥使用同一套遊戲節奏。
+- ✅ Run phase 會回報共用 HUD，route／battle／event／reward／workshop／settlement 不再共用錯誤的地圖提示。
 - 🟡 仍需完成 390×844 的真實 screenshot QA；目前 Hermes preview 流程已驗證營地／隊伍／路線，獨立瀏覽器 viewport 受權限 blocker 限制。
 
 ## Mobile Pixel Shell v1
