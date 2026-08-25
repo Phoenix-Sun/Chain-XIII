@@ -1,3 +1,4 @@
+import { skillTreeModifiers } from "./skillTree";
 import type { EquippedGenes, GeneChain } from "./template";
 import { generateRunMap, type RunMap } from "./map";
 import type { RunReward } from "./runRewards";
@@ -23,6 +24,7 @@ export interface RunState {
   geneCapacity: number;
   equippedGenes: EquippedGenes;
   relicIds: string[];
+  permanentSkillNodeIds?: string[];
   discoveredRunFlags: string[];
   completedNodeIds: string[];
   claimedRewardNodeIds: string[];
@@ -33,22 +35,24 @@ export interface RunState {
   status: RunStatus;
 }
 
-export function createRunState(seed: string, partyCharacterIds: string[], initialGeneInventory: GeneChain[] = []): RunState {
+export function createRunState(seed: string, partyCharacterIds: string[], initialGeneInventory: GeneChain[] = [], permanentSkillNodeIds: string[] = []): RunState {
   const partyErrors = validatePartyCharacterIds(partyCharacterIds);
   if (partyErrors.length > 0) throw new Error(partyErrors[0]);
   const map = generateRunMap(seed);
+  const modifiers = skillTreeModifiers(permanentSkillNodeIds);
   return {
     seed,
     partyCharacterIds,
     map,
     geneInventory: [...initialGeneInventory],
-    geneCapacity: 6,
+    geneCapacity: 6 + modifiers.geneCapacityBonus,
     equippedGenes: {},
     relicIds: [],
+    permanentSkillNodeIds: [...permanentSkillNodeIds],
     discoveredRunFlags: [],
     completedNodeIds: [map.startNodeId],
     claimedRewardNodeIds: [],
-    earnedCrystals: 0,
+    earnedCrystals: modifiers.startingCrystals,
     earnedGeneChainIds: [],
     currentNodeId: map.startNodeId,
     finalBossId: map.bossNodeId,

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { characters } from "../content/catalog";
 import { MAX_PARTY_SIZE, validatePartyCharacterIds } from "../domain/run";
 import { characterUpgradeCost, upgradeCharacter } from "../domain/progression";
+import { buySkillNode, skillNodes } from "../domain/skillTree";
 import type { MetaState } from "../domain/save";
 import type { GameView } from "./types";
 
@@ -43,6 +44,16 @@ export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onC
     }
   }
 
+  function unlockSkill(skillId: string) {
+    if (!meta || !onMetaChange) return;
+    try {
+      onMetaChange(buySkillNode(meta, skillId));
+      setUpgradeMessage("永久技能已解鎖；下一趟遠征就會生效。");
+    } catch (error) {
+      setUpgradeMessage(error instanceof Error ? error.message : "目前無法解鎖技能");
+    }
+  }
+
   return <section className="party-view" aria-label="遠征編成">
     <div className="screen-title-row"><div><span className="pixel-kicker">EXPEDITION PARTY</span><h1 id="party-title">組成你的遠征隊</h1></div><span className="rank-badge">{selected.length}/{MAX_PARTY_SIZE}</span></div>
     <section className="party-formation" aria-label="出戰隊列">
@@ -50,6 +61,15 @@ export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onC
       <div className="formation-slots">{Array.from({ length: MAX_PARTY_SIZE }, (_, index) => {
         const character = ownedCharacters.find((candidate) => candidate.id === selected[index]);
         return <div className={`formation-slot${character ? " is-filled" : ""}`} key={character?.id ?? `empty-${index}`}><span className="formation-slot-number">0{index + 1}</span>{character ? <><strong>{character.id.replaceAll("-", " ")}</strong><small>{character.role}</small></> : <span className="formation-empty">待命</span>}</div>;
+      })}</div>
+    </section>
+    <section className="skill-tree-panel" aria-label="永久技能樹">
+      <div className="skill-tree-heading"><div><span className="pixel-kicker">PERMANENT GROWTH</span><strong>永久技能樹</strong></div><small>水晶 {meta?.crystals ?? 0}</small></div>
+      <p>把遠征帶回的水晶投入長期能力；技能會在下一趟新遠征開始時生效。</p>
+      <div className="skill-tree-list">{skillNodes.map((node) => {
+        const unlocked = Boolean(meta?.permanentSkillNodeIds.includes(node.id));
+        const missing = node.prerequisiteIds.some((id) => !meta?.permanentSkillNodeIds.includes(id));
+        return <div className={`skill-tree-node${unlocked ? " is-unlocked" : ""}`} key={node.id}><div><strong>{node.name}</strong><small>{node.detail}</small>{node.prerequisiteIds.length > 0 && <em>前置：{node.prerequisiteIds.join("、")}</em>}</div><button type="button" className="skill-unlock" disabled={unlocked || missing || !meta || meta.crystals < node.cost} onClick={() => unlockSkill(node.id)}>{unlocked ? "已解鎖" : `${node.cost} 水晶`}</button></div>;
       })}</div>
     </section>
     <p className="party-intro">從持有角色中選 1～3 名。不同花色與職能會改變你在牌桌上的解法。</p>

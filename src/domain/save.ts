@@ -51,6 +51,7 @@ function migrateActiveRun(input: unknown): RunState | undefined {
     geneCapacity: typeof raw.geneCapacity === "number" ? raw.geneCapacity : 6,
     equippedGenes: raw.equippedGenes && typeof raw.equippedGenes === "object" ? raw.equippedGenes : {},
     relicIds: Array.isArray(raw.relicIds) ? raw.relicIds : [],
+    permanentSkillNodeIds: Array.isArray(raw.permanentSkillNodeIds) ? raw.permanentSkillNodeIds : [],
     discoveredRunFlags: Array.isArray(raw.discoveredRunFlags) ? raw.discoveredRunFlags : [],
     completedNodeIds: Array.isArray(raw.completedNodeIds) ? raw.completedNodeIds : [map.startNodeId],
     claimedRewardNodeIds: Array.isArray(raw.claimedRewardNodeIds) ? raw.claimedRewardNodeIds : [],

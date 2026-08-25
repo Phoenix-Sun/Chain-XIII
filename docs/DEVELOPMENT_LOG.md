@@ -167,3 +167,16 @@
 - GREEN：targeted Vitest 2 個 test files、6 個 tests 通過。
 - 完整 `npm run check`：30 個 test files、110 個 tests 通過，production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：永久技能樹接入 Meta 與新 Run
+
+- 新增 `domain/skillTree.ts` 與 3 個永久節點：擴充基因袋、開局演練、路線網絡；支援成本、前置條件、重複購買防護與具體 Run modifier。
+- 隊伍整備畫面新增永久技能樹；玩家可直接消耗永久水晶解鎖技能，並得到解鎖／水晶不足／前置未滿足的明確回饋。
+- `RunState` 與 Save migration 保存永久技能節點；新 Run 會套用基因容量、頭墩平手比較與起始水晶效果，BattleArena 也會讀取開局演練加成。
+
+### 驗證
+
+- RED：新增 skill tree 測試時，模組尚不存在而按預期失敗。
+- GREEN：targeted Vitest 3 個 test files、20 個 tests 通過；PartyView skill purchase regression 通過。
+- 完整 `npm run check`：31 個 test files、114 個 tests 通過，production build 通過。
+- `git diff --check`：通過。

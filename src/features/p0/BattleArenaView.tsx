@@ -7,6 +7,7 @@ import type { RunMapNode } from "../../domain/map";
 import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes } from "../../domain/template";
 import { executeEffect } from "../../domain/effects";
 import { battleRulesForRelics, relicEffectLabel } from "../../domain/relics";
+import { skillTreeModifiers } from "../../domain/skillTree";
 import type { RunState } from "../../domain/run";
 import type { LaneId } from "../../domain/layout";
 import type { Suit } from "../../domain/cards";
@@ -31,7 +32,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
   const [result, setResult] = useState<BattleResult | null>(null);
   const [drawAttempt, setDrawAttempt] = useState(0);
   const [usedAbilities, setUsedAbilities] = useState<string[]>([]);
-  const [frontBonus, setFrontBonus] = useState(0);
+  const [frontBonus, setFrontBonus] = useState(() => skillTreeModifiers(run?.permanentSkillNodeIds ?? []).frontBonus);
   const [showEnemy, setShowEnemy] = useState(false);
   const [showHarmony, setShowHarmony] = useState(false);
   const monster = catalog.monsters.find((candidate) => candidate.id === node?.monsterId);
@@ -60,7 +61,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     if (abilityId === "ability-ripple") { setResult(null); setDrawAttempt((current) => current + 1); }
     if (abilityId === "ability-sight") setShowEnemy(true);
     if (abilityId === "ability-harmony") setShowHarmony(true);
-    if (abilityId === "ability-spark") setFrontBonus(1);
+    if (abilityId === "ability-spark") setFrontBonus((current) => current + 1);
   }
   function useElementShift(lane: LaneId, suit: Suit): boolean {
     if (usedAbilities.includes("ability-flow") || run?.discoveredRunFlags.includes("effect:ability-flow")) return false;

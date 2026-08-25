@@ -82,8 +82,8 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   function renderView() {
     if (activeView === "town") return <TownView crystals={meta.crystals} onNavigate={navigate} />;
     if (activeView === "party") return <PartyView ownedCharacterIds={ownedCharacterIds} selectedCharacterIds={partyCharacterIds} onConfirm={confirmParty} onNavigate={navigate} meta={meta} onMetaChange={setMeta} />;
-    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
-    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
+    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
+    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
     if (activeView === "gacha") return <GachaView meta={meta} onMetaChange={setMeta} onNavigate={navigate} />;
     return <GeneWorkshopView initialInventory={meta.geneInventory} onInventoryChange={(geneInventory) => setMeta((current) => ({ ...current, geneInventory }))} onExit={() => setActiveView("town")} />;
   }

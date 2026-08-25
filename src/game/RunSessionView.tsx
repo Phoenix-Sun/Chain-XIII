@@ -44,8 +44,8 @@ function partySummary(characterIds: string[]): string {
   return characterIds.map((id) => catalog.characters.find((character) => character.id === id)?.id.replaceAll("-", " ") ?? id).join("、");
 }
 
-export default function RunSessionView({ partyCharacterIds = ["water-scout"], seed = "CHAIN-XIII-RUN-001", initialRun, initialGeneInventory = [], onNavigate, onRunUpdated, onRunSettled, onPhaseChange }: { partyCharacterIds?: string[]; seed?: string; initialRun?: RunState; initialGeneInventory?: RunState["geneInventory"]; onNavigate?: Navigate; onRunUpdated?: (run: RunState) => void; onRunSettled?: (run: RunState) => void; onPhaseChange?: (phase: RunSessionPhase) => void }) {
-  const initialSession = initialRun ?? createRunState(seed, partyCharacterIds, initialGeneInventory);
+export default function RunSessionView({ partyCharacterIds = ["water-scout"], seed = "CHAIN-XIII-RUN-001", initialRun, initialGeneInventory = [], permanentSkillNodeIds = [], onNavigate, onRunUpdated, onRunSettled, onPhaseChange }: { partyCharacterIds?: string[]; seed?: string; initialRun?: RunState; initialGeneInventory?: RunState["geneInventory"]; permanentSkillNodeIds?: string[]; onNavigate?: Navigate; onRunUpdated?: (run: RunState) => void; onRunSettled?: (run: RunState) => void; onPhaseChange?: (phase: RunSessionPhase) => void }) {
+  const initialSession = initialRun ?? createRunState(seed, partyCharacterIds, initialGeneInventory, permanentSkillNodeIds);
   const [run, setRun] = useState<RunState>(() => initialSession);
   const [phase, setPhase] = useState<RunSessionPhase>(() => initialPhaseForRun(initialSession));
   const [reward, setReward] = useState<RunReward | null>(() => {
