@@ -43,4 +43,13 @@ describe("RunSessionView", () => {
     expect(screen.getByText(/Boss.*排好 13 張牌/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "排好這副牌" })).toBeInTheDocument();
   });
+
+  it("keeps the selected party visible while choosing the next route", () => {
+    const base = createRunState("party-summary", ["water-scout", "fire-smith"]);
+    const initialRun: RunState = { ...base, completedNodeIds: [base.map.startNodeId] };
+
+    render(<RunSessionView initialRun={initialRun} />);
+
+    expect(screen.getByText("本次出戰：water scout、fire smith")).toBeInTheDocument();
+  });
 });

@@ -1,6 +1,7 @@
 .run-session { max-width: 920px; margin: 0 auto; }
 .run-progress { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding: 10px 12px; border: 3px solid #493845; border-radius: 10px; background: #e8c88f; color: #503747; font-size: 0.72rem; font-weight: 800; box-shadow: 3px 3px #2d202b; }
 .run-progress strong { color: #2d754d; }
+.run-party-summary { margin: -4px 0 10px; color: #735b54; font-size: 0.65rem; font-weight: 800; }
 .run-reward-card, .run-settlement-card { max-width: 600px; margin: 24px auto; padding: 24px 18px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
 .run-reward-card h1, .run-settlement-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
 .run-reward-card p, .run-settlement-card p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
