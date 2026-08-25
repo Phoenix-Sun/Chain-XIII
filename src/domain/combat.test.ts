@@ -51,6 +51,12 @@ describe("three-lane combat", () => {
     expect(compareLane("front", make("player"), make("enemy"), { frontBonus: 1 }).winner).toBe("player");
   });
 
+  it("applies a relic lane bonus without changing element rules", () => {
+    const make = (prefix: string): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${prefix}-${index}`, rank: rank as Card["rank"], suit: "water", currentSuit: "water" }));
+    expect(compareLane("middle", make("player"), make("enemy")).winner).toBe("tie");
+    expect(compareLane("middle", make("player"), make("enemy"), { laneBonuses: { middle: 1 } }).winner).toBe("player");
+  });
+
   it("gives the deep sea boss water advantage in the front lane", () => {
     const cards = (suit: Card["suit"], currentSuit: Card["suit"]): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${suit}-${index}`, rank: rank as Card["rank"], suit, currentSuit }));
     expect(compareLane("front", cards("fire", "fire"), cards("water", "water"), { bossRuleId: "boss-water-advantage" }).winner).toBe("enemy");

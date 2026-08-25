@@ -2,10 +2,11 @@ import { useMemo, useState } from "react";
 import { arrangeEnemyHand } from "../../domain/ai";
 import { drawThirteen } from "../../domain/cards";
 import { resolveBattle, type BattleResult } from "../../domain/combat";
-import type { Lanes } from "../../domain/layout";
+
 import type { RunMapNode } from "../../domain/map";
 import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes } from "../../domain/template";
 import { executeEffect } from "../../domain/effects";
+import { battleRulesForRelics, relicEffectLabel } from "../../domain/relics";
 import type { RunState } from "../../domain/run";
 import { catalog } from "../../content/catalog";
 import { monsterDisplayName } from "../../content/display";
@@ -33,7 +34,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
   const [showHarmony, setShowHarmony] = useState(false);
   const monster = catalog.monsters.find((candidate) => candidate.id === node?.monsterId);
   const activeAbilityIds = catalog.characters.filter((character) => partyCharacterIds.includes(character.id)).map((character) => character.activeAbilityId);
-  const relicFrontBonus = relicIds.includes("relic-1") ? 1 : 0;
+
   const playerCards = useMemo(() => applySuitTemplate(drawThirteen(drawAttempt === 0 ? battleSeed : `${battleSeed}:draw:${drawAttempt}`), buildSuitTemplate(equippedGenes)), [battleSeed, drawAttempt, equippedGenes]);
   const enemyCards = useMemo(() => {
     const base = drawThirteen(node ? `enemy:${battleSeed}:${node.id}` : "enemy:preview");
@@ -41,10 +42,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     const template = monster.bossRuleId === "boss-swap-slots" ? [...monster.template13.slice(1), monster.template13[0]] : monster.template13;
     return applySuitTemplate(base, template);
   }, [battleSeed, monster, node?.id]);
-  function resolvePlayerLayout(layout: Lanes) {
-    const enemy = arrangeEnemyHand(enemyCards);
-    setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId }));
-  }
+
   function applyBattleEffect(abilityId: string): boolean {
     if (!run) return true;
     const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === abilityId) ?? abilityId;
@@ -86,12 +84,12 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     <div className="battle-turn-guide"><span>本回合目標</span><strong>用 13 張牌排出頭／中／尾三墩</strong><small>頭墩 3 張・中墩 5 張・尾墩 5 張</small></div>
     <div className="battle-context"><span>{nodeLabel}{monster ? `：${enemyName}` : ""}</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>
     {bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}
-    {relicFrontBonus > 0 && <p className="battle-rule-callout"><strong>遺物效果</strong>古代神器 1：頭墩同牌型比較獲得 +1。</p>}
+    {relicIds.length > 0 && <div className="battle-relic-strip" aria-label="本場遺物效果"><strong>遺物已生效</strong>{relicIds.map((relicId) => <span key={relicId}>{catalog.relics.find((relic) => relic.id === relicId)?.name ?? relicId}・{relicEffectLabel(relicId)}</span>)}</div>}
     <div className="battle-abilities" aria-label="本場可用技能">{activeAbilityIds.filter((abilityId) => abilityLabels[abilityId]).map((abilityId) => <button type="button" key={abilityId} className="ability-button" disabled={usedAbilities.includes(abilityId) || Boolean(result)} onClick={() => useAbility(abilityId)}>{abilityLabels[abilityId]}{usedAbilities.includes(abilityId) ? "・已用" : ""}</button>)}</div>
     {showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}
     {showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}
     <section className="battle-table" aria-label="十三支牌桌">
-      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} onLayoutConfirmed={(layout) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus: frontBonus + relicFrontBonus })); }} />}
+      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} onLayoutConfirmed={(layout) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus, ...battleRulesForRelics(relicIds) })); }} />}
     </section>
     <BattleResultPanel result={result} canRetry={Boolean(result?.outcome === "loss" && activeAbilityIds.includes("ability-shell") && !usedAbilities.includes("ability-shell"))} onRetry={retryWithShell} onContinue={result && onBattleComplete ? () => onBattleComplete(result) : undefined} />
   </section>;

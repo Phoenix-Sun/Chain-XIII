@@ -25,6 +25,7 @@ export const monsters: MonsterDefinition[] = [
   ...Array.from({ length: 12 }, (_, index) => monster(`monster-normal-${index + 1}`, "normal", index)), ...Array.from({ length: 4 }, (_, index) => monster(`monster-elite-${index + 1}`, "elite", index + 12)),
   monster("boss-lava-turtle", "boss", 16, "boss-neutralize-earth"), monster("boss-storm-bird", "boss", 17, "boss-swap-slots"), monster("boss-deep-sea", "boss", 18, "boss-water-advantage"),
 ];
-export const relics: RelicDefinition[] = Array.from({ length: 15 }, (_, index) => ({ id: `relic-${index + 1}`, rarity: index < 8 ? "common" : index < 13 ? "rare" : "legendary", passiveEffectIds: [`relic-effect-${index + 1}`], name: `古代神器 ${index + 1}` }));
+const RELIC_NAMES = ["赤曜前鋒", "雙月中堅", "沉星尾墩", "三相羅盤", "王冠火炬", "深潮印記", "裂地長釘", "四象核心", "晨星徽章", "暮色徽章", "交界護符", "天穹王座", "赤王之眼", "潮汐王冠", "大地脈輪"];
+export const relics: RelicDefinition[] = Array.from({ length: 15 }, (_, index) => ({ id: `relic-${index + 1}`, rarity: index < 8 ? "common" : index < 13 ? "rare" : "legendary", passiveEffectIds: [`relic-effect-${index + 1}`], name: RELIC_NAMES[index] }));
 export const events: ExplorationEventDefinition[] = Array.from({ length: 12 }, (_, index) => ({ id: `event-${index + 1}`, name: `城外傳聞 ${index + 1}`, content: "骰子在石桌上滾動，新的路線露出一角。", objective: index % 2 === 0 ? "總和達到 9" : "配置一組相同點數", rewardIds: [geneChains[index % geneChains.length].id, relics[index % relics.length].id] }));
 export const catalog: ContentCatalog = { characters, monsters, geneChains, relics, events };

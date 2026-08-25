@@ -19,6 +19,17 @@
 .route-preview-item small { color: #735b54; text-align: right; }
 .battle-rule-callout { display: grid; gap: 3px; margin: 10px 0; padding: 10px 12px; border: 3px solid #b36c4e; border-radius: 9px; background: #ffe1aa; color: #603c36; font-size: 0.7rem; line-height: 1.5; }
 .battle-rule-callout strong { color: #9b4e36; }
+.battle-relic-strip { display: grid; gap: 4px; margin: 10px 0; padding: 9px 11px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; font-size: 0.65rem; line-height: 1.45; }
+.battle-relic-strip strong { color: #73516a; }
+.battle-relic-strip span { color: #735b54; font-weight: 800; }
+.reward-choices { display: grid; gap: 7px; margin: 4px 0 14px; text-align: left; }
+.reward-choices > strong { color: #80658a; font-size: 0.68rem; text-align: center; }
+.reward-choice { display: flex; gap: 8px; align-items: flex-start; padding: 10px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; cursor: pointer; }
+.reward-choice.is-selected { border-color: #2d754d; background: #fff0bf; box-shadow: inset 0 0 0 1px #2d754d; }
+.reward-choice input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #2d754d; }
+.reward-choice span { display: grid; gap: 2px; }
+.reward-choice b { font-size: 0.75rem; }
+.reward-choice small, .reward-choice em { color: #735b54; font-size: 0.62rem; font-style: normal; font-weight: 800; line-height: 1.4; }
 .title-actions { display: flex; align-items: center; gap: 8px; }
 .settlement-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 18px 0 22px; }
 .settlement-stats div { display: grid; gap: 3px; padding: 10px 4px; border-radius: 8px; background: #f6dfa8; }

@@ -48,6 +48,8 @@ describe("RunSessionView", () => {
     expect(screen.getByRole("button", { name: "查看事件獎勵" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "查看事件獎勵" }));
     expect(screen.getByRole("button", { name: "領取獎勵" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "事件獎勵選擇" })).toBeInTheDocument();
+    expect(screen.getAllByRole("radio")).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
     fireEvent.click(screen.getByRole("button", { name: /^Boss・第 3 層/ }));
@@ -62,5 +64,27 @@ describe("RunSessionView", () => {
     render(<RunSessionView initialRun={initialRun} />);
 
     expect(screen.getByText("本次出戰：water scout、fire smith")).toBeInTheDocument();
+  });
+
+  it("claims only the selected relic when an event offers a gene-or-relic choice", () => {
+    const base = createRunState("event-choice-0", ["water-scout"]);
+    const onRunUpdated = vi.fn();
+    const initialRun: RunState = {
+      ...base,
+      map: { ...base.map, startNodeId: "start", nodes: [
+        { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event"] },
+        { id: "event", row: 1, column: 0, type: "event", eventId: "event-1", nextNodeIds: [] },
+      ] },
+      currentNodeId: "start",
+      completedNodeIds: ["start"],
+    };
+    render(<RunSessionView initialRun={initialRun} onRunUpdated={onRunUpdated} />);
+    fireEvent.click(screen.getByRole("button", { name: /^事件・第 2 層/ }));
+    fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
+    fireEvent.click(screen.getByRole("button", { name: "查看事件獎勵" }));
+    fireEvent.click(screen.getAllByRole("radio")[1]);
+    fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
+
+    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ relicIds: ["relic-1"], geneInventory: [] }));
   });
 });

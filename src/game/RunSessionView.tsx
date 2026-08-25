@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, type RunState } from "../domain/run";
-import { rewardForNode, type RunReward } from "../domain/runRewards";
+import { rewardForNode, type RewardChoice, type RunReward } from "../domain/runRewards";
 import type { BattleResult } from "../domain/combat";
 import type { Navigate } from "./types";
 import RunRouteView from "./RunRouteView";
@@ -20,11 +20,15 @@ function rewardForRunNode(node: RunMapNode): RunReward {
     const geneChain = reward.geneChainId ? catalog.geneChains.find((chain) => chain.id === reward.geneChainId) : undefined;
     return geneChain ? { ...reward, geneChain } : reward;
   }
-  const event = node.eventId ? catalog.events.find((candidate) => candidate.id === node.eventId) : undefined;
+  const event = catalog.events.find((candidate) => candidate.id === (node.eventId ?? "event-1"));
   const eventGeneId = event?.rewardIds.find((id) => catalog.geneChains.some((chain) => chain.id === id));
   const eventRelicId = event?.rewardIds.find((id) => catalog.relics.some((relic) => relic.id === id));
   const geneChain = eventGeneId ? catalog.geneChains.find((chain) => chain.id === eventGeneId) : undefined;
-  return { ...reward, geneChainId: eventGeneId, geneChain, relicId: eventRelicId };
+  const choices: RewardChoice[] = [
+    ...(eventGeneId && geneChain ? [{ id: `gene:${eventGeneId}`, label: "帶走基因鏈", detail: "把這條基因鏈放進本趟遠征的基因庫。", geneChainId: eventGeneId, geneChain }] : []),
+    ...(eventRelicId ? [{ id: `relic:${eventRelicId}`, label: "帶走遺物", detail: "把遺物裝入本趟遠征，後續戰鬥立即生效。", relicId: eventRelicId }] : []),
+  ];
+  return { ...reward, geneChainId: undefined, geneChain: undefined, relicId: undefined, choices };
 }
 
 function initialPhaseForRun(run: RunState): RunSessionPhase {
@@ -106,10 +110,11 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], se
     setPhase("reward");
   }
 
-  function claimReward(takeGene = true) {
+  function claimReward(takeGene = true, choice?: RewardChoice) {
     if (!reward) return;
     try {
-      const claimed = claimCurrentNodeReward(run, reward, { takeGene });
+      const selectedReward: RunReward = choice ? { ...reward, ...choice, choices: undefined } : reward;
+      const claimed = claimCurrentNodeReward(run, selectedReward, { takeGene });
       setRun(claimed);
       setReward(null);
       setRewardError(null);
@@ -126,8 +131,8 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], se
 
   if (phase === "route") return <div className="run-session"><div className="run-progress"><span>遠征進行中</span><strong>{run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><RunRouteView run={run} onNodeSelected={selectNode} onOpenWorkshop={() => setPhase("workshop")} /></div>;
   if (phase === "battle") return <div className="run-session"><div className="run-progress"><span>目前節點：{currentNode.type === "boss" ? "Boss" : currentNode.type === "elite" ? "強敵" : "戰鬥"}</span><strong>{run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><BattleArenaView partyCharacterIds={run.partyCharacterIds} node={currentNode} battleSeed={`${run.seed}:${currentNode.id}`} equippedGenes={run.equippedGenes} relicIds={run.relicIds} run={run} onRunUpdated={(nextRun) => setRun(nextRun)} onBattleComplete={handleBattleComplete} /></div>;
-  if (phase === "exploration") return <div className="run-session"><div className="run-progress"><span>目前節點：事件</span><strong>{run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><ExplorationView node={currentNode} seed={run.seed} onResolved={(result) => handleExplorationComplete(result.success)} /></div>;
-  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={() => claimReward(true)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
+  if (phase === "exploration") return <div className="run-session"><div className="run-progress"><span>目前節點：事件</span><strong>{run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><ExplorationView node={currentNode} seed={run.seed} run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onResolved={(result) => handleExplorationComplete(result.success)} /></div>;
+  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
   if (phase === "workshop") return <div className="run-session"><GeneWorkshopView initialInventory={run.geneInventory} initialEquipped={run.equippedGenes} onInventoryChange={(geneInventory) => setRun((current) => ({ ...current, geneInventory }))} onEquippedChange={(equippedGenes) => setRun((current) => ({ ...current, equippedGenes }))} onExit={() => setPhase("route")} /></div>;
   return <div className="run-session"><RunSettlementView run={run} onExit={leaveRun} /></div>;
 }

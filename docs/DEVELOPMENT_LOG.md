@@ -116,3 +116,16 @@
 - RunSessionView 會將 route／battle／exploration／reward／workshop／settlement phase 回報給 GameShell，共用 HUD 會同步顯示正確的下一步。
 - Hermes preview 實際驗證營地 → 隊伍 → 遠征地圖 → 遺物 → 領取獎勵；完整品質閘門為 29 test files、97 tests、typecheck、build 通過。
 - 390×844 的獨立瀏覽器截圖仍受 remote-debugging permission blocker 限制，未將該部分宣稱完成。
+
+### 2026-08-25：事件選擇、遺物規則與探索能力接入
+
+- 事件成功後改為明確的基因鏈／遺物二選一；獎勵頁以手機友善 radio card 呈現，只有玩家選中的物品會寫入 Run，水晶仍固定取得。
+- 新增 15 件遺物的 data-driven 三墩平手加成規則，集中於 `domain/relics.ts`，戰鬥解析器支援逐墩 bonus，並在牌桌上揭示已生效的遺物名稱與效果。
+- 風行商人的 `ability-trade` 已接入探索階段：擲骰後可重擲一次，使用旗標會保存到 active Run，重整後不會重複使用。
+- 補上事件選擇、選中遺物不帶走另一項獎勵、遺物牌桌揭示與探索重擲的回歸測試。
+
+### 驗證
+
+- targeted Vitest：3 個 test files、12 個 tests 通過。
+- `npm run typecheck`：通過。
+- `git diff --check`：通過。

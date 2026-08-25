@@ -84,7 +84,7 @@ describe("RunRouteView", () => {
       status: "active",
     }} />);
 
-    expect(screen.getByText("可取得：古代神器 3")).toBeInTheDocument();
+    expect(screen.getByText("可取得：沉星尾墩")).toBeInTheDocument();
   });
 
   it("renders a connected expedition map instead of a disconnected row list", () => {

@@ -8,6 +8,16 @@ export interface RunReward {
   relicId?: string;
   title: string;
   detail: string;
+  choices?: RewardChoice[];
+}
+
+export interface RewardChoice {
+  id: string;
+  label: string;
+  detail: string;
+  geneChainId?: string;
+  geneChain?: GeneChain;
+  relicId?: string;
 }
 
 const GENE_REWARD_IDS = [

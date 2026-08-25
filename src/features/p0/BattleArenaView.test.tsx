@@ -79,4 +79,12 @@ describe("BattleArenaView", () => {
 
     expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-sight"] }));
   });
+
+  it("shows the collected relic effect before the player commits a layout", () => {
+    const run = createRunState("relic-ui", ["water-scout"]);
+    render(<BattleArenaView run={run} relicIds={["relic-2"]} />);
+
+    expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("雙月中堅");
+    expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("中堅同牌型比較 +1");
+  });
 });

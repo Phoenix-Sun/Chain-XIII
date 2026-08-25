@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ExplorationView from "./ExplorationView";
+import { createRunState } from "../domain/run";
 
 describe("ExplorationView", () => {
   it("shows the deterministic roll result before handing the player to rewards", () => {
@@ -13,5 +14,16 @@ describe("ExplorationView", () => {
     expect(onResolved).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "查看事件獎勵" }));
     expect(onResolved).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets the wind merchant spend its one-shot effect to reroll an event", () => {
+    const run = createRunState("exploration-ability", ["gale-merchant"]);
+    const onRunUpdated = vi.fn();
+    render(<ExplorationView node={{ id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: [] }} seed="exploration-ability" run={run} partyCharacterIds={["gale-merchant"]} onRunUpdated={onRunUpdated} onResolved={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
+    fireEvent.click(screen.getByRole("button", { name: /風行商人/ }));
+    expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-trade"] }));
+    expect(screen.getByRole("button", { name: "擲出 3 顆骰子" })).toBeInTheDocument();
   });
 });

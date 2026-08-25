@@ -24,7 +24,7 @@ export const EFFECTS: Record<string, GameEffect> = {
   "ability-shell": flaggingEffect("ability-shell", "battle-resolved", "岩甲守護：本次失敗保留一件 Run 內獎勵。"),
   "ability-flow": flaggingEffect("ability-flow", "battle-ready", "潮汐流轉：一個已形成的元素墩可調整一次。"),
   "ability-spark": flaggingEffect("ability-spark", "battle-ready", "火花決鬥：頭墩牌型比較獲得一次主動昇華機會。"),
-  "ability-trade": flaggingEffect("ability-trade", "exploration", "風行商人的交換讓獎勵多一個候選。"),
+  "ability-trade": flaggingEffect("ability-trade", "exploration", "風行商人：本次事件可以重擲一次骰子。"),
   "ability-harmony": flaggingEffect("ability-harmony", "battle-ready", "四象協調：查看三墩元素成立條件。"),
 };
 
