@@ -43,7 +43,7 @@ describe("RunSessionView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
     fireEvent.click(screen.getByRole("button", { name: /^Boss・第 3 層/ }));
-    expect(screen.getByText(/Boss.*排好 13 張牌/)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "敵方資訊" })).toHaveTextContent(/Boss.*Boss・lava turtle/);
     expect(screen.getByRole("heading", { name: "排好這副牌" })).toBeInTheDocument();
   });
 

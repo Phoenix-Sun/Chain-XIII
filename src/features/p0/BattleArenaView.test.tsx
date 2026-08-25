@@ -32,6 +32,9 @@ function findWinningLayout(cards: Card[], enemy: Lanes): Lanes {
 describe("BattleArenaView", () => {
   it("exposes the enemy AI result surface next to the P0 layout lab", () => {
     render(<BattleArenaView />);
+    expect(screen.getByRole("region", { name: "十三支戰場" })).toBeInTheDocument();
+    expect(screen.getByText("本回合目標")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "敵方資訊" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "排好這副牌" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "敵我三墩比較" })).toBeInTheDocument();
     expect(screen.getByText(/完成一副合法牌組/)).toBeInTheDocument();
@@ -40,7 +43,7 @@ describe("BattleArenaView", () => {
   it("uses a player-facing enemy label instead of an internal monster id", () => {
     render(<BattleArenaView node={{ id: "battle", row: 0, column: 0, type: "battle", monsterId: "monster-normal-6", nextNodeIds: [] }} />);
 
-    expect(screen.getByText(/普通怪物 6/)).toBeInTheDocument();
+    expect(screen.getAllByText(/普通怪物 6/).length).toBeGreaterThan(0);
     expect(screen.queryByText(/monster normal 6/)).not.toBeInTheDocument();
   });
 

@@ -1,1 +1,61 @@
-.battle-arena { max-width: 920px; margin: 0 auto; }.battle-result-card { margin-top: 12px; padding: 13px; border: 4px solid #493845; background: #edd29d; box-shadow: 4px 4px 0 #49384566; }.battle-result-card h2 { margin: 4px 0 7px; color: #382a39; font-size: 1rem; }.battle-result-card p { margin: 0; color: #80665c; font-size: 0.68rem; line-height: 1.5; }.battle-result-heading { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }.battle-score { padding: 6px 9px; border: 3px solid #493845; font-size: 1rem; }.score-win { background: #cbe2ac; color: #3f6d55; }.score-loss { background: #e6b9a5; color: #8e4a46; }.score-draw { background: #e4ce99; color: #735b54; }.lane-result-list { display: grid; gap: 6px; margin-top: 10px; }.lane-result { display: grid; grid-template-columns: 45px 60px 1fr; gap: 8px; align-items: center; padding: 7px; border: 2px solid #a78059; background: #f6dda7; color: #503747; font-size: 0.62rem; }.lane-result small { color: #80665c; font-size: 0.56rem; }.winner-player { color: #3f805c; }.winner-enemy { color: #a34f4d; }.winner-tie { color: #80665c; }
+.battle-stage { max-width: 920px; margin: 0 auto; color: #f7e4ae; }
+.battle-enemy-panel { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; align-items: center; padding: 10px; border: 4px solid #493845; background: linear-gradient(135deg, #33243d, #211c2d); box-shadow: 4px 4px #241923; }
+.enemy-emblem { display: grid; width: 52px; height: 52px; place-items: center; border: 3px solid #e8b557; background: #9e504b; color: #ffe7a0; font-size: 1.15rem; font-weight: 900; box-shadow: 3px 3px #120d18; }
+.enemy-copy { min-width: 0; display: grid; gap: 3px; }
+.enemy-copy .pixel-kicker { color: #d1aa65; }
+.enemy-copy strong { overflow: hidden; color: #fff0bd; font-size: 0.94rem; text-overflow: ellipsis; white-space: nowrap; }
+.enemy-copy small { color: #c4aabd; font-size: 0.58rem; }
+.enemy-intent { display: grid; gap: 3px; min-width: 92px; padding: 6px 8px; border: 2px solid #8d5961; background: #4a2938; text-align: center; }
+.enemy-intent span { color: #d5a4a9; font-size: 0.5rem; font-weight: 900; }
+.enemy-intent strong { color: #ffe1a5; font-size: 0.65rem; }
+.battle-turn-guide { display: grid; gap: 3px; margin-top: 10px; padding: 10px 12px; border: 3px solid #a78059; background: #ead096; color: #503747; }
+.battle-turn-guide span { color: #80658a; font-size: 0.55rem; font-weight: 900; }
+.battle-turn-guide strong { font-size: 0.76rem; }
+.battle-turn-guide small { color: #80665c; font-size: 0.58rem; }
+.battle-context { display: flex; justify-content: space-between; gap: 8px; margin: 9px 0; color: #80665c; font-size: 0.58rem; font-weight: 900; }
+.battle-abilities { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0; }
+.ability-button { min-height: 40px; padding: 7px 10px; border: 3px solid #80658a; background: #f6dfa8; color: #503747; cursor: pointer; font: inherit; font-size: 0.62rem; font-weight: 900; box-shadow: 2px 2px #49384566; }
+.ability-button:disabled { cursor: not-allowed; opacity: 0.5; }
+.battle-table { margin-top: 10px; padding: 5px; border: 4px solid #493845; background: #2d2635; box-shadow: 5px 5px #241923; }
+.battle-table .lab-card { border: 0; box-shadow: none; background: transparent; }
+.battle-table .lab-card .section-heading { border-bottom: 2px solid #54445b; padding-bottom: 8px; }
+.battle-table .lab-card .lab-intro { color: #c2aebe; }
+.battle-table .lab-card .notice { border: 2px solid #80658a; background: #211c29; color: #dfcce0; }
+.battle-table .lab-card .lanes { gap: 7px; }
+.battle-table .lab-card .lane { border-color: #66536f; background: #211c29; }
+.battle-table .lab-card .lane-back { border-color: #a1620755; }
+.battle-table .lab-card .lane-middle { border-color: #0f766e88; }
+.battle-table .lab-card .lane-front { border-color: #0369a188; }
+.battle-table .lab-card .lane-empty { color: #9b87a1; }
+.battle-table .lab-card .placement-actions { border-color: #80658a; background: #181521ee; }
+.battle-table .lab-card .hand-area { border-color: #54445b; }
+.battle-table .lab-card .subsection-heading h3 { color: #f6dfa8; }
+.battle-table .lab-card .validation { border: 2px solid #80658a; }
+.battle-table .lab-card .primary-button { background: #e8b85c; }
+.battle-rule-callout { display: grid; gap: 3px; margin: 10px 0; padding: 10px 12px; border: 3px solid #b36c4e; background: #ffe1aa; color: #603c36; font-size: 0.7rem; line-height: 1.5; }
+.battle-rule-callout strong { color: #9b4e36; }
+.enemy-preview { margin: 10px 0; padding: 10px; border: 2px dashed #80658a; background: #fff0bf; color: #503747; font-size: 0.68rem; line-height: 1.5; }
+.battle-result-card { margin-top: 12px; padding: 13px; border: 4px solid #493845; background: #edd29d; box-shadow: 4px 4px 0 #49384566; color: #503747; }
+.battle-result-card h2 { margin: 4px 0 7px; color: #382a39; font-size: 1rem; }
+.battle-result-card p { margin: 0; color: #80665c; font-size: 0.68rem; line-height: 1.5; }
+.battle-result-heading { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.battle-score { padding: 6px 9px; border: 3px solid #493845; font-size: 1rem; }
+.score-win { background: #cbe2ac; color: #3f6d55; }
+.score-loss { background: #e6b9a5; color: #8e4a46; }
+.score-draw { background: #e4ce99; color: #735b54; }
+.lane-result-list { display: grid; gap: 6px; margin-top: 10px; }
+.lane-result { display: grid; grid-template-columns: 45px 60px 1fr; gap: 8px; align-items: center; padding: 7px; border: 2px solid #a78059; background: #f6dda7; color: #503747; font-size: 0.62rem; }
+.lane-result small { color: #80665c; font-size: 0.56rem; }
+.winner-player { color: #3f805c; }.winner-enemy { color: #a34f4d; }.winner-tie { color: #80665c; }
+@media (max-width: 500px) {
+  .battle-enemy-panel { grid-template-columns: 54px 1fr; }
+  .enemy-emblem { width: 48px; height: 48px; }
+  .enemy-intent { grid-column: 1 / -1; }
+  .battle-context { display: grid; gap: 3px; }
+  .battle-table { margin-right: -3px; margin-left: -3px; padding: 3px; }
+  .lane-result { grid-template-columns: 42px 55px 1fr; }
+}
+@media (min-width: 700px) {
+  .battle-stage { padding-bottom: 16px; }
+  .battle-table { padding: 10px; }
+}
