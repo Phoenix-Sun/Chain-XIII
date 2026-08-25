@@ -52,6 +52,7 @@ describe("RunRouteView", () => {
       status: "active",
     }} />);
 
+    expect(screen.getByText(/斷橋骰局/)).toBeInTheDocument();
     expect(screen.getByText(/目標：配置一組相同點數/)).toBeInTheDocument();
     expect(screen.getByText(/可能獎勵：水晶、基因鏈、遺物/)).toBeInTheDocument();
   });

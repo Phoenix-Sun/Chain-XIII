@@ -16,6 +16,10 @@ export function validateContentCatalog(catalog: ContentCatalog): string[] {
   }
   for (const chain of catalog.geneChains) if (![3, 5].includes(chain.factors.length)) errors.push(`${chain.id} 只能是 3 或 5 格鏈`);
   for (const event of catalog.events) {
+    if (!event.name.trim()) errors.push(`${event.id} 缺少事件名稱`);
+    if (!event.content.trim()) errors.push(`${event.id} 缺少事件內容`);
+    if (!event.successText.trim()) errors.push(`${event.id} 缺少成功結果文字`);
+    if (!event.failureText.trim()) errors.push(`${event.id} 缺少失敗結果文字`);
     if (event.rewardIds.length === 0) errors.push(`${event.id} 必須有獎勵`);
     if (event.rewardIds.some((id) => !geneIds.has(id) && !relicIds.has(id))) errors.push(`${event.id} 含不存在的獎勵 ID`);
   }

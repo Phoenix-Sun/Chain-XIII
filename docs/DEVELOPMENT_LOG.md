@@ -194,3 +194,17 @@
 - GREEN：targeted Vitest `src/game/CodexView.test.tsx`：2 個 tests 通過。
 - 完整 `npm run check`：32 個 test files、116 個 tests 通過，production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：探索事件改為可辨識的目標內容
+
+- 將 12 個事件從「城外傳聞 N」與重複描述改為獨立的場景名稱、事件內容、成功結果與失敗結果；骰子目標仍由 deterministic event mapping 控制，沒有改變既有 Run 規則。
+- 路線的下一站資訊現在會同時顯示事件名稱、可執行目標與可能獎勵；玩家在承諾路線前能區分同樣是事件的不同內容。
+- 事件結果面板改為顯示該事件的成功／失敗後果文字，讓骰子結果與下一步獎勵形成可理解的回饋鏈。
+- 內容 validator 新增事件名稱、內容、成功結果、失敗結果的必填檢查，避免後續內容擴充退回泛用佔位文案。
+
+### 驗證
+
+- RED：先新增事件名稱／內容回歸測試，原本泛用事件資料按預期失敗。
+- GREEN：targeted Vitest 3 個 test files、13 個 tests 通過。
+- 完整 `npm run check`：32 個 test files、117 個 tests 通過，typecheck、production build 通過。
+- `git diff --check`：通過。

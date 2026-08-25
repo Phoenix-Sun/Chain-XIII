@@ -28,7 +28,7 @@ function routePreviewDetail(node: RunMapNode, monsterDropCount: number | undefin
   }
   if (node.type === "event") {
     const event = node.eventId ? catalog.events.find((candidate) => candidate.id === node.eventId) : undefined;
-    if (event) return `目標：${event.objective}・可能獎勵：水晶、基因鏈、遺物`;
+    if (event) return `${event.name}・目標：${event.objective}・可能獎勵：水晶、基因鏈、遺物`;
   }
   return reward.detail;
 }

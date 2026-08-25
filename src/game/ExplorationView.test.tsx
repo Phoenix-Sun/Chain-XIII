@@ -8,6 +8,9 @@ describe("ExplorationView", () => {
     const onResolved = vi.fn();
     render(<ExplorationView node={{ id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: [] }} seed="exploration-test" onResolved={onResolved} />);
 
+    expect(screen.getByRole("heading", { name: "斷橋骰局" })).toBeInTheDocument();
+    expect(screen.getByText(/橋板只會在正確的點數排列下亮起/)).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
 
     expect(screen.getByRole("status")).toHaveTextContent(/總和|相同點數/);
