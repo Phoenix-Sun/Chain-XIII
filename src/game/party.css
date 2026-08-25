@@ -27,3 +27,33 @@
 @media (min-width: 560px) {
   .party-roster { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.party-view { color: #382a39; }
+.party-formation { margin: 0 0 12px; padding: 10px; border: 4px solid #493845; background: #2d2635; box-shadow: 4px 4px #49384566; color: #f6dfa8; }
+.formation-heading { display: flex; justify-content: space-between; gap: 8px; align-items: end; margin-bottom: 8px; }
+.formation-heading > div { display: grid; gap: 3px; }
+.formation-heading strong { color: #fff0bd; font-size: 0.78rem; }
+.formation-heading small { color: #9f87a5; font-size: 0.56rem; }
+.formation-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.formation-slot { min-height: 72px; display: grid; align-content: center; gap: 3px; padding: 7px; border: 2px dashed #66536f; background: #211c29; color: #9f87a5; }
+.formation-slot.is-filled { border-style: solid; border-color: #d09b55; background: #4a3048; color: #ffe6a0; }
+.formation-slot-number { color: #b6a0b8; font-size: 0.5rem; font-weight: 900; }
+.formation-slot.is-filled .formation-slot-number { color: #f0bd61; }
+.formation-slot strong { overflow: hidden; color: #fff0bd; font-size: 0.62rem; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
+.formation-slot small { overflow: hidden; color: #d0afc9; font-size: 0.5rem; text-overflow: ellipsis; white-space: nowrap; }
+.formation-empty { font-size: 0.58rem; }
+.roster-heading { display: grid; grid-template-columns: auto 1fr auto; gap: 7px; align-items: end; margin: 4px 0 7px; color: #503747; }
+.roster-heading strong { font-size: 0.78rem; }
+.roster-heading small { color: #80665c; font-size: 0.54rem; }
+.party-roster { margin-top: 0; }
+.party-roster .character-card { min-height: 74px; }
+
+@media (max-width: 480px) {
+  .formation-slots { gap: 4px; }
+  .formation-slot { min-height: 66px; padding: 5px; }
+  .formation-slot strong { font-size: 0.55rem; }
+  .formation-slot small { font-size: 0.45rem; }
+  .roster-heading { grid-template-columns: 1fr auto; }
+  .roster-heading .pixel-kicker { grid-column: 1 / -1; }
+  .roster-heading small { grid-column: 1 / -1; }
+}

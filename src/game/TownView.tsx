@@ -33,6 +33,7 @@ export default function TownView({ crystals = 0, onNavigate }: { crystals?: numb
       <img className="town-scene" src={townScene} alt="遠征營地像素場景，包含隊伍帳篷、路線桌與鍊成篝火" />
       <div className="town-vignette" aria-hidden="true" />
       <div className="location-plaque"><span>遠征營地</span><strong>出發前整備</strong><small>目前 · 水晶 {crystals}</small></div>
+      <div className="camp-map-banner"><span>RUN PREP</span><strong>整備遠征隊</strong></div>
       {BUILDINGS.map((building) => <button
         type="button"
         key={building.id}
@@ -45,10 +46,12 @@ export default function TownView({ crystals = 0, onNavigate }: { crystals?: numb
       <span className="town-hero" aria-hidden="true"><i className="hero-shadow" /><i className="hero-body" /><i className="hero-head" /><i className="hero-scarf" /></span>
     </section>
 
-    <aside className={`facility-panel panel-${selected.tone}`} aria-live="polite">
-      <span className="panel-number">0{BUILDINGS.findIndex((building) => building.id === selected.id) + 1}</span>
-      <div><span className="pixel-kicker">FACILITY</span><h1>{selected.name}</h1><p>{selected.note}</p></div>
-      <button type="button" className="enter-button" onClick={enterBuilding}>{selected.action}<span aria-hidden="true">▶</span></button>
+    <aside className={`facility-panel camp-command-panel panel-${selected.tone}`} aria-live="polite">
+      <section className="camp-command-card" aria-label="營地指揮台">
+        <span className="panel-number">0{BUILDINGS.findIndex((building) => building.id === selected.id) + 1}</span>
+        <div className="camp-command-copy"><span className="pixel-kicker">下一步</span><h1>{selected.name}</h1><p>{selected.note}</p></div>
+        <button type="button" className="enter-button" onClick={enterBuilding}>{selected.action}<span aria-hidden="true">▶</span></button>
+      </section>
     </aside>
 
     <section className="dialog-box" aria-live="polite">

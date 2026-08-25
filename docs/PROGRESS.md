@@ -44,11 +44,20 @@
 15. 路線會顯示可達節點的怪物與可能掉落摘要；遠征中底部導覽鎖定，避免跳出 Run 造成狀態重置。
 16. 最小角色抽卡已接入：100 水晶抽 1 次，新角色加入收藏，重複角色轉為角色印記。
 
+## 遊戲化 UI system pass
+
+- ✅ 路線改為垂直連線地圖：節點具備目前位置、可前往、已完成、未開放狀態，Boss 位於遠征頂端。
+- ✅ 戰鬥改為敵方資訊／敵方意圖／本回合目標／十三支牌桌的場景層級，保留 3/5/5 行為與 Run 效果。
+- ✅ 營地改為「RUN PREP／下一步／營地指揮台」語言，不再把玩家面對的主要內容命名為 facility。
+- ✅ 隊伍改為「出戰隊列／角色名冊」編成畫面，明確呈現 1～3 人位置與待命槽。
+- ✅ GameShell ribbon 依場景提供下一步提示，讓營地、隊伍、地圖、戰鬥使用同一套遊戲節奏。
+- 🟡 仍需完成 390×844 的真實 screenshot QA；目前 Hermes preview 流程已驗證營地／隊伍／路線，獨立瀏覽器 viewport 受權限 blocker 限制。
+
 ## Mobile Pixel Shell v1
 
 - ✅ mobile-first GameShell 與原創像素遠征營地。
 - ✅ lossless WebP 素材與手機／平板／橫向 RWD。
-- ✅ 25 個 test files、68 個 tests。
+- ✅ 29 個 test files、97 個 tests。
 - ⚠️ 瀏覽器手機尺寸截圖因本輪 Windows sandbox refresh 錯誤未完成，已記錄於 `docs/MOBILE_PIXEL_UI_PLAN.md`。
 
 ## 資產流程參考
@@ -57,7 +66,7 @@
 - 🟡 目前仍使用營地與角色 WebP baked assets；角色／怪物／技能／遺物 bundle 尚未逐項建立。
 - ⚠️ 不把 Godot／Unity scene handoff 或 Grok 專用 `$video2dsprite` 視為 Chain XIII 目前可用功能。
 
-## 下一個自主目標
+## 下一個人工審閱目標
 
 1. 將神器與探索骰做成真正的 Run phase，完成事件獎勵選擇而不是自動領獎。
 2. 將角色 active Effect 接入戰前／戰鬥操作，讓不同隊伍產生不同解法而不只是人數文字。

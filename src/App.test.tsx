@@ -14,7 +14,7 @@ describe("Chain XIII game shell", () => {
     render(<App initialSeed="CHAIN-XIII-RUN-001" />);
 
     fireEvent.click(screen.getByRole("button", { name: "選擇隊伍" }));
-    expect(screen.getByRole("heading", { name: "選擇這次遠征的角色" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "組成你的遠征隊" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "開始遠征" }));
     expect(screen.getByRole("heading", { name: "選擇下一站" })).toBeInTheDocument();
@@ -46,6 +46,6 @@ describe("Chain XIII game shell", () => {
     render(<App initialSeed="CHAIN-XIII-RUN-001" />);
     fireEvent.click(screen.getByRole("button", { name: "路線桌" }));
     fireEvent.click(screen.getByRole("button", { name: "選擇隊伍" }));
-    expect(screen.getByRole("heading", { name: "選擇這次遠征的角色" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "組成你的遠征隊" })).toBeInTheDocument();
   });
 });

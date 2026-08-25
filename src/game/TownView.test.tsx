@@ -3,6 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import TownView from "./TownView";
 
 describe("TownView", () => {
+  it("presents the camp as a command scene with one clear next action", () => {
+    render(<TownView onNavigate={vi.fn()} />);
+    expect(screen.getByRole("region", { name: "營地指揮台" })).toBeInTheDocument();
+    expect(screen.getByText("下一步")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /選擇隊伍/ })).toBeInTheDocument();
+  });
+
   it("selects a facility directly on the pixel scene", () => {
     render(<TownView onNavigate={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "鍊成篝火" }));

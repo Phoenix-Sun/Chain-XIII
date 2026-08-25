@@ -3,6 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import PartyView from "./PartyView";
 
 describe("PartyView", () => {
+  it("shows a formation brief and an explicit expedition lineup", () => {
+    render(<PartyView ownedCharacterIds={["water-scout", "fire-smith"]} selectedCharacterIds={["water-scout"]} onConfirm={vi.fn()} onNavigate={vi.fn()} />);
+    expect(screen.getByRole("region", { name: "遠征編成" })).toBeInTheDocument();
+    expect(screen.getByText("出戰隊列")).toBeInTheDocument();
+    expect(screen.getAllByText("water scout").length).toBeGreaterThan(0);
+  });
+
   it("allows a starter-only account to begin with one character", () => {
     const onConfirm = vi.fn();
     const onNavigate = vi.fn();

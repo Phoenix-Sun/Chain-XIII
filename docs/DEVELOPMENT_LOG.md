@@ -106,3 +106,12 @@
 - 採用 asset contract、可重用 sprite bundle、raw → cleanup → frame → metadata → QA 的思路，以及 base／props／placement／zones 的分層地圖概念。
 - 依 Chain XIII 的 Web 架構排除直接採用 Godot／Unity scene handoff；`$video2dsprite` 因依賴 Grok Build 的 `image_to_video`，目前不列為可用工具。
 - 新增 `docs/ASSET_PIPELINE_REFERENCE.md`，記錄適用範圍、資產優先順序、授權與安全邊界。
+
+### 2026-08-25：遊戲化 UI system pass
+
+- 將遠征路線由節點清單重組為垂直連線地圖，保留 domain map 與 RunState，不以引擎遷移取代 UX 重做。
+- 將戰鬥外層由 P0 實驗台重組為敵方資訊、敵方意圖、本回合目標與十三支牌桌；3/5/5、active effect、Boss rule 與持久化邏輯維持原路徑。
+- 將營地入口重組為 RUN PREP 場景與單一「下一步／指揮台」；將隊伍入口重組為出戰隊列、待命槽與角色名冊。
+- GameShell ribbon 依目前畫面提供場景目標，避免每個畫面只顯示泛用的「選擇目前要處理的事情」。
+- Hermes preview 實際驗證營地 → 隊伍 → 遠征地圖 → 遺物 → 領取獎勵；完整品質閘門為 29 test files、97 tests、typecheck、build 通過。
+- 390×844 的獨立瀏覽器截圖仍受 remote-debugging permission blocker 限制，未將該部分宣稱完成。

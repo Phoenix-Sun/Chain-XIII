@@ -43,9 +43,17 @@ export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onC
     }
   }
 
-  return <section className="party-view" aria-labelledby="party-title">
-    <div className="screen-title-row"><div><span className="pixel-kicker">PARTY</span><h1 id="party-title">選擇這次遠征的角色</h1></div><span className="rank-badge">{selected.length}/{MAX_PARTY_SIZE}</span></div>
-    <p className="party-intro">你擁有的角色越多，能組出的隊伍越多。這趟至少選 1 名，最多選 3 名。</p>
+  return <section className="party-view" aria-label="遠征編成">
+    <div className="screen-title-row"><div><span className="pixel-kicker">EXPEDITION PARTY</span><h1 id="party-title">組成你的遠征隊</h1></div><span className="rank-badge">{selected.length}/{MAX_PARTY_SIZE}</span></div>
+    <section className="party-formation" aria-label="出戰隊列">
+      <div className="formation-heading"><div><span className="pixel-kicker">出戰隊列</span><strong>這趟遠征的夥伴</strong></div><small>{selected.length === 0 ? "尚未選擇" : "隊伍已準備"}</small></div>
+      <div className="formation-slots">{Array.from({ length: MAX_PARTY_SIZE }, (_, index) => {
+        const character = ownedCharacters.find((candidate) => candidate.id === selected[index]);
+        return <div className={`formation-slot${character ? " is-filled" : ""}`} key={character?.id ?? `empty-${index}`}><span className="formation-slot-number">0{index + 1}</span>{character ? <><strong>{character.id.replaceAll("-", " ")}</strong><small>{character.role}</small></> : <span className="formation-empty">待命</span>}</div>;
+      })}</div>
+    </section>
+    <p className="party-intro">從持有角色中選 1～3 名。不同花色與職能會改變你在牌桌上的解法。</p>
+    <div className="roster-heading"><span className="pixel-kicker">OWNED ROSTER</span><strong>角色名冊</strong><small>點選角色加入或移出隊列</small></div>
     <div className="party-roster" aria-label="已擁有角色">
       {ownedCharacters.map((character) => {
         const isSelected = selected.includes(character.id);

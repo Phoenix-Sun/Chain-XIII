@@ -374,3 +374,17 @@
 @media (prefers-reduced-motion: reduce) {
   .hotspot-cursor, .dialog-next { animation: none; }
 }
+
+.camp-map-banner { position: absolute; z-index: 3; top: 8px; right: 7px; display: grid; gap: 2px; padding: 5px 7px; border: 3px solid #80658a; background: #211823e8; color: #ffe7a0; box-shadow: 3px 3px #150e18; text-align: right; }
+.camp-map-banner span { color: #bfa5c2; font-size: 0.42rem; font-weight: 900; letter-spacing: 0.1em; }
+.camp-map-banner strong { font-size: 0.62rem; }
+.camp-command-panel { display: block; padding: 0; }
+.camp-command-card { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 9px; }
+.camp-command-copy { min-width: 0; }
+.camp-command-copy h1 { margin-bottom: 4px; }
+.camp-command-copy p { max-width: 34rem; }
+.camp-command-card .enter-button { align-self: stretch; }
+
+@media (max-width: 370px) {
+  .camp-command-card { grid-template-columns: 28px 1fr auto; gap: 5px; padding: 6px; }
+}
