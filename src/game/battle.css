@@ -21,7 +21,12 @@
 .battle-table .lab-card .section-heading { border-bottom: 2px solid #54445b; padding-bottom: 8px; }
 .battle-table .lab-card .lab-intro { color: #c2aebe; }
 .battle-table .lab-card .notice { border: 2px solid #80658a; background: #211c29; color: #dfcce0; }
-.battle-table .lab-card .lanes { gap: 7px; }
+.battle-table .element-shift-panel { margin: 9px 0; padding: 9px; border: 2px solid #4fa7a0; background: #172c32; color: #d9f0d4; }
+.battle-table .element-shift-options { display: grid; gap: 7px; }
+.battle-table .element-shift-lane { display: grid; gap: 5px; padding-top: 6px; border-top: 1px solid #436a6b; font-size: 0.62rem; }
+.battle-table .element-shift-lane > div { display: flex; flex-wrap: wrap; gap: 5px; }
+.battle-table .element-shift-lane .link-button { min-height: 32px; padding: 4px 7px; border-color: #4fa7a0; color: #d9f0d4; }
+.battle-table .lanes { gap: 7px; }
 .battle-table .lab-card .lane { border-color: #66536f; background: #211c29; }
 .battle-table .lab-card .lane-back { border-color: #a1620755; }
 .battle-table .lab-card .lane-middle { border-color: #0f766e88; }

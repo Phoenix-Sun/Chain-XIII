@@ -1,5 +1,5 @@
 import { compareHandRanks, evaluateHand, type HandRank } from "./hands";
-import type { Card } from "./cards";
+import type { Card, Suit } from "./cards";
 import { beats, resolveLaneElement } from "./elements";
 import type { TemplateCard } from "./template";
 
@@ -34,12 +34,13 @@ export interface BattleRules {
   bossRuleId?: string;
   frontBonus?: number;
   laneBonuses?: Partial<Record<CombatLane, number>>;
+  laneElementOverrides?: Partial<Record<CombatLane, Suit>>;
 }
 
 export function compareLane(lane: CombatLane, player: CombatCard[], enemy: CombatCard[], rules: BattleRules = {}): LaneResult {
   const playerRank = evaluateHand(player);
   const enemyRank = evaluateHand(enemy);
-  const playerElement = resolveLaneElement(player);
+  const playerElement = rules.laneElementOverrides?.[lane] ?? resolveLaneElement(player);
   const enemyElement = resolveLaneElement(enemy);
   const categoryDifference = playerRank.categoryScore - enemyRank.categoryScore;
   if (categoryDifference !== 0) {

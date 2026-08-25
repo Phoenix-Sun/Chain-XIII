@@ -140,3 +140,17 @@
 
 - targeted Vitest：4 個 test files、17 個 tests 通過。
 - `npm run typecheck`：通過。
+
+## 2026-08-25：潮汐流轉接入實際戰鬥
+
+- 將潮汐流轉從單純的 `battle-ready` 訊息改為可操作能力：玩家先完成一個元素墩，再選擇該墩並改成另一個元素。
+- `BattleRules` 新增玩家端 `laneElementOverrides`，只覆寫指定墩的元素判定，不改變牌的原始牌面、牌型或其他墩位。
+- 十三支牌桌加入手機可操作的能力面板與元素選項；能力成功使用後會沿用既有 `discoveredRunFlags`，同一趟 Run 不可重複使用。
+- 戰鬥確認時才將調整後元素送入 `resolveBattle`，因此玩家能看見並選擇真正影響三墩比較的策略，而非只收到提示文字。
+
+### 驗證
+
+- RED：新增潮汐流轉 domain／牌桌測試後，2 個測試按預期失敗。
+- GREEN：targeted Vitest 2 個 test files、13 個 tests 通過；`npm run typecheck` 通過。
+- 完整 `npm run check`：30 個 test files、108 個 tests 通過，production build 通過。
+- `git diff --check`：通過。

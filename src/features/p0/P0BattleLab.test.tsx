@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import P0BattleLab from "./P0BattleLab";
 
 describe("P0BattleLab", () => {
@@ -61,5 +61,25 @@ describe("P0BattleLab", () => {
 
     expect(screen.getByText("0/13")).toBeInTheDocument();
     expect(screen.getByText("0/3", { selector: ".lane-size" })).toBeInTheDocument();
+  });
+
+  it("allows Tide Flow to retune one formed elemental lane", () => {
+    const cards = Array.from({ length: 13 }, (_, index) => ({
+      id: `card-${index}`,
+      rank: (index + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13,
+      suit: index < 3 ? "fire" as const : "water" as const,
+      currentSuit: index < 3 ? "fire" as const : "water" as const,
+    }));
+    const onElementShift = vi.fn(() => true);
+    render(<P0BattleLab cards={cards} canShiftElement onElementShift={onElementShift} />);
+    const handCards = screen.getAllByRole("button").filter((button) => button.classList.contains("playing-card"));
+    handCards.slice(0, 3).forEach((card) => fireEvent.click(card));
+    fireEvent.click(screen.getByRole("button", { name: "放入頭墩" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "潮汐流轉・調整元素墩" }));
+    fireEvent.click(screen.getByRole("button", { name: "頭墩改成水" }));
+
+    expect(onElementShift).toHaveBeenCalledWith("front", "water");
+    expect(screen.getByRole("status")).toHaveTextContent("頭墩已調整為水元素");
   });
 });

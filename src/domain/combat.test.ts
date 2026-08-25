@@ -51,6 +51,15 @@ describe("three-lane combat", () => {
     expect(compareLane("front", make("player"), make("enemy"), { frontBonus: 1 }).winner).toBe("player");
   });
 
+  it("lets Tide Flow retune a formed player lane before comparison", () => {
+    const make = (prefix: string, suit: Card["suit"]): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${prefix}-${index}`, rank: rank as Card["rank"], suit, currentSuit: suit }));
+    const player = make("player", "fire");
+    const enemy = make("enemy", "fire");
+
+    expect(compareLane("front", player, enemy).winner).toBe("tie");
+    expect(compareLane("front", player, enemy, { laneElementOverrides: { front: "water" } }).winner).toBe("player");
+  });
+
   it("applies a relic lane bonus without changing element rules", () => {
     const make = (prefix: string): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${prefix}-${index}`, rank: rank as Card["rank"], suit: "water", currentSuit: "water" }));
     expect(compareLane("middle", make("player"), make("enemy")).winner).toBe("tie");

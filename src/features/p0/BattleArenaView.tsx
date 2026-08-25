@@ -8,6 +8,8 @@ import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes
 import { executeEffect } from "../../domain/effects";
 import { battleRulesForRelics, relicEffectLabel } from "../../domain/relics";
 import type { RunState } from "../../domain/run";
+import type { LaneId } from "../../domain/layout";
+import type { Suit } from "../../domain/cards";
 import { catalog } from "../../content/catalog";
 import { monsterDisplayName } from "../../content/display";
 import P0BattleLab from "./P0BattleLab";
@@ -60,6 +62,16 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     if (abilityId === "ability-harmony") setShowHarmony(true);
     if (abilityId === "ability-spark") setFrontBonus(1);
   }
+  function useElementShift(lane: LaneId, suit: Suit): boolean {
+    if (usedAbilities.includes("ability-flow") || run?.discoveredRunFlags.includes("effect:ability-flow")) return false;
+    if (!run) {
+      setUsedAbilities((current) => [...current, "ability-flow"]);
+      return true;
+    }
+    if (!applyBattleEffect("ability-flow")) return false;
+    setUsedAbilities((current) => [...current, "ability-flow"]);
+    return true;
+  }
   function retryWithShell() {
     if (run) {
       const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-shell") ?? "ability-shell";
@@ -89,7 +101,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     {showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}
     {showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}
     <section className="battle-table" aria-label="十三支牌桌">
-      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} onLayoutConfirmed={(layout) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus, ...battleRulesForRelics(relicIds) })); }} />}
+      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} canShiftElement={activeAbilityIds.includes("ability-flow") && !usedAbilities.includes("ability-flow") && !run?.discoveredRunFlags.includes("effect:ability-flow")} onElementShift={useElementShift} onLayoutConfirmed={(layout, _cards, laneElementOverrides) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus, laneElementOverrides, ...battleRulesForRelics(relicIds) })); }} />}
     </section>
     <BattleResultPanel result={result} canRetry={Boolean(result?.outcome === "loss" && activeAbilityIds.includes("ability-shell") && !usedAbilities.includes("ability-shell"))} onRetry={retryWithShell} onContinue={result && onBattleComplete ? () => onBattleComplete(result) : undefined} />
   </section>;

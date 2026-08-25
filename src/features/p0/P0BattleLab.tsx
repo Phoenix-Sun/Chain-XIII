@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
-import { drawThirteen, rankLabel, sortCards, SUIT_LABELS, SUIT_SYMBOLS, type Card, type CardSortMode } from "../../domain/cards";
+import { drawThirteen, rankLabel, sortCards, SUIT_LABELS, SUIT_SYMBOLS, SUITS, type Card, type CardSortMode, type Suit } from "../../domain/cards";
 import { emptyLanes, LANE_LABELS, LANE_SIZES, validateLayout, type LaneId, type Lanes } from "../../domain/layout";
 import { evaluateHand } from "../../domain/hands";
 import { currentSuitOf } from "../../domain/template";
+import { resolveLaneElement } from "../../domain/elements";
 
 const DEFAULT_SEED = "CHAIN-XIII-P0-001";
 
 export interface P0BattleLabProps {
-  onLayoutConfirmed?: (layout: Lanes, cards: Card[]) => void;
+  onLayoutConfirmed?: (layout: Lanes, cards: Card[], laneElementOverrides?: Partial<Record<LaneId, Suit>>) => void;
   cards?: Card[];
+  canShiftElement?: boolean;
+  onElementShift?: (lane: LaneId, suit: Suit) => boolean;
 }
 
 type CardZone = "hand" | LaneId;
@@ -35,12 +38,15 @@ function Lane({ lane, cards, selectedIds, selectionOrder, onSelect }: { lane: La
   </section>;
 }
 
-export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards }: P0BattleLabProps = {}) {
+export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards, canShiftElement = false, onElementShift }: P0BattleLabProps = {}) {
   const [cards] = useState(() => providedCards ?? drawThirteen(DEFAULT_SEED));
   const [lanes, setLanes] = useState<Lanes>(() => emptyLanes());
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sortMode, setSortMode] = useState<CardSortMode>("deal");
   const [notice, setNotice] = useState("先選 3 張牌組成頭墩，或選 5 張牌組成中／尾墩。");
+  const [laneElementOverrides, setLaneElementOverrides] = useState<Partial<Record<LaneId, Suit>>>({});
+  const [elementShiftMode, setElementShiftMode] = useState(false);
+  const [elementShiftUsed, setElementShiftUsed] = useState(false);
 
   const assignedIds = useMemo(() => new Set([...lanes.front, ...lanes.middle, ...lanes.back].map((card) => card.id)), [lanes]);
   const hand = useMemo(() => sortCards(cards.filter((card) => !assignedIds.has(card.id)), sortMode), [assignedIds, cards, sortMode]);
@@ -49,6 +55,7 @@ export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards }:
   const selectedCards = useMemo(() => cards.filter((card) => selectedSet.has(card.id)), [cards, selectedSet]);
   const selectedZone: CardZone | null = selectedIds.length === 0 ? null : assignedIds.has(selectedIds[0]) ? (["front", "middle", "back"] as LaneId[]).find((lane) => lanes[lane].some((card) => card.id === selectedIds[0])) ?? null : "hand";
   const validation = useMemo(() => validateLayout(lanes), [lanes]);
+  const formedElementLanes = useMemo(() => (["front", "middle", "back"] as LaneId[]).filter((lane) => lanes[lane].length === LANE_SIZES[lane] && resolveLaneElement(lanes[lane]) !== null), [lanes]);
   const assignedCount = cards.length - hand.length;
   const selectedCount = selectedIds.length;
 
@@ -93,8 +100,25 @@ export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards }:
       setNotice(validation.errors[0] ?? "這副牌還不能提交。");
       return;
     }
-    onLayoutConfirmed?.(lanes, cards);
+    onLayoutConfirmed?.(lanes, cards, laneElementOverrides);
     setNotice("這副牌成立，準備進入三墩比較。");
+  }
+
+  function startElementShift() {
+    if (formedElementLanes.length === 0) {
+      setNotice("先完成一個元素墩，潮汐流轉才能調整它。");
+      return;
+    }
+    setElementShiftMode(true);
+    setNotice("選擇一個已形成的元素墩，再指定新的元素。");
+  }
+
+  function shiftElement(lane: LaneId, suit: Suit) {
+    if (!onElementShift?.(lane, suit)) return;
+    setLaneElementOverrides((current) => ({ ...current, [lane]: suit }));
+    setElementShiftUsed(true);
+    setElementShiftMode(false);
+    setNotice(`${LANE_LABELS[lane]}已調整為${SUIT_LABELS[suit]}元素。`);
   }
 
   function selectionMessage() {
@@ -110,6 +134,15 @@ export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards }:
     <div className="section-heading lab-heading"><div><span className="card-kicker">十三支</span><h2 id="p0-lab-title">排好這副牌</h2></div><span className="progress-pill">{assignedCount}/13</span></div>
     <p className="lab-intro">先整理手牌，再一次選 3 張或 5 張放入對應墩位。牌可以退回重排。</p>
     <div className="notice" role="status">{notice}</div>
+    {canShiftElement && !elementShiftUsed && <div className="element-shift-panel" aria-label="潮汐流轉">
+      {!elementShiftMode ? <button type="button" className="ability-button" disabled={formedElementLanes.length === 0} onClick={startElementShift}>潮汐流轉・調整元素墩</button> : <div className="element-shift-options">
+        <strong>選擇要改變的元素墩</strong>
+        {formedElementLanes.map((lane) => {
+          const currentElement = laneElementOverrides[lane] ?? resolveLaneElement(lanes[lane]);
+          return <div className="element-shift-lane" key={lane}><span>{LANE_LABELS[lane]}・目前{currentElement ? SUIT_LABELS[currentElement] : "無"}</span><div>{SUITS.filter((suit) => suit !== currentElement).map((suit) => <button type="button" className="link-button" key={suit} onClick={() => shiftElement(lane, suit)}>{LANE_LABELS[lane]}改成{SUIT_LABELS[suit]}</button>)}</div></div>;
+        })}
+      </div>}
+    </div>}
 
     <div className="lanes" aria-label="十三支分墩區">
       <Lane lane="back" cards={lanes.back} selectedIds={selectedSet} selectionOrder={selectionOrder} onSelect={(card) => toggleCard(card, "back")} />
