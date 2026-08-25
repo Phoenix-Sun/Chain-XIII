@@ -6,8 +6,8 @@ import { catalog } from "../content/catalog";
 import { monsterDisplayName } from "../content/display";
 import { rewardForNode } from "../domain/runRewards";
 
-const NODE_LABELS: Record<MapNodeType, string> = { battle: "戰", elite: "強", event: "事", relic: "獎", boss: "王" };
-const NODE_NAMES: Record<MapNodeType, string> = { battle: "戰鬥", elite: "強敵", event: "事件", relic: "獎勵", boss: "Boss" };
+const NODE_LABELS: Record<MapNodeType, string> = { battle: "戰", elite: "強", event: "事", relic: "遺", boss: "王" };
+const NODE_NAMES: Record<MapNodeType, string> = { battle: "戰鬥", elite: "強敵", event: "事件", relic: "遺物", boss: "Boss" };
 
 function contentNumber(id?: string): string {
   return id?.match(/(\d+)$/)?.[1] ?? "?";
@@ -21,6 +21,10 @@ function nodeAccessibleLabel(node: RunMapNode, monsterName?: string): string {
 
 function routePreviewDetail(node: RunMapNode, monsterDropCount: number | undefined, reward: ReturnType<typeof rewardForNode>): string {
   if (monsterDropCount !== undefined) return `可能掉落 ${monsterDropCount} 種基因鏈`;
+  if (node.type === "relic" && reward.relicId) {
+    const relic = catalog.relics.find((candidate) => candidate.id === reward.relicId);
+    if (relic) return `可取得：${relic.name}`;
+  }
   if (node.type === "event") {
     const event = node.eventId ? catalog.events.find((candidate) => candidate.id === node.eventId) : undefined;
     if (event) return `目標：${event.objective}・可能獎勵：水晶、基因鏈、遺物`;

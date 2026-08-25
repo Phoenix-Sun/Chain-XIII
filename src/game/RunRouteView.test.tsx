@@ -55,4 +55,35 @@ describe("RunRouteView", () => {
     expect(screen.getByText(/目標：配置一組相同點數/)).toBeInTheDocument();
     expect(screen.getByText(/可能獎勵：水晶、基因鏈、遺物/)).toBeInTheDocument();
   });
+
+  it("previews the named relic before the player commits to a relic route", () => {
+    render(<RunRouteView run={{
+      seed: "relic-preview",
+      partyCharacterIds: ["water-scout"],
+      map: {
+        seed: "relic-preview",
+        startNodeId: "start",
+        bossNodeId: "boss",
+        nodes: [
+          { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["relic"] },
+          { id: "relic", row: 1, column: 0, type: "relic", relicId: "relic-3", nextNodeIds: ["boss"] },
+          { id: "boss", row: 2, column: 0, type: "boss", monsterId: "boss-lava-turtle", nextNodeIds: [] },
+        ],
+      },
+      geneInventory: [],
+      geneCapacity: 6,
+      equippedGenes: {},
+      relicIds: [],
+      discoveredRunFlags: [],
+      completedNodeIds: ["start"],
+      claimedRewardNodeIds: [],
+      earnedCrystals: 0,
+      earnedGeneChainIds: [],
+      currentNodeId: "start",
+      finalBossId: "boss",
+      status: "active",
+    }} />);
+
+    expect(screen.getByText("可取得：古代神器 3")).toBeInTheDocument();
+  });
 });
