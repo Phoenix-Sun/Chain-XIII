@@ -1,6 +1,6 @@
 import type { Card } from "./cards";
-import { evaluateHand } from "./hands";
-import { validateLayout, type Lanes } from "./layout";
+import { compareHandRanks, evaluateHand, type HandRank } from "./hands";
+import type { Lanes } from "./layout";
 
 function combinations<T>(items: T[], choose: number): T[][] {
   const result: T[][] = [];
@@ -12,9 +12,8 @@ function combinations<T>(items: T[], choose: number): T[][] {
   return result;
 }
 
-function layoutScore(lanes: Lanes): number[] {
-  return [lanes.back, lanes.middle, lanes.front].flatMap((lane) => {
-    const rank = evaluateHand(lane);
+function layoutScore(ranks: Record<keyof Lanes, HandRank>): number[] {
+  return [ranks.back, ranks.middle, ranks.front].flatMap((rank) => {
     return [rank.categoryScore, ...rank.tiebreaker, 0, 0, 0, 0, 0].slice(0, 6);
   });
 }
@@ -43,8 +42,9 @@ export function arrangeEnemyHandWithScore(cards: Card[]): { lanes: Lanes; score:
     for (const middle of combinations(remainingAfterFront, 5)) {
       const back = remainingAfterFront.filter((card) => !middle.some((candidate) => candidate.id === card.id));
       const lanes: Lanes = { front, middle, back };
-      if (!validateLayout(lanes).valid) continue;
-      const score = layoutScore(lanes);
+      const ranks = { front: evaluateHand(front), middle: evaluateHand(middle), back: evaluateHand(back) };
+      if (compareHandRanks(ranks.front, ranks.middle) >= 0 || compareHandRanks(ranks.middle, ranks.back) >= 0) continue;
+      const score = layoutScore(ranks);
       if (!bestScore || compareScores(score, bestScore) > 0) { best = lanes; bestScore = score; }
     }
   }
