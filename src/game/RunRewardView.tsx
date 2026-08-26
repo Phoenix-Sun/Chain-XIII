@@ -13,7 +13,7 @@ function readableRelicName(id: string): string {
   return catalog.relics.find((relic) => relic.id === id)?.name ?? id.replace(/^relic-/, "遺物 ");
 }
 
-export default function RunRewardView({ node, difficulty = "normal", reward, inventoryCount, geneCapacity, error, onClaim, onSkipGene }: { node: RunMapNode; difficulty?: RunDifficulty; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
+export default function RunRewardView({ node, difficulty = "normal", isFinalBoss = false, reward, inventoryCount, geneCapacity, error, onClaim, onSkipGene }: { node: RunMapNode; difficulty?: RunDifficulty; isFinalBoss?: boolean; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
   const [selectedChoiceId, setSelectedChoiceId] = useState(reward.choices?.[0]?.id);
   const selectedChoice = reward.choices?.find((choice) => choice.id === selectedChoiceId);
   const selectedGene = selectedChoice?.geneChain ?? reward.geneChain;
@@ -38,6 +38,6 @@ export default function RunRewardView({ node, difficulty = "normal", reward, inv
     </div>}
     {selectedGene && <p className={`reward-capacity${inventoryFull ? " is-full" : ""}`}>基因庫：{inventoryCount} / {geneCapacity}{inventoryFull ? "，已滿；可以放棄這條鏈，只保留水晶。" : ""}</p>}
     {error && <p className="reward-error" role="alert">{error}</p>}
-    <div className="reward-actions"><button type="button" className="primary-button" disabled={inventoryFull || Boolean(reward.choices && !selectedChoice)} onClick={() => onClaim(selectedChoice)}>{node.type === "boss" ? "領取並結算" : "領取獎勵"}</button>{inventoryFull && onSkipGene && <button type="button" className="link-button" onClick={onSkipGene}>只拿水晶，放棄基因鏈</button>}</div>
+    <div className="reward-actions"><button type="button" className="primary-button" disabled={inventoryFull || Boolean(reward.choices && !selectedChoice)} onClick={() => onClaim(selectedChoice)}>{isFinalBoss ? "領取並結算" : "領取獎勵"}</button>{inventoryFull && onSkipGene && <button type="button" className="link-button" onClick={onSkipGene}>只拿水晶，放棄基因鏈</button>}</div>
   </section>;
 }

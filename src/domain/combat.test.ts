@@ -51,6 +51,12 @@ describe("three-lane combat", () => {
     expect(compareLane("front", make("player"), make("enemy"), { frontBonus: 1 }).winner).toBe("player");
   });
 
+  it("lets later chapters win an otherwise tied lane", () => {
+    const make = (prefix: string): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${prefix}-${index}`, rank: rank as Card["rank"], suit: "water", currentSuit: "water" }));
+    expect(compareLane("front", make("player"), make("enemy")).winner).toBe("tie");
+    expect(compareLane("front", make("player"), make("enemy"), { enemyTiebreakerBonus: 1 }).winner).toBe("enemy");
+  });
+
   it("lets Tide Flow retune a formed player lane before comparison", () => {
     const make = (prefix: string, suit: Card["suit"]): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${prefix}-${index}`, rank: rank as Card["rank"], suit, currentSuit: suit }));
     const player = make("player", "fire");

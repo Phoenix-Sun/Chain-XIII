@@ -103,7 +103,7 @@ export function completeCurrentNode(run: RunState): RunState {
   return {
     ...run,
     completedNodeIds: [...run.completedNodeIds, current.id],
-    status: current.type === "boss" ? "won" : "active",
+    status: current.id === run.finalBossId ? "won" : "active",
   };
 }
 

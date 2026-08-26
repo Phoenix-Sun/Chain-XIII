@@ -15,8 +15,8 @@ function contentNumber(id?: string): string {
 }
 
 function nodeAccessibleLabel(node: RunMapNode, monsterName?: string): string {
-  const location = `第 ${node.row + 1} 層・第 ${node.column + 1} 格`;
-  const detail = monsterName ? monsterName : node.type === "event" ? `事件 ${contentNumber(node.eventId)}` : node.type === "relic" ? `遺物 ${contentNumber(node.relicId)}` : node.type === "boss" ? "最終 Boss" : "";
+  const location = `第 ${node.row + 1} 層・第 ${node.column + 1} 格・第 ${node.chapter ?? 1} 章`;
+  const detail = monsterName ? monsterName : node.type === "event" ? `事件 ${contentNumber(node.eventId)}` : node.type === "relic" ? `遺物 ${contentNumber(node.relicId)}` : node.type === "boss" ? `第 ${node.chapter ?? 1} 章 Boss` : "";
   return [NODE_NAMES[node.type], location, detail].filter(Boolean).join("・");
 }
 
@@ -67,6 +67,10 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
   const rows = useMemo(() => Array.from(new Set(activeRun.map.nodes.map((node) => node.row))).sort((a, b) => a - b), [activeRun.map.nodes]);
   const reachableNodes = current.nextNodeIds.map((id) => activeRun.map.nodes.find((node) => node.id === id)).filter((node): node is RunMapNode => Boolean(node));
   const hasMapAbility = partyCharacterIds.some((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-map");
+  const chapterBoss = activeRun.map.nodes.find((node) => node.id === activeRun.map.chapterBossNodeIds[(current.chapter ?? 1) - 1])
+    ?? activeRun.map.nodes.filter((node) => node.type === "boss").find((node) => node.chapter === current.chapter)
+    ?? activeRun.map.nodes.find((node) => node.id === activeRun.map.bossNodeId)
+    ?? current;
 
   function revealNextLayer() {
     if (!hasMapAbility || mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")) return;
@@ -98,9 +102,9 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
   const mapHeight = Math.max((maxRow + 1) * rowHeight, 520);
 
   return <section className="route-card" aria-labelledby="route-title">
-    <div className="route-heading"><div><span className="pixel-kicker">遠征地圖</span><h2 id="route-title">選擇下一站</h2></div><span className="route-boss">終點：Boss</span></div>
-    <div className="route-status route-status-top"><span><b>目前位置</b>・{NODE_NAMES[current.type]}</span><span>距離 Boss：{Math.max(maxRow - current.row, 0)} 層</span><span>已完成：{activeRun.completedNodeIds.length} 個節點</span></div>
-    <p className="route-intro">沿著發光路線向上前進。只有和目前位置相連的節點可以前往。</p>
+    <div className="route-heading"><div><span className="pixel-kicker">三章遠征地圖</span><h2 id="route-title">選擇下一站</h2></div><span className="route-boss">每章 1 個 Boss</span></div>
+    <div className="route-status route-status-top"><span><b>第 {current.chapter ?? 1} 章</b>・{NODE_NAMES[current.type]}</span><span>距離 Boss（本章）：{Math.max(chapterBoss.row - current.row, 0)} 層</span><span>已完成：{activeRun.completedNodeIds.length} 個節點</span></div>
+    <p className="route-intro">沿著發光路線穿過三個章節。每章最後都有一場 Boss 戰，只有和目前位置相連的節點可以前往。</p>
     {hasMapAbility && <div className="route-ability-panel"><button type="button" className="ability-button" onClick={revealNextLayer} disabled={mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")}>石碑揭示下一層{mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map") ? "・已用" : ""}</button>{mapNotice && <p role="status">{mapNotice}</p>}</div>}
     <section className="expedition-map" aria-label="遠征地圖">
       <div className="expedition-map-legend" aria-label="路線圖例"><span><i className="legend-dot legend-current" />目前</span><span><i className="legend-dot legend-reachable" />可前往</span><span><i className="legend-dot legend-locked" />未開放</span></div>

@@ -3,7 +3,7 @@ import { arrangeEnemyHand } from "../../domain/ai";
 import { drawThirteen } from "../../domain/cards";
 import { resolveBattle, type BattleResult } from "../../domain/combat";
 
-import type { RunMapNode } from "../../domain/map";
+import { enemyTiebreakerBonusForChapter, type RunMapNode } from "../../domain/map";
 import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes } from "../../domain/template";
 import { executeEffect } from "../../domain/effects";
 import { battleRulesForRelics, relicEffectLabel } from "../../domain/relics";
@@ -85,6 +85,7 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     setDrawAttempt((current) => current + 1);
   }
   const nodeLabel = node?.type === "boss" ? "Boss" : node?.type === "elite" ? "強敵" : "怪物";
+  const chapterEnemyBonus = enemyTiebreakerBonusForChapter(node?.chapter);
   const bossRule = monster?.bossRuleId ? BOSS_RULE_LABELS[monster.bossRuleId] : undefined;
   const abilityLabels: Record<string, string> = { "ability-ripple": "水紋回響・重抽", "ability-sight": "風之預視・看敵牌", "ability-harmony": "四象協調・看提示", "ability-spark": "火花決鬥・頭墩加成" };
   const enemyName = monster ? monsterDisplayName(monster) : "訓練對手";
@@ -95,14 +96,15 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
       <div className="enemy-intent"><span>敵方意圖</span><strong>準備比較</strong></div>
     </section>
     <div className="battle-turn-guide"><span>本回合目標</span><strong>用 13 張牌排出頭／中／尾三墩</strong><small>頭墩 3 張・中墩 5 張・尾墩 5 張</small></div>
-    <div className="battle-context"><span>{nodeLabel}{monster ? `：${enemyName}` : ""}</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>
+    <div className="battle-context"><span>{node?.chapter ? `第 ${node.chapter} 章・` : ""}{nodeLabel}{monster ? `：${enemyName}` : ""}</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>
+    {chapterEnemyBonus > 0 && <p className="battle-rule-callout"><strong>章節強度 +{chapterEnemyBonus}</strong>同牌型與元素都未分出勝負時，敵方取得比較加成。</p>}
     {bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}
     {relicIds.length > 0 && <div className="battle-relic-strip" aria-label="本場遺物效果"><strong>遺物已生效</strong>{relicIds.map((relicId) => <span key={relicId}>{catalog.relics.find((relic) => relic.id === relicId)?.name ?? relicId}・{relicEffectLabel(relicId)}</span>)}</div>}
     <div className="battle-abilities" aria-label="本場可用技能">{activeAbilityIds.filter((abilityId) => abilityLabels[abilityId]).map((abilityId) => <button type="button" key={abilityId} className="ability-button" disabled={usedAbilities.includes(abilityId) || Boolean(result)} onClick={() => useAbility(abilityId)}>{abilityLabels[abilityId]}{usedAbilities.includes(abilityId) ? "・已用" : ""}</button>)}</div>
     {showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}
     {showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}
     <section className="battle-table" aria-label="十三支牌桌">
-      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} canShiftElement={activeAbilityIds.includes("ability-flow") && !usedAbilities.includes("ability-flow") && !run?.discoveredRunFlags.includes("effect:ability-flow")} onElementShift={useElementShift} onLayoutConfirmed={(layout, _cards, laneElementOverrides) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus, laneElementOverrides, ...battleRulesForRelics(relicIds) })); }} />}
+      {!result && <P0BattleLab key={`battle-draw-${drawAttempt}`} cards={playerCards} canShiftElement={activeAbilityIds.includes("ability-flow") && !usedAbilities.includes("ability-flow") && !run?.discoveredRunFlags.includes("effect:ability-flow")} onElementShift={useElementShift} onLayoutConfirmed={(layout, _cards, laneElementOverrides) => { const enemy = arrangeEnemyHand(enemyCards); setResult(resolveBattle(layout, enemy, { bossRuleId: monster?.bossRuleId, frontBonus, enemyTiebreakerBonus: chapterEnemyBonus, laneElementOverrides, ...battleRulesForRelics(relicIds) })); }} />}
     </section>
     <BattleResultPanel result={result} canRetry={Boolean(result?.outcome === "loss" && activeAbilityIds.includes("ability-shell") && !usedAbilities.includes("ability-shell"))} onRetry={retryWithShell} onContinue={result && onBattleComplete ? () => onBattleComplete(result) : undefined} />
   </section>;

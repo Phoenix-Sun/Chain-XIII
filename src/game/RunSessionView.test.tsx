@@ -21,6 +21,16 @@ describe("RunSessionView", () => {
     expect(screen.getByRole("button", { name: "領取並結算" })).toBeInTheDocument();
   });
 
+  it("returns to the route after an earlier chapter Boss instead of settling the Run", () => {
+    const base = createRunState("chapter-boss-reward", ["water-scout"]);
+    const firstBossId = base.map.chapterBossNodeIds[0];
+    const initialRun: RunState = { ...base, currentNodeId: firstBossId, completedNodeIds: [...base.completedNodeIds, firstBossId], status: "active" };
+    render(<RunSessionView initialRun={initialRun} />);
+    expect(screen.getByRole("heading", { name: "Boss 獎勵" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
+    expect(screen.getByRole("heading", { name: "選擇下一站" })).toBeInTheDocument();
+  });
+
   it("moves from a route node to reward and then into the boss battle", () => {
     const base = createRunState("session-test", ["water-scout"]);
     const initialRun: RunState = {

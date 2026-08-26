@@ -33,6 +33,7 @@ export interface BattleResult {
 export interface BattleRules {
   bossRuleId?: string;
   frontBonus?: number;
+  enemyTiebreakerBonus?: number;
   laneBonuses?: Partial<Record<CombatLane, number>>;
   laneElementOverrides?: Partial<Record<CombatLane, Suit>>;
 }
@@ -58,7 +59,8 @@ export function compareLane(lane: CombatLane, player: CombatCard[], enemy: Comba
   }
   const difference = compareHandRanks(playerRank, enemyRank)
     + (lane === "front" ? rules.frontBonus ?? 0 : 0)
-    + (rules.laneBonuses?.[lane] ?? 0);
+    + (rules.laneBonuses?.[lane] ?? 0)
+    - (rules.enemyTiebreakerBonus ?? 0);
   return { lane, winner: difference > 0 ? "player" : difference < 0 ? "enemy" : "tie", playerRank, enemyRank, playerElement, enemyElement, reason: "tiebreaker" };
 }
 

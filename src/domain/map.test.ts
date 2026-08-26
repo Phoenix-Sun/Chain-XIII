@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { generateRunMap } from "./map";
+import { enemyTiebreakerBonusForChapter, generateRunMap, nodeTypesForChapter } from "./map";
 import { catalog } from "../content/catalog";
 
 describe("seeded run map", () => {
+  it("raises enemy tie-break strength by chapter", () => {
+    expect(enemyTiebreakerBonusForChapter(1)).toBe(0);
+    expect(enemyTiebreakerBonusForChapter(2)).toBe(1);
+    expect(enemyTiebreakerBonusForChapter(3)).toBe(2);
+  });
+
+  it("weights later chapters toward Elite nodes", () => {
+    const eliteCount = (chapter: 1 | 2 | 3) => nodeTypesForChapter(chapter).filter((type) => type === "elite").length;
+    expect(eliteCount(1)).toBeLessThan(eliteCount(2));
+    expect(eliteCount(2)).toBeLessThan(eliteCount(3));
+  });
+
   it("reproduces nodes and edges from the same seed", () => {
     expect(generateRunMap("map-seed")).toEqual(generateRunMap("map-seed"));
   });
@@ -10,15 +22,27 @@ describe("seeded run map", () => {
   it("creates a forward-only route ending in a boss", () => {
     const map = generateRunMap("route-seed");
     expect(map.nodes[0].row).toBe(0);
-    expect(new Set(map.nodes.map((node) => node.row)).size).toBe(16);
+    expect(map.chapterLengths).toHaveLength(3);
+    expect(map.chapterLengths[0]).toBeGreaterThanOrEqual(10);
+    expect(map.chapterLengths[0]).toBeLessThanOrEqual(13);
+    expect(map.chapterLengths[1]).toBeGreaterThanOrEqual(7);
+    expect(map.chapterLengths[1]).toBeLessThanOrEqual(9);
+    expect(map.chapterLengths[2]).toBeGreaterThanOrEqual(4);
+    expect(map.chapterLengths[2]).toBeLessThanOrEqual(6);
+    expect(new Set(map.nodes.map((node) => node.chapter)).size).toBe(3);
     expect(map.nodes.at(-1)?.type).toBe("boss");
+    expect(map.chapterBossNodeIds).toHaveLength(3);
+    expect(map.chapterBossNodeIds.every((bossId, index) => {
+      const boss = map.nodes.find((node) => node.id === bossId)!;
+      return boss.type === "boss" && boss.chapter === index + 1;
+    })).toBe(true);
     expect(map.nodes.every((node) => node.nextNodeIds.every((nextId) => {
       const next = map.nodes.find((candidate) => candidate.id === nextId)!;
       return next.row === node.row + 1;
     }))).toBe(true);
   });
 
-  it("keeps every sampled seed connected to a catalog-backed Boss", () => {
+  it("keeps every sampled seed connected through three catalog-backed chapter Bosses", () => {
     for (const seed of ["seed-a", "seed-b", "seed-c", "seed-d", "seed-e"]) {
       const map = generateRunMap(seed);
       const monsterIds = new Set(catalog.monsters.map((monster) => monster.id));
@@ -26,6 +50,7 @@ describe("seeded run map", () => {
       let current = map.startNodeId;
       for (let step = 0; step < map.nodes.length && current !== map.bossNodeId; step += 1) current = map.nodes.find((node) => node.id === current)!.nextNodeIds[0];
       expect(current).toBe(map.bossNodeId);
+      expect(map.chapterBossNodeIds.every((bossId) => map.nodes.some((node) => node.id === bossId && node.type === "boss"))).toBe(true);
     }
   });
 });

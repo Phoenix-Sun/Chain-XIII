@@ -25,7 +25,7 @@ describe("versioned save envelope", () => {
 
   it("migrates version 1 metadata with empty progression collections", () => {
     const migrated = parseSave(JSON.stringify({ saveVersion: 1, meta: { saveVersion: 1, crystals: 20, characters: createEmptyMeta().characters, unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, lastUpdatedAt: "now" }));
-    expect(migrated.saveVersion).toBe(3);
+    expect(migrated.saveVersion).toBe(4);
     expect(migrated.meta.geneInventory).toEqual([]);
     expect(migrated.meta.relicIds).toEqual([]);
   });
@@ -37,6 +37,14 @@ describe("versioned save envelope", () => {
     expect(migrated.activeRun?.completedNodeIds).toEqual([run.map.startNodeId]);
     expect(migrated.activeRun?.claimedRewardNodeIds).toEqual([]);
     expect(migrated.activeRun?.earnedCrystals).toBe(0);
+  });
+
+  it("adds chapter map metadata when resuming a legacy active Run", () => {
+    const run = createRunState("legacy-map", [STARTER_CHARACTER_ID]);
+    const { chapterBossNodeIds: _chapterBossNodeIds, chapterLengths: _chapterLengths, ...legacyMap } = run.map;
+    const migrated = parseSave(JSON.stringify({ saveVersion: 3, meta: { saveVersion: 3, crystals: 0, characters: createEmptyMeta().characters, unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, activeRun: { ...run, map: legacyMap }, lastUpdatedAt: "now" }));
+    expect(migrated.activeRun?.map.chapterBossNodeIds).toEqual([run.map.bossNodeId]);
+    expect(migrated.activeRun?.map.chapterLengths).toEqual([run.map.nodes.length, 0, 0]);
   });
 
   it("restores the starter and removes unknown saved party members during migration", () => {

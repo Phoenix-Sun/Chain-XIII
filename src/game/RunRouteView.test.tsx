@@ -35,6 +35,8 @@ describe("RunRouteView", () => {
         seed: "event-preview",
         startNodeId: "start",
         bossNodeId: "boss",
+        chapterBossNodeIds: ["boss"],
+        chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event"] },
           { id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },
@@ -71,6 +73,8 @@ describe("RunRouteView", () => {
         seed: "relic-preview",
         startNodeId: "start",
         bossNodeId: "boss",
+        chapterBossNodeIds: ["boss"],
+        chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["relic"] },
           { id: "relic", row: 1, column: 0, type: "relic", relicId: "relic-3", nextNodeIds: ["boss"] },
@@ -109,6 +113,8 @@ describe("RunRouteView", () => {
           seed: "map-ability",
           startNodeId: "start",
           bossNodeId: "boss",
+          chapterBossNodeIds: ["boss"],
+          chapterLengths: [3, 0, 0],
           nodes: [
             { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
             { id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },
@@ -139,6 +145,8 @@ describe("RunRouteView", () => {
         seed: "map-stage",
         startNodeId: "start",
         bossNodeId: "boss",
+        chapterBossNodeIds: ["boss"],
+        chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
           { id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },

@@ -96,6 +96,14 @@ describe("run state", () => {
     expect(completeCurrentNode(bossRun).status).toBe("won");
   });
 
+  it("keeps an earlier chapter Boss active until the final Boss", () => {
+    const run = createRunState("chapter-boss-seed", ["water-scout"]);
+    const firstBossId = run.map.chapterBossNodeIds[0];
+    const firstBossRun = { ...run, currentNodeId: firstBossId };
+    expect(completeCurrentNode(firstBossRun).status).toBe("active");
+    expect(completeCurrentNode({ ...run, currentNodeId: run.finalBossId }).status).toBe("won");
+  });
+
   it("can complete a full deterministic route from start to boss", () => {
     let run = createRunState("full-run-seed", ["water-scout", "fire-smith"]);
     let steps = 0;

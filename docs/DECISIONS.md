@@ -60,3 +60,12 @@
 - IndexedDB slot `default` 保存 versioned `SaveEnvelope`，包含 Meta 與未完成 Run；重新載入時依當前節點與完成／領獎狀態重建 phase，不保存 React UI state。
 - 遠征進行中鎖住營地、抽卡與全域鍊成導覽；鍊成只從 Run route 的節點間入口進入，避免繞過單向流程或重置 Run。
 - 原因：修正 view unmount 造成 Run 遺失的風險，同時保留未來 D1 cloud save 的 service 邊界。
+
+## ADR-010：Run 分成三章，每章以 Boss 收束
+
+- 狀態：採用
+- 節點長度：第 1 章 10～13 個節點、第 2 章 7～9 個節點、第 3 章 4～6 個節點；每章最後一個節點固定是 Boss。
+- 路線：三章共用一條 forward-only 地圖，但章末 Boss 完成後仍維持 `active`，領取獎勵後進入下一章；只有第三章 Boss 才將 Run 標記為 `won`。
+- 強度：第 2／3 章提高 Elite 節點權重，並在同牌型平手比較給予敵方 +1／+2 章節加成。
+- Save：chapter Boss IDs 與章節長度寫入 RunMap；save version 4 會為舊 active Run 補上相容欄位。
+- 原因：讓遠征有清楚的三段節奏、三場 Boss 戰與後期難度曲線，而不是單一 16 層隨機路線。
