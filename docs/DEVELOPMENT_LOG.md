@@ -208,3 +208,16 @@
 - GREEN：targeted Vitest 3 個 test files、13 個 tests 通過。
 - 完整 `npm run check`：32 個 test files、117 個 tests 通過，typecheck、production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：遠征難度與十三支命制
+
+- 新增容易／中等／困難三種遠征難度，分別配置 3／2／1 條命。
+- 十三支戰敗扣除 1 條命；仍有命時留在同一戰鬥節點重新挑戰，命歸零才進入結算。
+- `RunState` 保存 difficulty、maxLives、livesRemaining；save version 3 可從 v1／v2 active Run migration。
+- 隊伍編成、遠征 HUD 與結算畫面均顯示難度／命數，並完成內建 Hermes preview 鍵盤操作驗證。
+
+### 驗證
+
+- targeted difficulty／save／party／run tests：通過。
+- 完整 `npm run check`：32 個 test files、123 個 tests 通過，typecheck、production build 通過。
+- `git diff --check`：通過。

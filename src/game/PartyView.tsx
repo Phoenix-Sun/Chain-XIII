@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { characters } from "../content/catalog";
-import { MAX_PARTY_SIZE, validatePartyCharacterIds } from "../domain/run";
+import { MAX_PARTY_SIZE, RUN_DIFFICULTIES, validatePartyCharacterIds, type RunDifficulty } from "../domain/run";
 import { characterUpgradeCost, upgradeCharacter } from "../domain/progression";
 import { buySkillNode, skillNodes } from "../domain/skillTree";
 import type { MetaState } from "../domain/save";
@@ -9,7 +9,7 @@ import type { GameView } from "./types";
 interface PartyViewProps {
   ownedCharacterIds: string[];
   selectedCharacterIds: string[];
-  onConfirm: (characterIds: string[]) => void;
+  onConfirm: (characterIds: string[], difficulty: RunDifficulty) => void;
   onNavigate: (view: GameView) => void;
   meta?: MetaState;
   onMetaChange?: (meta: MetaState) => void;
@@ -20,6 +20,7 @@ const SUIT_LABELS = { water: "水", fire: "火", wind: "風", earth: "地" } as 
 
 export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onConfirm, onNavigate, meta, onMetaChange }: PartyViewProps) {
   const [selected, setSelected] = useState(() => selectedCharacterIds.filter((id) => ownedCharacterIds.includes(id)).slice(0, MAX_PARTY_SIZE));
+  const [difficulty, setDifficulty] = useState<RunDifficulty>("normal");
   const [upgradeMessage, setUpgradeMessage] = useState<string>();
   const ownedCharacters = useMemo(() => ownedCharacterIds.map((id) => characters.find((character) => character.id === id)).filter((character): character is (typeof characters)[number] => Boolean(character)), [ownedCharacterIds]);
   const errors = validatePartyCharacterIds(selected);
@@ -30,7 +31,7 @@ export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onC
 
   function confirm() {
     if (errors.length > 0) return;
-    onConfirm(selected);
+    onConfirm(selected, difficulty);
     onNavigate("route");
   }
 
@@ -62,6 +63,10 @@ export default function PartyView({ ownedCharacterIds, selectedCharacterIds, onC
         const character = ownedCharacters.find((candidate) => candidate.id === selected[index]);
         return <div className={`formation-slot${character ? " is-filled" : ""}`} key={character?.id ?? `empty-${index}`}><span className="formation-slot-number">0{index + 1}</span>{character ? <><strong>{character.id.replaceAll("-", " ")}</strong><small>{character.role}</small></> : <span className="formation-empty">待命</span>}</div>;
       })}</div>
+    </section>
+    <section className="difficulty-picker" aria-label="遠征難度">
+      <div className="difficulty-heading"><div><span className="pixel-kicker">RISK SELECT</span><strong>選擇遠征難度</strong></div><small>十三支戰敗會消耗 1 條命</small></div>
+      <div className="difficulty-options">{(Object.entries(RUN_DIFFICULTIES) as Array<[RunDifficulty, (typeof RUN_DIFFICULTIES)[RunDifficulty]]>).map(([id, option]) => <button type="button" key={id} className={`difficulty-option difficulty-${id}${difficulty === id ? " is-selected" : ""}`} aria-pressed={difficulty === id} onClick={() => setDifficulty(id)}><strong>{option.label}</strong><span>{option.lives} 條命</span><small>{option.detail}</small></button>)}</div>
     </section>
     <section className="skill-tree-panel" aria-label="永久技能樹">
       <div className="skill-tree-heading"><div><span className="pixel-kicker">PERMANENT GROWTH</span><strong>永久技能樹</strong></div><small>水晶 {meta?.crystals ?? 0}</small></div>

@@ -30,6 +30,20 @@
 
 .party-view { color: #382a39; }
 .party-formation { margin: 0 0 12px; padding: 10px; border: 4px solid #493845; background: #2d2635; box-shadow: 4px 4px #49384566; color: #f6dfa8; }
+.difficulty-picker { margin: 0 0 12px; padding: 10px; border: 3px solid #80658a; background: #f6dfa8; color: #503747; box-shadow: 3px 3px #49384533; }
+.difficulty-heading { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.difficulty-heading > div { display: grid; gap: 3px; }
+.difficulty-heading strong { color: #382a39; font-size: 0.78rem; }
+.difficulty-heading small { color: #80665c; font-size: 0.55rem; text-align: right; }
+.difficulty-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.difficulty-option { display: grid; min-height: 92px; align-content: start; gap: 4px; padding: 8px; border: 3px solid #b89a6b; background: #fbe7b0; color: #503747; cursor: pointer; font: inherit; text-align: left; }
+.difficulty-option strong { font-size: 0.75rem; }
+.difficulty-option span { color: #9b4e36; font-size: 0.64rem; font-weight: 900; }
+.difficulty-option small { color: #80665c; font-size: 0.52rem; line-height: 1.35; }
+.difficulty-option.is-selected { border-color: #2d754d; background: #e4efc0; box-shadow: inset 0 0 0 1px #2d754d; }
+.difficulty-easy.is-selected strong { color: #2d754d; }
+.difficulty-normal.is-selected strong { color: #9b6b2f; }
+.difficulty-hard.is-selected strong { color: #8a4f4f; }
 .formation-heading { display: flex; justify-content: space-between; gap: 8px; align-items: end; margin-bottom: 8px; }
 .formation-heading > div { display: grid; gap: 3px; }
 .formation-heading strong { color: #fff0bd; font-size: 0.78rem; }
@@ -64,6 +78,11 @@
 .party-roster .character-card { min-height: 74px; }
 
 @media (max-width: 480px) {
+  .difficulty-heading { display: grid; gap: 4px; }
+  .difficulty-heading small { text-align: left; }
+  .difficulty-options { grid-template-columns: 1fr; }
+  .difficulty-option { min-height: 0; grid-template-columns: auto auto 1fr; align-items: center; column-gap: 7px; }
+  .difficulty-option small { grid-column: 1 / -1; }
   .formation-slots { gap: 4px; }
   .formation-slot { min-height: 66px; padding: 5px; }
   .formation-slot strong { font-size: 0.55rem; }

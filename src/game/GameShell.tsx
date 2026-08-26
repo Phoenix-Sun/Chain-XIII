@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createEmptyMeta, createSaveEnvelope, mergeRunIntoMeta } from "../domain/save";
-import { MAX_PARTY_SIZE, type RunState } from "../domain/run";
+import { MAX_PARTY_SIZE, type RunDifficulty, type RunState } from "../domain/run";
 import { loadFromIndexedDb, saveToIndexedDb } from "../services/persistence/indexedDb";
 import GeneWorkshopView from "./GeneWorkshopView";
 import GachaView from "./GachaView";
@@ -33,6 +33,7 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   const [persistenceFailed, setPersistenceFailed] = useState(false);
   const [partyCharacterIds, setPartyCharacterIds] = useState(() => meta.characters.map((character) => character.characterId));
   const [nextRunSeed, setNextRunSeed] = useState(() => initialSeed ?? createRunSeed());
+  const [runDifficulty, setRunDifficulty] = useState<RunDifficulty>("normal");
   const [hasStartedRun, setHasStartedRun] = useState(false);
   const [runPhase, setRunPhase] = useState<RunSessionPhase>("route");
   const ownedCharacterIds = meta.characters.map((character) => character.characterId);
@@ -75,8 +76,9 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
     setActiveView("town");
   }
 
-  function confirmParty(characterIds: string[]) {
+  function confirmParty(characterIds: string[], difficulty: RunDifficulty) {
     setPartyCharacterIds(characterIds);
+    setRunDifficulty(difficulty);
     if (hasStartedRun) setNextRunSeed(createRunSeed());
     setHasStartedRun(true);
   }
@@ -84,8 +86,8 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   function renderView() {
     if (activeView === "town") return <TownView crystals={meta.crystals} onNavigate={navigate} />;
     if (activeView === "party") return <PartyView ownedCharacterIds={ownedCharacterIds} selectedCharacterIds={partyCharacterIds} onConfirm={confirmParty} onNavigate={navigate} meta={meta} onMetaChange={setMeta} />;
-    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
-    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
+    if (activeView === "route") return <RunSessionView partyCharacterIds={partyCharacterIds} difficulty={runDifficulty} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
+    if (activeView === "battle") return <RunSessionView partyCharacterIds={partyCharacterIds} difficulty={runDifficulty} seed={nextRunSeed} initialRun={activeRun} initialGeneInventory={meta.geneInventory} permanentSkillNodeIds={meta.permanentSkillNodeIds} onRunUpdated={setActiveRun} onRunSettled={settleRun} onPhaseChange={setRunPhase} />;
     if (activeView === "gacha") return <GachaView meta={meta} onMetaChange={setMeta} onNavigate={navigate} />;
     if (activeView === "codex") return <CodexView meta={meta} />;
     return <GeneWorkshopView initialInventory={meta.geneInventory} onInventoryChange={(geneInventory) => setMeta((current) => ({ ...current, geneInventory }))} onExit={() => setActiveView("town")} />;

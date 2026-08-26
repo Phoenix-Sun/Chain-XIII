@@ -81,3 +81,10 @@
 1. 擴充神器與探索骰的內容分歧，讓更多事件目標與角色 Effect 影響事件結果。
 2. 補齊其餘 Boss 規則、圖鑑詳情、升星與 Permanent Skill Tree，再做內容量與勝率 simulation。
 3. 完成 390×844 真實 screenshot QA；目前仍受獨立瀏覽器 remote-debugging permission blocker 限制。
+
+## 遠征難度與命制
+
+- ✅ 新增容易／中等／困難三種遠征難度，分別配置 3／2／1 條命。
+- ✅ 十三支戰敗會消耗 1 條命；命未歸零時留在同一節點重新挑戰，命歸零才進入遠征結算。
+- ✅ 難度、最大命數與剩餘命寫入 `RunState`，save version 3 支援舊 active Run migration 與 resume。
+- ✅ 隊伍編成畫面提供難度選擇、命數說明；遠征 HUD 與結算畫面顯示剩餘命。

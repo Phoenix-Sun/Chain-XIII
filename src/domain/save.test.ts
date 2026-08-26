@@ -17,9 +17,15 @@ describe("versioned save envelope", () => {
     expect(parseSave(serializeSave(save)).activeRun?.seed).toBe("resume-seed");
   });
 
+  it("round trips difficulty and remaining lives for an active Run", () => {
+    const run = createRunState("difficulty-save", [STARTER_CHARACTER_ID], [], [], "hard");
+    const wounded = { ...run, livesRemaining: 0, status: "lost" as const };
+    expect(parseSave(serializeSave(createSaveEnvelope(createEmptyMeta(), wounded))).activeRun).toMatchObject({ difficulty: "hard", maxLives: 1, livesRemaining: 0, status: "lost" });
+  });
+
   it("migrates version 1 metadata with empty progression collections", () => {
     const migrated = parseSave(JSON.stringify({ saveVersion: 1, meta: { saveVersion: 1, crystals: 20, characters: createEmptyMeta().characters, unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, lastUpdatedAt: "now" }));
-    expect(migrated.saveVersion).toBe(2);
+    expect(migrated.saveVersion).toBe(3);
     expect(migrated.meta.geneInventory).toEqual([]);
     expect(migrated.meta.relicIds).toEqual([]);
   });

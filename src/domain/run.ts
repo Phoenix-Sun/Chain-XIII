@@ -4,6 +4,17 @@ import { generateRunMap, type RunMap } from "./map";
 import type { RunReward } from "./runRewards";
 
 export type RunStatus = "active" | "won" | "lost";
+export type RunDifficulty = "easy" | "normal" | "hard";
+
+export const RUN_DIFFICULTIES: Record<RunDifficulty, { label: string; lives: number; detail: string }> = {
+  easy: { label: "容易", lives: 3, detail: "容許兩次十三支戰敗，適合熟悉路線與牌桌。" },
+  normal: { label: "中等", lives: 2, detail: "容許一次十三支戰敗，標準遠征節奏。" },
+  hard: { label: "困難", lives: 1, detail: "十三支戰敗一次就結束遠征。" },
+};
+
+export function startingLivesForDifficulty(difficulty: RunDifficulty): number {
+  return RUN_DIFFICULTIES[difficulty].lives;
+}
 
 export const MAX_PARTY_SIZE = 3;
 
@@ -19,6 +30,9 @@ export function validatePartyCharacterIds(partyCharacterIds: string[]): string[]
 export interface RunState {
   seed: string;
   partyCharacterIds: string[];
+  difficulty: RunDifficulty;
+  maxLives: number;
+  livesRemaining: number;
   map: RunMap;
   geneInventory: GeneChain[];
   geneCapacity: number;
@@ -35,14 +49,18 @@ export interface RunState {
   status: RunStatus;
 }
 
-export function createRunState(seed: string, partyCharacterIds: string[], initialGeneInventory: GeneChain[] = [], permanentSkillNodeIds: string[] = []): RunState {
+export function createRunState(seed: string, partyCharacterIds: string[], initialGeneInventory: GeneChain[] = [], permanentSkillNodeIds: string[] = [], difficulty: RunDifficulty = "normal"): RunState {
   const partyErrors = validatePartyCharacterIds(partyCharacterIds);
   if (partyErrors.length > 0) throw new Error(partyErrors[0]);
   const map = generateRunMap(seed);
   const modifiers = skillTreeModifiers(permanentSkillNodeIds);
+  const maxLives = startingLivesForDifficulty(difficulty);
   return {
     seed,
     partyCharacterIds,
+    difficulty,
+    maxLives,
+    livesRemaining: maxLives,
     map,
     geneInventory: [...initialGeneInventory],
     geneCapacity: 6 + modifiers.geneCapacityBonus,
@@ -91,7 +109,8 @@ export function completeCurrentNode(run: RunState): RunState {
 
 export function failCurrentNode(run: RunState): RunState {
   if (run.status !== "active") return run;
-  return { ...run, status: "lost" };
+  const livesRemaining = Math.max(0, run.livesRemaining - 1);
+  return { ...run, livesRemaining, status: livesRemaining === 0 ? "lost" : "active" };
 }
 
 export function claimCurrentNodeReward(run: RunState, reward: RunReward, options: { takeGene?: boolean } = {}): RunState {

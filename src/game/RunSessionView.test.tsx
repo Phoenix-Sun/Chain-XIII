@@ -66,6 +66,19 @@ describe("RunSessionView", () => {
     expect(screen.getByText("本次出戰：water scout、fire smith")).toBeInTheDocument();
   });
 
+  it("shows the selected life pool in the expedition HUD", () => {
+    const base = createRunState("easy-hud", ["water-scout"], [], [], "easy");
+    render(<RunSessionView initialRun={base} />);
+    expect(screen.getByText(/3\/3 命/)).toBeInTheDocument();
+  });
+
+  it("explains when settlement happened because thirteen-card losses exhausted the Run", () => {
+    const base = createRunState("lost-settlement", ["water-scout"]);
+    render(<RunSessionView initialRun={{ ...base, livesRemaining: 0, status: "lost" }} />);
+    expect(screen.getByText(/十三支戰敗耗盡了這趟遠征的命/)).toBeInTheDocument();
+    expect(screen.getByText("剩餘命").parentElement).toHaveTextContent("0/2");
+  });
+
   it("claims only the selected relic when an event offers a gene-or-relic choice", () => {
     const base = createRunState("event-choice-0", ["water-scout"]);
     const onRunUpdated = vi.fn();

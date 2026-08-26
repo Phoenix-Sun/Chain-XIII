@@ -1,7 +1,7 @@
-import type { RunState } from "./run";
+import { startingLivesForDifficulty, type RunDifficulty, type RunState } from "./run";
 import type { GeneChain } from "./template";
 
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 export const STARTER_CHARACTER_ID = "water-scout";
 
 export interface CharacterProgress { characterId: string; star: 1 | 2 | 3 | 4 | 5; imprintCount: number; }
@@ -43,9 +43,15 @@ function migrateActiveRun(input: unknown): RunState | undefined {
   const map = raw.map;
   if (typeof raw.seed !== "string" || !map || !Array.isArray(map.nodes) || typeof map.startNodeId !== "string" || typeof map.bossNodeId !== "string") throw new Error("Save activeRun 基本欄位無效");
   const validNodeId = (value: unknown, fallback: string) => typeof value === "string" && map.nodes.some((node) => node.id === value) ? value : fallback;
+  const difficulty: RunDifficulty = raw.difficulty === "easy" || raw.difficulty === "hard" ? raw.difficulty : "normal";
+  const maxLives = startingLivesForDifficulty(difficulty);
+  const livesRemaining = typeof raw.livesRemaining === "number" ? Math.min(maxLives, Math.max(0, Math.floor(raw.livesRemaining))) : maxLives;
   return {
     seed: raw.seed,
     partyCharacterIds: Array.isArray(raw.partyCharacterIds) && raw.partyCharacterIds.length > 0 ? raw.partyCharacterIds : [STARTER_CHARACTER_ID],
+    difficulty,
+    maxLives,
+    livesRemaining,
     map,
     geneInventory: Array.isArray(raw.geneInventory) ? raw.geneInventory : [],
     geneCapacity: typeof raw.geneCapacity === "number" ? raw.geneCapacity : 6,
@@ -59,7 +65,7 @@ function migrateActiveRun(input: unknown): RunState | undefined {
     earnedGeneChainIds: Array.isArray(raw.earnedGeneChainIds) ? raw.earnedGeneChainIds : [],
     currentNodeId: validNodeId(raw.currentNodeId, map.startNodeId),
     finalBossId: validNodeId(raw.finalBossId, map.bossNodeId),
-    status: raw.status === "won" || raw.status === "lost" ? raw.status : "active",
+    status: raw.status === "won" ? "won" : raw.status === "lost" || livesRemaining === 0 ? "lost" : "active",
   };
 }
 
@@ -75,7 +81,7 @@ function normalizeCharacters(input: unknown): CharacterProgress[] {
 export function migrateSave(input: unknown): SaveEnvelope {
   if (!input || typeof input !== "object") throw new Error("Save 格式無效");
   const raw = input as Partial<SaveEnvelope>;
-  if (raw.saveVersion !== 1 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
+  if (raw.saveVersion !== 1 && raw.saveVersion !== 2 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
   if (!raw.meta || typeof raw.meta !== "object") throw new Error("Save 缺少 meta");
   const meta = raw.meta as Partial<MetaState>;
   if (!Array.isArray(meta.unlockedMonsterCodexIds) || !Array.isArray(meta.permanentSkillNodeIds)) throw new Error("Save meta 欄位無效");

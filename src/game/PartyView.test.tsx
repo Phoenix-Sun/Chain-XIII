@@ -17,9 +17,18 @@ describe("PartyView", () => {
     render(<PartyView ownedCharacterIds={["water-scout"]} selectedCharacterIds={["water-scout"]} onConfirm={onConfirm} onNavigate={onNavigate} />);
 
     expect(screen.getByText(/只有預設角色也可以開始/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /容易.*3 條命/ }));
     fireEvent.click(screen.getByRole("button", { name: /開始遠征/ }));
-    expect(onConfirm).toHaveBeenCalledWith(["water-scout"]);
+    expect(onConfirm).toHaveBeenCalledWith(["water-scout"], "easy");
     expect(onNavigate).toHaveBeenCalledWith("route");
+  });
+
+  it("shows the three expedition difficulty choices", () => {
+    render(<PartyView ownedCharacterIds={["water-scout"]} selectedCharacterIds={["water-scout"]} onConfirm={vi.fn()} onNavigate={vi.fn()} />);
+    expect(screen.getByRole("region", { name: "遠征難度" })).toHaveTextContent("容易");
+    expect(screen.getByRole("region", { name: "遠征難度" })).toHaveTextContent("中等");
+    expect(screen.getByRole("region", { name: "遠征難度" })).toHaveTextContent("困難");
+    expect(screen.getByRole("button", { name: /中等.*2 條命/ })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("lets a player choose up to three owned characters", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, moveToNode, validatePartyCharacterIds, type RunState } from "./run";
+import { canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, failCurrentNode, moveToNode, validatePartyCharacterIds, type RunState } from "./run";
 import { rewardForNode } from "./runRewards";
 
 describe("run state", () => {
@@ -21,6 +21,22 @@ describe("run state", () => {
     expect(() => createRunState("run-seed", [])).toThrow("至少需要 1 名角色");
     expect(() => createRunState("run-seed", ["a", "b", "c", "d"])).toThrow("最多選 3 名");
     expect(() => createRunState("run-seed", ["a", "a"])).toThrow("不能重複");
+  });
+
+  it("assigns three, two, or one life to easy, normal, and hard Runs", () => {
+    expect(createRunState("easy-seed", ["water-scout"], [], [], "easy")).toMatchObject({ difficulty: "easy", maxLives: 3, livesRemaining: 3 });
+    expect(createRunState("normal-seed", ["water-scout"], [], [], "normal")).toMatchObject({ difficulty: "normal", maxLives: 2, livesRemaining: 2 });
+    expect(createRunState("hard-seed", ["water-scout"], [], [], "hard")).toMatchObject({ difficulty: "hard", maxLives: 1, livesRemaining: 1 });
+  });
+
+  it("spends one life on a thirteen-card battle loss and only ends at zero", () => {
+    const easy = createRunState("easy-loss", ["water-scout"], [], [], "easy");
+    const afterFirstLoss = failCurrentNode(easy);
+    expect(afterFirstLoss).toMatchObject({ status: "active", livesRemaining: 2, currentNodeId: easy.currentNodeId });
+    const afterSecondLoss = failCurrentNode(afterFirstLoss);
+    expect(afterSecondLoss.status).toBe("active");
+    expect(afterSecondLoss.livesRemaining).toBe(1);
+    expect(failCurrentNode(afterSecondLoss)).toMatchObject({ status: "lost", livesRemaining: 0 });
   });
 
   it("only permits moving to a connected next node", () => {

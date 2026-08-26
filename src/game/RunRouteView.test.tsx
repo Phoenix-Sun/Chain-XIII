@@ -28,6 +28,9 @@ describe("RunRouteView", () => {
     render(<RunRouteView run={{
       seed: "event-preview",
       partyCharacterIds: ["water-scout"],
+      difficulty: "normal",
+      maxLives: 2,
+      livesRemaining: 2,
       map: {
         seed: "event-preview",
         startNodeId: "start",
@@ -61,6 +64,9 @@ describe("RunRouteView", () => {
     render(<RunRouteView run={{
       seed: "relic-preview",
       partyCharacterIds: ["water-scout"],
+      difficulty: "normal",
+      maxLives: 2,
+      livesRemaining: 2,
       map: {
         seed: "relic-preview",
         startNodeId: "start",
@@ -96,6 +102,9 @@ describe("RunRouteView", () => {
       run={{
         seed: "map-ability",
         partyCharacterIds: ["stone-cartographer"],
+        difficulty: "normal",
+        maxLives: 2,
+        livesRemaining: 2,
         map: {
           seed: "map-ability",
           startNodeId: "start",
@@ -123,6 +132,9 @@ describe("RunRouteView", () => {
     render(<RunRouteView run={{
       seed: "map-stage",
       partyCharacterIds: ["water-scout"],
+      difficulty: "normal",
+      maxLives: 2,
+      livesRemaining: 2,
       map: {
         seed: "map-stage",
         startNodeId: "start",
