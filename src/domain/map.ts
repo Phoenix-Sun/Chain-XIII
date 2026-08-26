@@ -20,14 +20,14 @@ export interface RunMap {
   nodes: RunMapNode[];
   startNodeId: string;
   bossNodeId: string;
-  chapterBossNodeIds: string[];
+  chapterEndNodeIds: string[];
   chapterLengths: [number, number, number];
 }
 
 const NODE_TYPES_BY_CHAPTER: Record<RunChapter, MapNodeType[]> = {
-  1: ["battle", "battle", "elite", "event", "relic"],
-  2: ["battle", "battle", "elite", "elite", "event", "relic"],
-  3: ["battle", "elite", "elite", "elite", "event", "relic"],
+  1: ["battle", "battle", "event", "relic"],
+  2: ["battle", "battle", "event", "relic"],
+  3: ["battle", "event", "relic"],
 };
 const BOSS_IDS = ["boss-lava-turtle", "boss-storm-bird", "boss-deep-sea"] as const;
 export const RUN_CHAPTER_LENGTH_RANGES: ReadonlyArray<{ min: number; max: number }> = [
@@ -37,7 +37,7 @@ export const RUN_CHAPTER_LENGTH_RANGES: ReadonlyArray<{ min: number; max: number
 ];
 
 export function enemyTiebreakerBonusForChapter(chapter?: RunChapter): number {
-  return chapter === 3 ? 2 : chapter === 2 ? 1 : 0;
+  return chapter === 3 ? 1 : 0;
 }
 
 export function nodeTypesForChapter(chapter: RunChapter): readonly MapNodeType[] {
@@ -47,21 +47,21 @@ export function nodeTypesForChapter(chapter: RunChapter): readonly MapNodeType[]
 export function generateRunMap(seed: string): RunMap {
   const random = new SeededRandom(seed);
   const chapterLengths = RUN_CHAPTER_LENGTH_RANGES.map(({ min, max }) => min + random.int(max - min + 1)) as [number, number, number];
-  const chapterBossIds = [...BOSS_IDS];
+  const finalBossId = random.pick(BOSS_IDS);
   const nodes: RunMapNode[] = [];
   let row = 0;
   for (let chapterIndex = 0; chapterIndex < chapterLengths.length; chapterIndex += 1) {
     const chapter = (chapterIndex + 1) as RunChapter;
     const chapterLength = chapterLengths[chapterIndex];
-    const chapterBossId = chapterBossIds.splice(random.int(chapterBossIds.length), 1)[0];
     for (let localRow = 0; localRow < chapterLength; localRow += 1) {
       const isStart = row === 0;
-      const isBoss = localRow === chapterLength - 1;
-      const count = isStart || isBoss ? 1 : 2 + random.int(2);
+      const isChapterEnd = localRow === chapterLength - 1;
+      const endType: MapNodeType = chapter === 3 ? "boss" : "elite";
+      const count = isStart || isChapterEnd ? 1 : 2 + random.int(2);
       for (let column = 0; column < count; column += 1) {
-        const type = isBoss ? "boss" : isStart ? "battle" : random.pick(nodeTypesForChapter(chapter));
+        const type = isChapterEnd ? endType : isStart ? "battle" : random.pick(nodeTypesForChapter(chapter));
         const monsterId = type === "boss"
-        ? chapterBossId
+        ? finalBossId
         : type === "elite"
           ? `monster-elite-${random.int(4) + 1}`
           : type === "battle"
@@ -79,5 +79,5 @@ export function generateRunMap(seed: string): RunMap {
   }
   const startNodeId = nodes[0].id;
   const bossNodeId = nodes[nodes.length - 1].id;
-  return { seed, nodes, startNodeId, bossNodeId, chapterBossNodeIds: nodes.filter((node) => node.type === "boss").map((node) => node.id), chapterLengths };
+  return { seed, nodes, startNodeId, bossNodeId, chapterEndNodeIds: nodes.filter((node) => node.type === "elite" || node.type === "boss").map((node) => node.id), chapterLengths };
 }

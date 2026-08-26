@@ -39,8 +39,7 @@ export default function CodexView({ meta }: { meta: MetaState }) {
         const isKnown = discovered.has(monster.id);
         return <article className={`codex-entry${isKnown ? " is-known" : " is-unknown"}`} key={monster.id}>
           <div className={`codex-entry-mark kind-${monster.kind}`}>{monster.kind === "boss" ? "王" : monster.kind === "elite" ? "強" : "敵"}</div>
-          <div className="codex-entry-copy"><strong>{isKnown ? monsterName(monster) : "未知遭遇"}</strong><small>{isKnown ? `${monster.kind === "boss" ? "Boss" : monster.kind === "elite" ? "強敵" : "普通怪物"}・${monster.dropChainPoolIds.map(readableGene).join("、")}` : "尚未遭遇"}</small>{isKnown && monster.bossRuleId && <p><b>戰鬥規則</b>{BOSS_RULES[monster.bossRuleId] ?? "已記錄特殊規則。"}</p>}</div>
-          <span className="codex-status">{isKnown ? "已記錄" : "?"}</span>
+          <div className="codex-entry-copy"><strong>{isKnown ? monsterName(monster) : "未知遭遇"}</strong><small>{isKnown ? `${monster.kind === "boss" ? "Boss" : monster.kind === "elite" ? "菁英" : "普通怪物"}・${monster.dropChainPoolIds.map(readableGene).join("、")}` : "尚未遭遇"}</small>{isKnown && monster.bossRuleId && <p><b>戰鬥規則</b>{BOSS_RULES[monster.bossRuleId] ?? "已記錄特殊規則。"}</p>}</div><span className="codex-status">{isKnown ? "已記錄" : "?"}</span>
         </article>;
       })}</div>
     </section>

@@ -22,7 +22,7 @@ export default function RunRewardView({ node, difficulty = "normal", isFinalBoss
     <span className="pixel-kicker">節點完成</span>
     <h1 id="run-reward-title">{reward.title}</h1>
     <p>{reward.detail}</p>
-    <div className="reward-source">{node.type === "boss" ? "Boss 已擊敗" : "目前節點已完成"}</div>
+    <div className="reward-source">{node.type === "boss" ? "Boss 已擊敗" : node.type === "elite" ? "菁英已擊敗" : "目前節點已完成"}</div>
     <div className="reward-difficulty" aria-label="難度獎勵倍率"><span>{RUN_DIFFICULTIES[difficulty].label}難度</span><strong>水晶獎勵 ×{rewardMultiplierForDifficulty(difficulty)}</strong><small>高風險難度會給予更高的水晶回報。</small></div>
     <div className="reward-list">
       <div className="reward-item"><strong>+{reward.crystals}</strong><span>水晶</span></div>

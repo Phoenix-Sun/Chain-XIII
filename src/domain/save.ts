@@ -1,7 +1,7 @@
 import { startingLivesForDifficulty, type RunDifficulty, type RunState } from "./run";
 import type { GeneChain } from "./template";
 
-export const CURRENT_SAVE_VERSION = 4;
+export const CURRENT_SAVE_VERSION = 5;
 export const STARTER_CHARACTER_ID = "water-scout";
 
 export interface CharacterProgress { characterId: string; star: 1 | 2 | 3 | 4 | 5; imprintCount: number; }
@@ -42,9 +42,10 @@ function migrateActiveRun(input: unknown): RunState | undefined {
   const raw = input as Partial<RunState>;
   const rawMap = raw.map;
   if (typeof raw.seed !== "string" || !rawMap || !Array.isArray(rawMap.nodes) || typeof rawMap.startNodeId !== "string" || typeof rawMap.bossNodeId !== "string") throw new Error("Save activeRun 基本欄位無效");
+  const legacyMap = rawMap as typeof rawMap & { chapterBossNodeIds?: unknown };
   const map = {
     ...rawMap,
-    chapterBossNodeIds: Array.isArray(rawMap.chapterBossNodeIds) && rawMap.chapterBossNodeIds.length > 0 ? rawMap.chapterBossNodeIds : [rawMap.bossNodeId],
+    chapterEndNodeIds: Array.isArray(rawMap.chapterEndNodeIds) && rawMap.chapterEndNodeIds.length > 0 ? rawMap.chapterEndNodeIds : Array.isArray(legacyMap.chapterBossNodeIds) && legacyMap.chapterBossNodeIds.length > 0 ? legacyMap.chapterBossNodeIds : [rawMap.bossNodeId],
     chapterLengths: Array.isArray(rawMap.chapterLengths) && rawMap.chapterLengths.length === 3 ? rawMap.chapterLengths as [number, number, number] : [rawMap.nodes.length, 0, 0] as [number, number, number],
   };
   const validNodeId = (value: unknown, fallback: string) => typeof value === "string" && map.nodes.some((node) => node.id === value) ? value : fallback;
@@ -86,7 +87,7 @@ function normalizeCharacters(input: unknown): CharacterProgress[] {
 export function migrateSave(input: unknown): SaveEnvelope {
   if (!input || typeof input !== "object") throw new Error("Save 格式無效");
   const raw = input as Partial<SaveEnvelope>;
-  if (raw.saveVersion !== 1 && raw.saveVersion !== 2 && raw.saveVersion !== 3 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
+  if (raw.saveVersion !== 1 && raw.saveVersion !== 2 && raw.saveVersion !== 3 && raw.saveVersion !== 4 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
   if (!raw.meta || typeof raw.meta !== "object") throw new Error("Save 缺少 meta");
   const meta = raw.meta as Partial<MetaState>;
   if (!Array.isArray(meta.unlockedMonsterCodexIds) || !Array.isArray(meta.permanentSkillNodeIds)) throw new Error("Save meta 欄位無效");

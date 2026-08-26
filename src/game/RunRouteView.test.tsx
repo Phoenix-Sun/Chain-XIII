@@ -5,7 +5,7 @@ import RunRouteView from "./RunRouteView";
 describe("RunRouteView", () => {
   it("only enables the connected next layer and advances after a click", () => {
     render(<RunRouteView />);
-    const reachable = screen.getAllByRole("button", { name: /戰鬥|強敵|事件|獎勵/ }).filter((button) => !button.hasAttribute("disabled"));
+    const reachable = screen.getAllByRole("button", { name: /戰鬥|菁英|事件|獎勵/ }).filter((button) => !button.hasAttribute("disabled"));
     expect(reachable.length).toBeGreaterThan(0);
     fireEvent.click(reachable[0]);
     expect(screen.getByText(/下一步：/)).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe("RunRouteView", () => {
         seed: "event-preview",
         startNodeId: "start",
         bossNodeId: "boss",
-        chapterBossNodeIds: ["boss"],
+        chapterEndNodeIds: ["boss"],
         chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event"] },
@@ -73,7 +73,7 @@ describe("RunRouteView", () => {
         seed: "relic-preview",
         startNodeId: "start",
         bossNodeId: "boss",
-        chapterBossNodeIds: ["boss"],
+        chapterEndNodeIds: ["boss"],
         chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["relic"] },
@@ -113,7 +113,7 @@ describe("RunRouteView", () => {
           seed: "map-ability",
           startNodeId: "start",
           bossNodeId: "boss",
-          chapterBossNodeIds: ["boss"],
+          chapterEndNodeIds: ["boss"],
           chapterLengths: [3, 0, 0],
           nodes: [
             { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
@@ -145,7 +145,7 @@ describe("RunRouteView", () => {
         seed: "map-stage",
         startNodeId: "start",
         bossNodeId: "boss",
-        chapterBossNodeIds: ["boss"],
+        chapterEndNodeIds: ["boss"],
         chapterLengths: [3, 0, 0],
         nodes: [
           { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event", "relic"] },
@@ -170,7 +170,7 @@ describe("RunRouteView", () => {
 
     expect(screen.getByRole("region", { name: "遠征地圖" })).toBeInTheDocument();
     expect(screen.getAllByText("目前位置").length).toBeGreaterThan(0);
-    expect(screen.getByText(/距離 Boss/)).toBeInTheDocument();
+    expect(screen.getByText(/距離本章終點/)).toBeInTheDocument();
     expect(screen.getAllByTestId("route-path")).toHaveLength(4);
     expect(screen.getAllByRole("button", { name: /可前往/ })).toHaveLength(2);
   });

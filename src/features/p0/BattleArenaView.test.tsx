@@ -47,6 +47,15 @@ describe("BattleArenaView", () => {
     expect(screen.queryByText(/monster normal 6/)).not.toBeInTheDocument();
   });
 
+  it("shows the correct deterministic candidate pool for Elite and Boss encounters", () => {
+    const { rerender } = render(<BattleArenaView node={{ id: "elite", row: 9, column: 0, chapter: 1, type: "elite", monsterId: "monster-elite-1", nextNodeIds: [] }} />);
+    expect(screen.getByText("菁英兩組候選牌")).toBeInTheDocument();
+    expect(screen.getByText(/牌型結構較高/)).toBeInTheDocument();
+
+    rerender(<BattleArenaView node={{ id: "boss", row: 20, column: 0, chapter: 3, type: "boss", monsterId: "boss-deep-sea", nextNodeIds: [] }} />);
+    expect(screen.getByText("Boss 三組候選牌")).toBeInTheDocument();
+  });
+
   it("commits a winning batch layout and returns the result to the run", () => {
     const cards = drawThirteen("CHAIN-XIII-P0-001");
     const enemy = arrangeEnemyHand(drawThirteen("enemy:preview"));

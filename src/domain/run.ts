@@ -7,9 +7,9 @@ export type RunStatus = "active" | "won" | "lost";
 export type RunDifficulty = "easy" | "normal" | "hard";
 
 export const RUN_DIFFICULTIES: Record<RunDifficulty, { label: string; lives: number; detail: string }> = {
-  easy: { label: "容易", lives: 3, detail: "容許兩次十三支戰敗，適合熟悉路線與牌桌。" },
-  normal: { label: "中等", lives: 2, detail: "容許一次十三支戰敗，標準遠征節奏。" },
-  hard: { label: "困難", lives: 1, detail: "十三支戰敗一次就結束遠征。" },
+  easy: { label: "容易", lives: 3, detail: "普通戰敗可承受兩次；菁英與 Boss 仍會帶來更重懲罰。" },
+  normal: { label: "中等", lives: 2, detail: "普通戰敗一次仍可繼續；菁英戰敗會直接耗盡命數。" },
+  hard: { label: "困難", lives: 1, detail: "任何戰鬥失敗都會結束遠征。" },
 };
 
 export function startingLivesForDifficulty(difficulty: RunDifficulty): number {
@@ -109,7 +109,9 @@ export function completeCurrentNode(run: RunState): RunState {
 
 export function failCurrentNode(run: RunState): RunState {
   if (run.status !== "active") return run;
-  const livesRemaining = Math.max(0, run.livesRemaining - 1);
+  const current = getCurrentNode(run);
+  const damage = current.type === "boss" ? run.livesRemaining : current.type === "elite" ? 2 : 1;
+  const livesRemaining = Math.max(0, run.livesRemaining - damage);
   return { ...run, livesRemaining, status: livesRemaining === 0 ? "lost" : "active" };
 }
 

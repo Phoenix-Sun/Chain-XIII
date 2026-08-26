@@ -39,6 +39,16 @@ describe("run state", () => {
     expect(failCurrentNode(afterSecondLoss)).toMatchObject({ status: "lost", livesRemaining: 0 });
   });
 
+  it("spends two lives on an Elite loss and clears all lives on a Boss loss", () => {
+    const easy = createRunState("elite-loss", ["water-scout"], [], [], "easy");
+    const eliteRun = { ...easy, currentNodeId: easy.map.chapterEndNodeIds[0] };
+    expect(failCurrentNode(eliteRun)).toMatchObject({ status: "active", livesRemaining: 1 });
+    const normal = createRunState("elite-loss-normal", ["water-scout"], [], [], "normal");
+    expect(failCurrentNode({ ...normal, currentNodeId: normal.map.chapterEndNodeIds[0] })).toMatchObject({ status: "lost", livesRemaining: 0 });
+    const boss = createRunState("boss-loss", ["water-scout"], [], [], "easy");
+    expect(failCurrentNode({ ...boss, currentNodeId: boss.finalBossId })).toMatchObject({ status: "lost", livesRemaining: 0 });
+  });
+
   it("only permits moving to a connected next node", () => {
     const run = createRunState("move-seed", ["a", "b", "c"]);
     const nextId = run.map.nodes[0].nextNodeIds[0];
@@ -98,7 +108,7 @@ describe("run state", () => {
 
   it("keeps an earlier chapter Boss active until the final Boss", () => {
     const run = createRunState("chapter-boss-seed", ["water-scout"]);
-    const firstBossId = run.map.chapterBossNodeIds[0];
+    const firstBossId = run.map.chapterEndNodeIds[0];
     const firstBossRun = { ...run, currentNodeId: firstBossId };
     expect(completeCurrentNode(firstBossRun).status).toBe("active");
     expect(completeCurrentNode({ ...run, currentNodeId: run.finalBossId }).status).toBe("won");

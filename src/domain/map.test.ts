@@ -5,14 +5,14 @@ import { catalog } from "../content/catalog";
 describe("seeded run map", () => {
   it("raises enemy tie-break strength by chapter", () => {
     expect(enemyTiebreakerBonusForChapter(1)).toBe(0);
-    expect(enemyTiebreakerBonusForChapter(2)).toBe(1);
-    expect(enemyTiebreakerBonusForChapter(3)).toBe(2);
+    expect(enemyTiebreakerBonusForChapter(2)).toBe(0);
+    expect(enemyTiebreakerBonusForChapter(3)).toBe(1);
   });
 
-  it("weights later chapters toward Elite nodes", () => {
-    const eliteCount = (chapter: 1 | 2 | 3) => nodeTypesForChapter(chapter).filter((type) => type === "elite").length;
-    expect(eliteCount(1)).toBeLessThan(eliteCount(2));
-    expect(eliteCount(2)).toBeLessThan(eliteCount(3));
+  it("keeps Elite nodes out of general route pools", () => {
+    expect(nodeTypesForChapter(1)).not.toContain("elite");
+    expect(nodeTypesForChapter(2)).not.toContain("elite");
+    expect(nodeTypesForChapter(3)).not.toContain("elite");
   });
 
   it("reproduces nodes and edges from the same seed", () => {
@@ -31,10 +31,10 @@ describe("seeded run map", () => {
     expect(map.chapterLengths[2]).toBeLessThanOrEqual(6);
     expect(new Set(map.nodes.map((node) => node.chapter)).size).toBe(3);
     expect(map.nodes.at(-1)?.type).toBe("boss");
-    expect(map.chapterBossNodeIds).toHaveLength(3);
-    expect(map.chapterBossNodeIds.every((bossId, index) => {
-      const boss = map.nodes.find((node) => node.id === bossId)!;
-      return boss.type === "boss" && boss.chapter === index + 1;
+    expect(map.chapterEndNodeIds).toHaveLength(3);
+    expect(map.chapterEndNodeIds.every((endId, index) => {
+      const end = map.nodes.find((node) => node.id === endId)!;
+      return end.type === (index === 2 ? "boss" : "elite") && end.chapter === index + 1;
     })).toBe(true);
     expect(map.nodes.every((node) => node.nextNodeIds.every((nextId) => {
       const next = map.nodes.find((candidate) => candidate.id === nextId)!;
@@ -50,7 +50,7 @@ describe("seeded run map", () => {
       let current = map.startNodeId;
       for (let step = 0; step < map.nodes.length && current !== map.bossNodeId; step += 1) current = map.nodes.find((node) => node.id === current)!.nextNodeIds[0];
       expect(current).toBe(map.bossNodeId);
-      expect(map.chapterBossNodeIds.every((bossId) => map.nodes.some((node) => node.id === bossId && node.type === "boss"))).toBe(true);
+      expect(map.chapterEndNodeIds.every((endId, index) => map.nodes.some((node) => node.id === endId && node.type === (index === 2 ? "boss" : "elite")))).toBe(true);
     }
   });
 });
