@@ -24,7 +24,7 @@
 - 新增共用 `GameEffect` lifecycle；9 名角色 catalog 的 active ability ID 可在指定 phase 執行並寫回 RunState。
 - 新增 deterministic D6 exploration service，支援總和門檻、pair 與 straight 目標。
 - 新增 seed-driven forward-only Run map 與可操作路線 UI，終點公開 Boss。
-- 新增 data-driven catalog：9 角色、12 普通怪、4 Elite、3 Boss、15 神器、12 事件；加入 catalog validator。
+- 新增 data-driven catalog：9 角色、12 普通怪、4 Elite、3 Boss、19 遺物、3 祝福、12 事件；加入 catalog validator。
 - 新增 `RunState`、`MetaState`、versioned `SaveEnvelope`、JSON migration boundary 與 IndexedDB adapter。
 
 ### 驗證
@@ -233,3 +233,31 @@
 - reward scaling targeted tests：2 個 tests 通過，覆蓋倍率與全部節點類型。
 - targeted Run／save／Party／session tests：35 個 tests 通過。
 - typecheck：通過。
+
+## 2026-08-26：基因鏈固定配置與逐格啟用
+
+- 移除基因鏈的融合、接點升階、前端擠出與 tier 因子；每條鏈改為掉落時固定目標墩位、3／5 格長度、元素排列與啟用狀態。
+- 同一個墩位可持有多條不同配置，工房依頭／中／尾墩分組顯示候選卡；玩家切換候選後，同一時間只套用選中的一條。
+- 新增逐格啟用 UI：點選元素格即可在「覆寫指定元素」與「保留原始牌面」間切換，沒有啟用格數上限。
+- 戰前畫面新增 13 張牌花色預覽與「無＝保留原色」說明，避免把未啟用誤解為新的中性元素。
+- save version 升至 6；舊版 tiered gene save 會被轉換為固定配置並預設全部啟用。
+- `ability-forge` 改為一次啟用目前裝備的所有基因格，移除玩家向融合文案。
+
+### 驗證
+
+- targeted Vitest：26 個 tests 通過。
+- `npm run typecheck`：通過。
+
+## 2026-08-26：遺物祭壇、祝福與支援節點
+
+- 遺物池擴充至 19 件：15 件直接影響十三支戰鬥，4 件分別支援祭壇、路線與經濟。
+- 新增固定五骰遺物祭壇：水晶／祝福成對獎勵、遺物三連二選一、Skull 鎖定、三顆爆骰與收手流程。
+- 新增祝福與下一場戰鬥 Skull 詛咒，兩者都在戰鬥結束後自動消耗。
+- 新增商隊、營火、瞭望台節點；每個節點透過純 domain transition 完成並回到路線。
+- save version 升至 7，active Run 會保存祭壇中間狀態、祝福與下一場詛咒，並對舊／損壞祭壇資料做正規化。
+
+### 驗證
+
+- 祭壇、服務節點與 React 互動 targeted tests：65 個 tests 通過。
+- `npm run check`：37 個 test files、151 個 tests 通過，typecheck 與 production build 通過。
+- `git diff --check`：通過。

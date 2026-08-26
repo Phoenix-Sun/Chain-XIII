@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, type RunDifficulty, type RunState } from "../domain/run";
+import { applyRelicAltarSettlement, completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, resolveBattleAftermath, type RunDifficulty, type RunState } from "../domain/run";
 import { rewardForNode, scaleRewardCrystals, type RewardChoice, type RunReward } from "../domain/runRewards";
 import type { BattleResult } from "../domain/combat";
 import type { Navigate } from "./types";
@@ -11,8 +11,12 @@ import { catalog } from "../content/catalog";
 import GeneWorkshopView from "./GeneWorkshopView";
 import type { RunMapNode } from "../domain/map";
 import ExplorationView from "./ExplorationView";
+import RelicAltarView from "./RelicAltarView";
+import ServiceNodeView from "./ServiceNodeView";
+import { createRelicAltarState, type AltarSettlement } from "../domain/relicAltar";
+import { altarRelicModifiers } from "../domain/relics";
 
-export type RunSessionPhase = "route" | "battle" | "exploration" | "reward" | "workshop" | "settlement";
+export type RunSessionPhase = "route" | "battle" | "exploration" | "altar" | "service" | "reward" | "workshop" | "settlement";
 
 function rewardForRunNode(node: RunMapNode, difficulty: RunDifficulty): RunReward {
   const reward = rewardForNode(node, difficulty);
@@ -33,11 +37,20 @@ function rewardForRunNode(node: RunMapNode, difficulty: RunDifficulty): RunRewar
 
 function initialPhaseForRun(run: RunState): RunSessionPhase {
   const node = getCurrentNode(run);
+  if (run.altarState) return "altar";
   if (node.id !== run.map.startNodeId && run.completedNodeIds.includes(node.id) && !run.claimedRewardNodeIds.includes(node.id)) return "reward";
   if (run.status !== "active") return "settlement";
   if (!run.completedNodeIds.includes(node.id) && ["battle", "elite", "boss"].includes(node.type)) return "battle";
   if (!run.completedNodeIds.includes(node.id) && node.type === "event") return "exploration";
+  if (!run.completedNodeIds.includes(node.id) && ["caravan", "campfire", "lookout"].includes(node.type)) return "service";
   return "route";
+}
+
+function relicCandidatesForNode(node: RunMapNode): string[] {
+  const primary = node.relicId ?? "relic-1";
+  const number = Number(primary.match(/(\d+)$/)?.[1] ?? 1);
+  const secondary = `relic-${number % catalog.relics.length + 1}`;
+  return primary === secondary ? [primary, `relic-${(number + 1) % catalog.relics.length + 1}`] : [primary, secondary];
 }
 
 function partySummary(characterIds: string[]): string {
@@ -81,16 +94,28 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
       setPhase("exploration");
       return;
     }
+    if (["caravan", "campfire", "lookout"].includes(node.type)) {
+      setRun(nextRun);
+      setPhase("service");
+      return;
+    }
     const completed = completeCurrentNode(nextRun);
     setRun(completed);
-    setReward(rewardForCurrentNode(node));
-    setRewardError(null);
-    setPhase("reward");
+    if (node.type === "relic") {
+      const altar = createRelicAltarState(`${run.seed}:${node.id}`, relicCandidatesForNode(node), altarRelicModifiers(run.relicIds).protectSmallRewards);
+      setRun({ ...completed, altarState: altar });
+      setPhase("altar");
+    } else {
+      setReward(rewardForCurrentNode(node));
+      setRewardError(null);
+      setPhase("reward");
+    }
   }
 
-  function handleBattleComplete(result: BattleResult) {
+  function handleBattleComplete(result: BattleResult, usedActiveAbility = false) {
+    const afterBattle = resolveBattleAftermath(run, usedActiveAbility, result.outcome === "win");
     if (result.outcome !== "win") {
-      const afterLoss = failCurrentNode(run);
+      const afterLoss = failCurrentNode(afterBattle);
       setRun(afterLoss);
       if (afterLoss.status === "active") {
         setBattleAttempt((current) => current + 1);
@@ -100,11 +125,21 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
       }
       return;
     }
-    const completed = completeCurrentNode(run);
+    const completed = completeCurrentNode(afterBattle);
     setRun(completed);
     setReward(rewardForCurrentNode(currentNode));
     setRewardError(null);
     setPhase("reward");
+  }
+
+  function handleAltarStateChange(altarState: NonNullable<RunState["altarState"]>) {
+    setRun((current) => ({ ...current, altarState }));
+  }
+
+  function handleAltarResolved(settlement: AltarSettlement, selectedRelicId?: string) {
+    const settled = applyRelicAltarSettlement(run, settlement, selectedRelicId);
+    setRun(settled);
+    setPhase("route");
   }
 
   function handleExplorationComplete(success: boolean) {
@@ -136,9 +171,11 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
     onNavigate?.("town");
   }
 
-  if (phase === "route") return <div className="run-session"><div className="run-progress"><span>遠征進行中</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><RunRouteView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onNodeSelected={selectNode} onOpenWorkshop={() => setPhase("workshop")} /></div>;
+  if (phase === "route") return <div className="run-session"><div className="run-progress"><span>遠征進行中</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶 · 祝福 {run.blessingIds?.length ?? 0}</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><RunRouteView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onNodeSelected={selectNode} onOpenWorkshop={() => setPhase("workshop")} /></div>;
   if (phase === "battle") return <div className="run-session"><div className="run-progress"><span>第 {currentNode.chapter ?? 1} 章・目前節點：{currentNode.type === "boss" ? "Boss" : currentNode.type === "elite" ? "菁英" : "戰鬥"}</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><BattleArenaView key={`battle-attempt-${currentNode.id}-${battleAttempt}`} partyCharacterIds={run.partyCharacterIds} node={currentNode} battleSeed={`${run.seed}:${currentNode.id}`} equippedGenes={run.equippedGenes} relicIds={run.relicIds} run={run} onRunUpdated={(nextRun) => setRun(nextRun)} onBattleComplete={handleBattleComplete} /></div>;
   if (phase === "exploration") return <div className="run-session"><div className="run-progress"><span>目前節點：事件</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><ExplorationView node={currentNode} seed={run.seed} run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onResolved={(result) => handleExplorationComplete(result.success)} /></div>;
+  if (phase === "altar") return <div className="run-session"><RelicAltarView seed={`${run.seed}:${currentNode.id}`} relicIds={run.relicIds} initialState={run.altarState} candidateRelicIds={run.altarState?.candidateRelicIds ?? relicCandidatesForNode(currentNode)} onStateChange={handleAltarStateChange} onResolved={handleAltarResolved} /></div>;
+  if (phase === "service") return <div className="run-session"><ServiceNodeView node={currentNode} run={run} onResolved={(nextRun) => { setRun(nextRun); setPhase("route"); }} /></div>;
   if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} difficulty={run.difficulty} isFinalBoss={currentNode.id === run.finalBossId} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
   if (phase === "workshop") return <div className="run-session"><GeneWorkshopView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} initialInventory={run.geneInventory} initialEquipped={run.equippedGenes} onInventoryChange={(geneInventory) => setRun((current) => ({ ...current, geneInventory }))} onEquippedChange={(equippedGenes) => setRun((current) => ({ ...current, equippedGenes }))} onExit={() => setPhase("route")} /></div>;
   return <div className="run-session"><RunSettlementView run={run} onExit={leaveRun} /></div>;

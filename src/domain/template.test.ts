@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { createStandardDeck, drawThirteen } from "./cards";
 import { applySuitTemplate, buildSuitTemplate, currentSuitOf, type EquippedGenes } from "./template";
 
-const factor = (suit: "water" | "fire" | "wind" | "earth", tier: 1 | 2 | 3 = 1) => ({ suit, tier });
+const factor = (suit: "water" | "fire" | "wind" | "earth") => ({ suit });
 
 describe("13-slot suit templates", () => {
   it("builds 3/5/5 slots and keeps empty slots neutral", () => {
-    const equipped: EquippedGenes = { short3: { id: "a", factors: [factor("water"), factor("fire"), factor("wind")] } };
+    const equipped: EquippedGenes = { short3: { id: "a", targetSlot: "short3", factors: [factor("water"), factor("fire"), factor("wind")], enabledSlots: [true, false, true] } };
     const template = buildSuitTemplate(equipped);
     expect(template).toHaveLength(13);
-    expect(template.slice(0, 3).map((item) => item?.suit)).toEqual(["water", "fire", "wind"]);
+    expect(template.slice(0, 3).map((item) => item?.suit)).toEqual(["water", undefined, "wind"]);
     expect(template.slice(3).every((item) => item === null)).toBe(true);
   });
 

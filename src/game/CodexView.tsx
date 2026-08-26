@@ -46,7 +46,7 @@ export default function CodexView({ meta }: { meta: MetaState }) {
 
     <section className="codex-section" aria-labelledby="relic-codex-title">
       <div className="codex-heading"><div><span className="pixel-kicker">RELIC ARCHIVE</span><h2 id="relic-codex-title">遺物收藏</h2></div><strong>已發現 {ownedRelicCount} / {catalog.relics.length}</strong></div>
-      <div className="relic-codex-grid">{catalog.relics.map((relic) => <article className={`relic-codex-entry${ownedRelics.has(relic.id) ? " is-owned" : ""}`} key={relic.id}><span className="relic-codex-icon">{ownedRelics.has(relic.id) ? "◆" : "?"}</span><div><strong>{ownedRelics.has(relic.id) ? relic.name : "未辨識遺物"}</strong><small>{ownedRelics.has(relic.id) ? relic.rarity.toUpperCase() : "尚未帶回營地"}</small></div></article>)}</div>
+      <div className="relic-codex-grid">{catalog.relics.map((relic) => { const isOwned = ownedRelics.has(relic.id); return <article className={`relic-codex-entry${isOwned ? " is-owned" : ""}`} key={relic.id}><span className="relic-codex-icon">{isOwned ? "◆" : "?"}</span><div><strong>{isOwned ? relic.name : "未辨識遺物"}</strong><small>{isOwned ? `${relic.rarity.toUpperCase()}・${relic.trigger}` : "尚未帶回營地"}</small>{isOwned && <p><b>效果</b>{relic.effect}</p>}</div></article>; })}</div>
     </section>
   </section>;
 }

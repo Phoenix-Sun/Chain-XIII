@@ -20,9 +20,9 @@ describe("Chain XIII game shell", () => {
     expect(screen.getByRole("heading", { name: "選擇下一站" })).toBeInTheDocument();
 
     expect(screen.getByRole("button", { name: "路線選擇下一站" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "鍊成改造花色" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "整理基因鏈" }));
-    expect(screen.getByRole("heading", { name: "花色鍊成工房" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "配置選擇花色" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "配置基因鏈" }));
+    expect(screen.getByRole("heading", { name: "基因鏈配置" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "回到路線" }));
 
     const nextBattle = screen.getAllByRole("button", { name: /^戰鬥・第 2 層/ }).find((button) => !button.hasAttribute("disabled"));

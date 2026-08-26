@@ -94,6 +94,6 @@ describe("BattleArenaView", () => {
     render(<BattleArenaView run={run} relicIds={["relic-2"]} />);
 
     expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("雙月中堅");
-    expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("中堅同牌型比較 +1");
+    expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent(/中堅同牌型比較 \+2～\+4（本場 \+[2-4]）/);
   });
 });

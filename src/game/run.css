@@ -5,6 +5,7 @@
 .run-reward-card, .run-settlement-card { max-width: 600px; margin: 24px auto; padding: 24px 18px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
 .run-reward-card h1, .run-settlement-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
 .run-reward-card p, .run-settlement-card p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
+.reward-gene-preview { display: grid; gap: 8px; margin: 12px auto 14px; max-width: 42ch; padding: 10px; border: 3px dashed #73516a; background: #f7e5b5; text-align: left; }.reward-gene-preview > div:first-child { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }.reward-gene-preview strong { color: #503747; font-size: 0.78rem; }.reward-gene-preview small { color: #80665c; font-size: 0.58rem; line-height: 1.4; }.reward-gene-preview .gene-pattern { justify-content: center; }.reward-gene-preview .gene-pattern-compact i { flex: 0 1 30px; }
 .reward-source { margin: 0 auto 16px; color: #80665c; font-size: 0.7rem; font-weight: 800; }
 .reward-difficulty { display: grid; gap: 3px; margin: 0 auto 15px; padding: 9px 10px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; }
 .reward-difficulty span { color: #80658a; font-size: 0.62rem; font-weight: 900; }
@@ -25,7 +26,9 @@
 .battle-rule-callout strong { color: #9b4e36; }
 .battle-relic-strip { display: grid; gap: 4px; margin: 10px 0; padding: 9px 11px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; font-size: 0.65rem; line-height: 1.45; }
 .battle-relic-strip strong { color: #73516a; }
-.battle-relic-strip span { color: #735b54; font-weight: 800; }
+.battle-relic-strip span { display: grid; gap: 2px; color: #735b54; font-weight: 800; }
+.battle-relic-strip span b { color: #503747; }
+.battle-relic-strip span small { color: #80665c; font-size: 0.58rem; font-weight: 700; }
 .reward-choices { display: grid; gap: 7px; margin: 4px 0 14px; text-align: left; }
 .reward-choices > strong { color: #80658a; font-size: 0.68rem; text-align: center; }
 .reward-choice { display: flex; gap: 8px; align-items: flex-start; padding: 10px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; cursor: pointer; }
@@ -34,6 +37,7 @@
 .reward-choice span { display: grid; gap: 2px; }
 .reward-choice b { font-size: 0.75rem; }
 .reward-choice small, .reward-choice em { color: #735b54; font-size: 0.62rem; font-style: normal; font-weight: 800; line-height: 1.4; }
+.reward-item small { color: #80665c; font-size: 0.58rem; line-height: 1.4; }
 .title-actions { display: flex; align-items: center; gap: 8px; }
 .settlement-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin: 18px 0 22px; }
 .settlement-stats div { display: grid; gap: 3px; padding: 10px 4px; border-radius: 8px; background: #f6dfa8; }
@@ -43,6 +47,47 @@
 @media (max-width: 480px) { .route-preview-item { display: grid; gap: 3px; } .route-preview-item small { text-align: left; } }
 @media (max-width: 600px) { .settlement-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 700px) { .run-progress { margin-bottom: 14px; } .run-reward-card, .run-settlement-card { padding: 32px; } }
+.relic-altar-card, .service-node-card { max-width: 640px; margin: 24px auto; padding: 22px 16px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
+.relic-altar-card h1, .service-node-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
+.relic-altar-card > p, .service-node-card > p { margin: 0 auto 16px; max-width: 44ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
+.altar-skull-counter { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin: 10px 0; padding: 9px 11px; border: 3px solid #80658a; background: #f6dfa8; color: #503747; font-size: 0.66rem; }
+.altar-skull-counter strong { color: #73516a; font-size: 0.8rem; }
+.altar-skull-counter.is-danger { border-color: #a34f4d; background: #ffe1aa; color: #8e4a46; }
+.altar-dice { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
+.altar-die { display: grid; min-height: 88px; place-items: center; gap: 3px; padding: 6px 2px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; font: inherit; cursor: pointer; }
+.altar-die strong { font-size: 1.45rem; }
+.altar-die span { font-size: 0.56rem; font-weight: 900; }
+.altar-die small { font-size: 0.5rem; font-weight: 900; }
+.altar-die.is-selected { border-color: #2d754d; background: #fff0bf; box-shadow: inset 0 0 0 2px #2d754d; transform: translateY(-3px); }
+.altar-die.is-locked { border-color: #8a4f4f; background: #493845; color: #ffe1aa; cursor: not-allowed; }
+.altar-die.die-skull { color: #8e4a46; }
+.altar-die.die-empty { color: #80665c; }
+.altar-reward-preview { display: grid; gap: 4px; margin: 12px 0; padding: 11px; border: 3px dashed #73516a; background: #f7e5b5; color: #735b54; font-size: 0.65rem; text-align: left; }
+.altar-reward-preview strong { color: #503747; }
+.altar-reward-preview small { color: #7c4d40; font-weight: 900; }
+.altar-actions { display: grid; gap: 7px; }
+.altar-actions small { color: #80665c; font-size: 0.58rem; }
+.altar-bust { display: grid; gap: 4px; margin: 12px 0; padding: 11px; border: 3px solid #a34f4d; background: #ffe1aa; color: #8e4a46; font-size: 0.68rem; line-height: 1.45; }
+.altar-candidates { display: grid; gap: 8px; margin: 12px 0; text-align: left; }
+.altar-candidates > strong { color: #73516a; font-size: 0.7rem; text-align: center; }
+.altar-relic-choice { display: grid; gap: 3px; padding: 11px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; text-align: left; font: inherit; cursor: pointer; }
+.altar-relic-choice.is-selected { border-color: #2d754d; background: #fff0bf; box-shadow: inset 0 0 0 1px #2d754d; }
+.altar-relic-choice b { font-size: 0.78rem; }
+.altar-relic-choice small, .altar-relic-choice span, .altar-relic-choice em { color: #735b54; font-size: 0.62rem; font-style: normal; font-weight: 800; line-height: 1.4; }
+.service-choice-list { display: grid; gap: 8px; margin-top: 16px; }
+.service-choice { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 13px 11px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; color: #503747; text-align: left; font: inherit; cursor: pointer; }
+.service-choice:disabled { opacity: 0.5; cursor: not-allowed; }
+.service-choice span { display: grid; gap: 3px; }
+.service-choice b { font-size: 0.78rem; }
+.service-choice small { color: #735b54; font-size: 0.62rem; line-height: 1.4; }
+.service-choice > strong { flex: 0 0 auto; color: #73516a; font-size: 0.62rem; }
+.battle-blessing-strip { display: grid; gap: 3px; margin: 10px 0; padding: 9px 11px; border: 3px solid #4f8a6a; border-radius: 9px; background: #e2efc8; color: #386b50; font-size: 0.64rem; text-align: left; }
+.battle-blessing-strip span { font-weight: 800; }
+.route-relic-notice { margin: 0; padding: 7px 9px; color: #73516a; font-size: 0.62rem; line-height: 1.4; }
+.route-relic-notice strong { display: block; }
+.route-next-layer { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; padding-top: 7px; border-top: 1px solid #d0a878; color: #73516a; font-size: 0.62rem; }
+.route-next-layer span { padding: 3px 5px; border: 1px solid #80658a; background: #edd29d; }
+@media (max-width: 390px) { .altar-die { min-height: 76px; } .altar-die strong { font-size: 1.1rem; } .altar-die span { font-size: 0.48rem; } .altar-skull-counter { display: grid; } }
 .exploration-card { max-width: 620px; margin: 24px auto; padding: 22px 16px; border: 4px solid #493845; border-radius: 14px; background: #edd29d; color: #382a39; box-shadow: 5px 5px #241923; text-align: center; }
 .exploration-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
 .exploration-card > p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }

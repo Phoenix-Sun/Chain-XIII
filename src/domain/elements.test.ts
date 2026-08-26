@@ -9,7 +9,7 @@ describe("element lane rules", () => {
   it("uses 2/3 and 3/5 thresholds", () => {
     expect(resolveLaneElement([deck[0], deck[13], deck[26]])).toBe(null);
     const three = applySuitTemplate([deck[0], deck[13], deck[26], ...deck.slice(1, 11)], [
-      { suit: "water", tier: 1 }, { suit: "water", tier: 1 }, { suit: "fire", tier: 1 },
+      { suit: "water" }, { suit: "water" }, { suit: "fire" },
       ...Array.from({ length: 10 }, () => null),
     ]);
     expect(resolveLaneElement(three.slice(0, 3))).toBe("water");

@@ -6,7 +6,7 @@ import type { Navigate } from "./types";
 const BUILDINGS = [
   { id: "party", name: "隊伍帳篷", note: "選擇這次遠征要出戰的角色。", action: "選擇隊伍", target: "party", x: 25, y: 72, tone: "brick" },
   { id: "route", name: "路線桌", note: "先選擇出戰角色，再決定下一個節點。", action: "選擇隊伍", target: "route", x: 67, y: 27, tone: "jade" },
-  { id: "workshop", name: "鍊成篝火", note: "合成基因鏈，調整牌的花色。", action: "開始鍊成", target: "workshop", x: 68, y: 72, tone: "violet" },
+  { id: "workshop", name: "配置篝火", note: "選擇基因鏈，調整牌的花色。", action: "開始配置", target: "workshop", x: 68, y: 72, tone: "violet" },
   { id: "gacha", name: "角色召集處", note: "用遠征取得的水晶抽取角色。", action: "前往抽卡", target: "gacha", x: 26, y: 27, tone: "gold" },
 ] as const;
 
@@ -30,7 +30,7 @@ export default function TownView({ crystals = 0, onNavigate }: { crystals?: numb
 
   return <div className="town-view">
     <section className="town-map" aria-label="遠征營地">
-      <img className="town-scene" src={townScene} alt="遠征營地像素場景，包含隊伍帳篷、路線桌與鍊成篝火" />
+      <img className="town-scene" src={townScene} alt="遠征營地像素場景，包含隊伍帳篷、路線桌與配置篝火" />
       <div className="town-vignette" aria-hidden="true" />
       <div className="location-plaque"><span>遠征營地</span><strong>出發前整備</strong><small>目前 · 水晶 {crystals}</small></div>
       <div className="camp-map-banner"><span>RUN PREP</span><strong>整備遠征隊</strong></div>

@@ -1,15 +1,21 @@
 import type { Card, Suit } from "./cards";
 
-export type GeneTier = 1 | 2 | 3;
+export type GeneSlot = "short3" | "long5A" | "long5B";
 
 export interface GeneFactor {
   suit: Suit;
-  tier: GeneTier;
 }
 
 export interface GeneChain {
   id: string;
+  /** The lane is part of the drop; chains are not moved between lanes. */
+  targetSlot: GeneSlot;
+  /** Fixed element pattern. It is never merged or upgraded. */
   factors: GeneFactor[];
+  /** Whether each fixed element currently overrides the card's original suit. */
+  enabledSlots: boolean[];
+  name?: string;
+  description?: string;
   sourceMonsterId?: string;
 }
 
@@ -21,6 +27,19 @@ export interface EquippedGenes {
 
 export type TemplateSlot = GeneFactor | null;
 
+export const GENE_SLOT_LENGTHS: Record<GeneSlot, 3 | 5> = { short3: 3, long5A: 5, long5B: 5 };
+
+export function geneSlotForLength(length: number): GeneSlot {
+  return length === 3 ? "short3" : "long5A";
+}
+
+export function normalizeGeneChain(chain: GeneChain, fallbackSlot?: GeneSlot): GeneChain {
+  const targetSlot = chain.targetSlot ?? fallbackSlot ?? geneSlotForLength(chain.factors.length);
+  const factors = chain.factors.map((factor) => ({ suit: factor.suit }));
+  const enabledSlots = factors.map((_, index) => chain.enabledSlots?.[index] ?? true);
+  return { ...chain, targetSlot, factors, enabledSlots };
+}
+
 export interface TemplateCard extends Card {
   originalSuit: Suit;
   currentSuit: Suit;
@@ -28,8 +47,9 @@ export interface TemplateCard extends Card {
 
 function getSlotFactors(chain: GeneChain | undefined, expectedLength: number): TemplateSlot[] {
   if (!chain) return Array.from({ length: expectedLength }, () => null);
-  if (chain.factors.length !== expectedLength) throw new Error(`裝備鏈長度必須是 ${expectedLength}`);
-  return [...chain.factors];
+  const normalized = normalizeGeneChain(chain);
+  if (normalized.factors.length !== expectedLength) throw new Error(`裝備鏈長度必須是 ${expectedLength}`);
+  return normalized.factors.map((factor, index) => normalized.enabledSlots[index] ? { suit: factor.suit } : null);
 }
 
 export function buildSuitTemplate(equipped: EquippedGenes): TemplateSlot[] {

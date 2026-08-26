@@ -22,6 +22,8 @@ describe("CodexView", () => {
     expect(screen.getByRole("heading", { name: "遺物收藏" })).toBeInTheDocument();
     expect(screen.getByText("赤曜前鋒")).toBeInTheDocument();
     expect(screen.getByText("四象核心")).toBeInTheDocument();
-    expect(screen.getByText(/已發現 2 \/ 15/)).toBeInTheDocument();
+    expect(screen.getByText(/已發現 2 \/ 19/)).toBeInTheDocument();
+    expect(screen.getByText("本場頭墩比較 +2～+4")).toBeInTheDocument();
+    expect(screen.getByText("含停用基因格的墩位比較 +2")).toBeInTheDocument();
   });
 });

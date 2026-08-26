@@ -2,6 +2,10 @@ import { skillTreeModifiers } from "./skillTree";
 import type { EquippedGenes, GeneChain } from "./template";
 import { generateRunMap, type RunMap } from "./map";
 import type { RunReward } from "./runRewards";
+import { blessingIdsForCount } from "./blessings";
+import type { AltarSettlement } from "./relicAltar";
+import { ALTAR_CRYSTALS_PER_PAIR } from "./relicAltar";
+import { battleVictoryCrystalBonus } from "./relics";
 
 export type RunStatus = "active" | "won" | "lost";
 export type RunDifficulty = "easy" | "normal" | "hard";
@@ -38,6 +42,9 @@ export interface RunState {
   geneCapacity: number;
   equippedGenes: EquippedGenes;
   relicIds: string[];
+  blessingIds?: string[];
+  nextBattleSkullCurse?: number;
+  altarState?: import("./relicAltar").RelicAltarState;
   permanentSkillNodeIds?: string[];
   discoveredRunFlags: string[];
   completedNodeIds: string[];
@@ -66,6 +73,8 @@ export function createRunState(seed: string, partyCharacterIds: string[], initia
     geneCapacity: 6 + modifiers.geneCapacityBonus,
     equippedGenes: {},
     relicIds: [],
+    blessingIds: [],
+    nextBattleSkullCurse: 0,
     permanentSkillNodeIds: [...permanentSkillNodeIds],
     discoveredRunFlags: [],
     completedNodeIds: [map.startNodeId],
@@ -120,8 +129,8 @@ export function claimCurrentNodeReward(run: RunState, reward: RunReward, options
   if (!run.completedNodeIds.includes(current.id)) throw new Error("完成節點後才能領取獎勵");
   if (run.claimedRewardNodeIds.includes(current.id)) throw new Error("這個節點的獎勵已領取");
   const takeGene = options.takeGene ?? true;
-  if (takeGene && reward.geneChain && run.geneInventory.length >= run.geneCapacity) throw new Error("基因庫已滿，請先鍊成、丟棄或放棄這條基因鏈");
   const shouldAddGene = Boolean(takeGene && reward.geneChain && !run.geneInventory.some((chain) => chain.id === reward.geneChain?.id));
+  if (shouldAddGene && run.geneInventory.length >= run.geneCapacity) throw new Error("基因庫已滿，請先替換或放棄一條基因鏈");
   return {
     ...run,
     claimedRewardNodeIds: [...run.claimedRewardNodeIds, current.id],
@@ -129,5 +138,29 @@ export function claimCurrentNodeReward(run: RunState, reward: RunReward, options
     relicIds: reward.relicId && !run.relicIds.includes(reward.relicId) ? [...run.relicIds, reward.relicId] : run.relicIds,
     earnedCrystals: run.earnedCrystals + reward.crystals,
     earnedGeneChainIds: takeGene && reward.geneChainId ? [...run.earnedGeneChainIds, reward.geneChainId] : run.earnedGeneChainIds,
+  };
+}
+
+export function applyRelicAltarSettlement(run: RunState, settlement: AltarSettlement, selectedRelicId?: string): RunState {
+  const altar = run.altarState;
+  if (!altar) throw new Error("目前沒有進行中的遺物祭壇");
+  if (settlement.relicReady && (!selectedRelicId || !altar.candidateRelicIds.includes(selectedRelicId))) throw new Error("遺物三連成立後必須選擇一件遺物");
+  const newBlessings = blessingIdsForCount(settlement.blessingCount, `${run.seed}:${run.currentNodeId}`);
+  return {
+    ...run,
+    earnedCrystals: run.earnedCrystals + settlement.crystalPairs * ALTAR_CRYSTALS_PER_PAIR,
+    blessingIds: [...(run.blessingIds ?? []), ...newBlessings],
+    relicIds: selectedRelicId && !run.relicIds.includes(selectedRelicId) ? [...run.relicIds, selectedRelicId] : run.relicIds,
+    nextBattleSkullCurse: Math.max(run.nextBattleSkullCurse ?? 0, settlement.nextBattleSkullCurse),
+    altarState: undefined,
+  };
+}
+
+export function resolveBattleAftermath(run: RunState, usedActiveAbility: boolean, won: boolean): RunState {
+  return {
+    ...run,
+    blessingIds: [],
+    nextBattleSkullCurse: 0,
+    earnedCrystals: run.earnedCrystals + (won ? battleVictoryCrystalBonus(run.relicIds, usedActiveAbility) : 0),
   };
 }

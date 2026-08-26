@@ -36,6 +36,8 @@ export interface BattleRules {
   enemyTiebreakerBonus?: number;
   laneBonuses?: Partial<Record<CombatLane, number>>;
   laneElementOverrides?: Partial<Record<CombatLane, Suit>>;
+  disabledBossRuleIds?: string[];
+  cursePenalty?: number;
 }
 
 export function compareLane(lane: CombatLane, player: CombatCard[], enemy: CombatCard[], rules: BattleRules = {}): LaneResult {
@@ -47,8 +49,9 @@ export function compareLane(lane: CombatLane, player: CombatCard[], enemy: Comba
   if (categoryDifference !== 0) {
     return { lane, winner: categoryDifference > 0 ? "player" : "enemy", playerRank, enemyRank, playerElement, enemyElement, reason: "hand-category" };
   }
-  const playerCounterDisabled = rules.bossRuleId === "boss-neutralize-earth" && lane === "back" && enemyElement === "earth";
-  if (rules.bossRuleId === "boss-water-advantage" && lane === "front" && enemyElement === "water" && playerElement !== "water") {
+  const bossRuleDisabled = (ruleId: string) => rules.disabledBossRuleIds?.includes(ruleId) ?? false;
+  const playerCounterDisabled = rules.bossRuleId === "boss-neutralize-earth" && !bossRuleDisabled("boss-neutralize-earth") && lane === "back" && enemyElement === "earth";
+  if (rules.bossRuleId === "boss-water-advantage" && !bossRuleDisabled("boss-water-advantage") && lane === "front" && enemyElement === "water" && playerElement !== "water") {
     return { lane, winner: "enemy", playerRank, enemyRank, playerElement, enemyElement, reason: "element-counter" };
   }
   if (!playerCounterDisabled && beats(playerElement, enemyElement)) {
@@ -60,7 +63,8 @@ export function compareLane(lane: CombatLane, player: CombatCard[], enemy: Comba
   const difference = compareHandRanks(playerRank, enemyRank)
     + (lane === "front" ? rules.frontBonus ?? 0 : 0)
     + (rules.laneBonuses?.[lane] ?? 0)
-    - (rules.enemyTiebreakerBonus ?? 0);
+    - (rules.enemyTiebreakerBonus ?? 0)
+    - (rules.cursePenalty ?? 0);
   return { lane, winner: difference > 0 ? "player" : difference < 0 ? "enemy" : "tie", playerRank, enemyRank, playerElement, enemyElement, reason: "tiebreaker" };
 }
 

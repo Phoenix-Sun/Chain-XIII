@@ -1,7 +1,8 @@
 import { startingLivesForDifficulty, type RunDifficulty, type RunState } from "./run";
-import type { GeneChain } from "./template";
+import { normalizeGeneChain, type EquippedGenes, type GeneChain, type GeneSlot } from "./template";
+import type { AltarFace, RelicAltarState } from "./relicAltar";
 
-export const CURRENT_SAVE_VERSION = 5;
+export const CURRENT_SAVE_VERSION = 7;
 export const STARTER_CHARACTER_ID = "water-scout";
 
 export interface CharacterProgress { characterId: string; star: 1 | 2 | 3 | 4 | 5; imprintCount: number; }
@@ -22,6 +23,63 @@ export function createEmptyMeta(): MetaState {
 
 export function createSaveEnvelope(meta = createEmptyMeta(), activeRun?: RunState, now = new Date().toISOString()): SaveEnvelope {
   return { saveVersion: CURRENT_SAVE_VERSION, meta: { ...meta, saveVersion: CURRENT_SAVE_VERSION }, activeRun, lastUpdatedAt: now };
+}
+
+const VALID_SUITS = new Set(["water", "fire", "wind", "earth"]);
+
+function normalizeGene(value: unknown, fallbackSlot?: GeneSlot): GeneChain | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const raw = value as { id?: unknown; targetSlot?: unknown; factors?: unknown; enabledSlots?: unknown; name?: unknown; description?: unknown; sourceMonsterId?: unknown };
+  if (typeof raw.id !== "string" || !Array.isArray(raw.factors)) return undefined;
+  const factors = raw.factors.filter((factor): factor is { suit: GeneChain["factors"][number]["suit"] } => Boolean(factor && typeof factor === "object" && VALID_SUITS.has((factor as { suit?: unknown }).suit as string))).map((factor) => ({ suit: factor.suit }));
+  if (factors.length !== 3 && factors.length !== 5) return undefined;
+  const targetSlot = raw.targetSlot === "short3" || raw.targetSlot === "long5A" || raw.targetSlot === "long5B" ? raw.targetSlot : fallbackSlot;
+  const enabledSlots = Array.isArray(raw.enabledSlots) ? raw.enabledSlots : undefined;
+  return normalizeGeneChain({ id: raw.id, targetSlot: targetSlot as GeneSlot, factors, enabledSlots: enabledSlots ? factors.map((_, index) => enabledSlots[index] !== false) : factors.map(() => true), name: typeof raw.name === "string" ? raw.name : undefined, description: typeof raw.description === "string" ? raw.description : undefined, sourceMonsterId: typeof raw.sourceMonsterId === "string" ? raw.sourceMonsterId : undefined }, fallbackSlot);
+}
+
+function normalizeGeneInventory(input: unknown): GeneChain[] {
+  if (!Array.isArray(input)) return [];
+  const byId = new Map<string, GeneChain>();
+  input.forEach((value) => {
+    const chain = normalizeGene(value);
+    if (chain) byId.set(chain.id, chain);
+  });
+  return [...byId.values()];
+}
+
+function normalizeEquippedGenes(input: unknown): EquippedGenes {
+  const equipped: EquippedGenes = {};
+  if (!input || typeof input !== "object") return equipped;
+  (Object.keys({ short3: true, long5A: true, long5B: true }) as GeneSlot[]).forEach((slot) => {
+    const chain = normalizeGene((input as Record<string, unknown>)[slot], slot);
+    if (chain) equipped[slot] = chain;
+  });
+  return equipped;
+}
+
+export function normalizeAltarState(input: unknown): RelicAltarState | undefined {
+  if (!input || typeof input !== "object") return undefined;
+  const raw = input as Partial<RelicAltarState>;
+  const validFaces = new Set<AltarFace>(["crystal", "relic", "blessing", "skull"]);
+  if (typeof raw.seed !== "string" || !Array.isArray(raw.candidateRelicIds) || !Array.isArray(raw.faces) || raw.faces.length !== 5) return undefined;
+  const faces = raw.faces.map((face) => face === null || validFaces.has(face as AltarFace) ? face as AltarFace | null : null);
+  const status = raw.status === "rolling" || raw.status === "stopped" || raw.status === "bust" ? raw.status : "ready";
+  const pendingRewards = raw.pendingRewards && typeof raw.pendingRewards === "object" ? raw.pendingRewards as Partial<RelicAltarState["pendingRewards"]> : {};
+  const securedRewards = raw.securedRewards && typeof raw.securedRewards === "object" ? raw.securedRewards as Partial<RelicAltarState["securedRewards"]> : {};
+  return {
+    seed: raw.seed,
+    candidateRelicIds: raw.candidateRelicIds.filter((id): id is string => typeof id === "string"),
+    faces,
+    lockedSkullIndices: Array.isArray(raw.lockedSkullIndices) ? raw.lockedSkullIndices.filter((index): index is number => Number.isInteger(index) && index >= 0 && index < 5) : [],
+    skullCount: typeof raw.skullCount === "number" ? Math.max(0, Math.min(3, Math.floor(raw.skullCount))) : 0,
+    graceUsed: raw.graceUsed === true,
+    rollCount: typeof raw.rollCount === "number" ? Math.max(0, Math.floor(raw.rollCount)) : 0,
+    status,
+    pendingRewards: { crystalPairs: typeof pendingRewards.crystalPairs === "number" ? Math.max(0, Math.floor(pendingRewards.crystalPairs)) : 0, blessingCount: typeof pendingRewards.blessingCount === "number" ? Math.max(0, Math.floor(pendingRewards.blessingCount)) : 0, relicReady: pendingRewards.relicReady === true },
+    securedRewards: { crystalPairs: typeof securedRewards.crystalPairs === "number" ? Math.max(0, Math.floor(securedRewards.crystalPairs)) : 0, blessingCount: typeof securedRewards.blessingCount === "number" ? Math.max(0, Math.floor(securedRewards.blessingCount)) : 0 },
+    protectsSmallRewards: raw.protectsSmallRewards === true,
+  };
 }
 
 export function mergeRunIntoMeta(meta: MetaState, run: RunState): MetaState {
@@ -59,10 +117,13 @@ function migrateActiveRun(input: unknown): RunState | undefined {
     maxLives,
     livesRemaining,
     map,
-    geneInventory: Array.isArray(raw.geneInventory) ? raw.geneInventory : [],
+    geneInventory: normalizeGeneInventory(raw.geneInventory),
     geneCapacity: typeof raw.geneCapacity === "number" ? raw.geneCapacity : 6,
-    equippedGenes: raw.equippedGenes && typeof raw.equippedGenes === "object" ? raw.equippedGenes : {},
+    equippedGenes: normalizeEquippedGenes(raw.equippedGenes),
     relicIds: Array.isArray(raw.relicIds) ? raw.relicIds : [],
+    blessingIds: Array.isArray(raw.blessingIds) ? raw.blessingIds : [],
+    nextBattleSkullCurse: typeof raw.nextBattleSkullCurse === "number" ? Math.max(0, Math.floor(raw.nextBattleSkullCurse)) : 0,
+    altarState: normalizeAltarState(raw.altarState),
     permanentSkillNodeIds: Array.isArray(raw.permanentSkillNodeIds) ? raw.permanentSkillNodeIds : [],
     discoveredRunFlags: Array.isArray(raw.discoveredRunFlags) ? raw.discoveredRunFlags : [],
     completedNodeIds: Array.isArray(raw.completedNodeIds) ? raw.completedNodeIds : [map.startNodeId],
@@ -87,7 +148,7 @@ function normalizeCharacters(input: unknown): CharacterProgress[] {
 export function migrateSave(input: unknown): SaveEnvelope {
   if (!input || typeof input !== "object") throw new Error("Save 格式無效");
   const raw = input as Partial<SaveEnvelope>;
-  if (raw.saveVersion !== 1 && raw.saveVersion !== 2 && raw.saveVersion !== 3 && raw.saveVersion !== 4 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
+  if (raw.saveVersion !== 1 && raw.saveVersion !== 2 && raw.saveVersion !== 3 && raw.saveVersion !== 4 && raw.saveVersion !== 5 && raw.saveVersion !== 6 && raw.saveVersion !== CURRENT_SAVE_VERSION) throw new Error(`不支援的 saveVersion: ${String(raw.saveVersion)}`);
   if (!raw.meta || typeof raw.meta !== "object") throw new Error("Save 缺少 meta");
   const meta = raw.meta as Partial<MetaState>;
   if (!Array.isArray(meta.unlockedMonsterCodexIds) || !Array.isArray(meta.permanentSkillNodeIds)) throw new Error("Save meta 欄位無效");
@@ -96,7 +157,7 @@ export function migrateSave(input: unknown): SaveEnvelope {
   const ownedIds = new Set(characters.map((character) => character.characterId));
   const activeRun = migrateActiveRun(raw.activeRun);
   const safeRun = activeRun ? { ...activeRun, partyCharacterIds: activeRun.partyCharacterIds.filter((characterId) => ownedIds.has(characterId)).slice(0, 3) } : undefined;
-  return { saveVersion: CURRENT_SAVE_VERSION, meta: { saveVersion: CURRENT_SAVE_VERSION, crystals: meta.crystals, characters, geneInventory: Array.isArray(meta.geneInventory) ? meta.geneInventory as GeneChain[] : [], relicIds: Array.isArray(meta.relicIds) ? meta.relicIds : [], unlockedMonsterCodexIds: meta.unlockedMonsterCodexIds, permanentSkillNodeIds: meta.permanentSkillNodeIds }, activeRun: safeRun && safeRun.partyCharacterIds.length > 0 ? safeRun : safeRun ? { ...safeRun, partyCharacterIds: [characters[0].characterId] } : undefined, lastUpdatedAt: raw.lastUpdatedAt };
+  return { saveVersion: CURRENT_SAVE_VERSION, meta: { saveVersion: CURRENT_SAVE_VERSION, crystals: meta.crystals, characters, geneInventory: normalizeGeneInventory(meta.geneInventory), relicIds: Array.isArray(meta.relicIds) ? meta.relicIds : [], unlockedMonsterCodexIds: meta.unlockedMonsterCodexIds, permanentSkillNodeIds: meta.permanentSkillNodeIds }, activeRun: safeRun && safeRun.partyCharacterIds.length > 0 ? safeRun : safeRun ? { ...safeRun, partyCharacterIds: [characters[0].characterId] } : undefined, lastUpdatedAt: raw.lastUpdatedAt };
 }
 
 export function parseSave(serialized: string): SaveEnvelope { return migrateSave(JSON.parse(serialized) as unknown); }

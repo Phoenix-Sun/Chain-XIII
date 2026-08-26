@@ -346,6 +346,8 @@
 .relic-codex-entry strong, .relic-codex-entry small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .relic-codex-entry strong { color: #503747; font-size: 0.58rem; }
 .relic-codex-entry small { margin-top: 2px; color: #735b54; font-size: 0.49rem; }
+.relic-codex-entry p { margin: 4px 0 0; color: #735b54; font-size: 0.5rem; line-height: 1.4; }
+.relic-codex-entry p b { display: block; color: #7c4d40; }
 
 @media (min-width: 700px) {
   .game-app { padding: 16px; }

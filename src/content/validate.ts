@@ -14,7 +14,25 @@ export function validateContentCatalog(catalog: ContentCatalog): string[] {
     if (monster.kind === "boss" && !monster.bossRuleId) errors.push(`${monster.id} 缺少 bossRuleId`);
     if (monster.bossRuleId && !bossRules.has(monster.bossRuleId)) errors.push(`${monster.id} 含未知 Boss 規則`);
   }
-  for (const chain of catalog.geneChains) if (![3, 5].includes(chain.factors.length)) errors.push(`${chain.id} 只能是 3 或 5 格鏈`);
+  for (const chain of catalog.geneChains) {
+    if (![3, 5].includes(chain.factors.length)) errors.push(`${chain.id} 只能是 3 或 5 格鏈`);
+    if (chain.targetSlot === "short3" && chain.factors.length !== 3) errors.push(`${chain.id} 的目標墩位與格數不符`);
+    if ((chain.targetSlot === "long5A" || chain.targetSlot === "long5B") && chain.factors.length !== 5) errors.push(`${chain.id} 的目標墩位與格數不符`);
+    if (chain.enabledSlots.length !== chain.factors.length) errors.push(`${chain.id} 的啟用狀態必須與元素格數一致`);
+  }
+  for (const relic of catalog.relics) {
+    if (!relic.name.trim()) errors.push(`${relic.id} 缺少遺物名稱`);
+    if (!relic.trigger.trim()) errors.push(`${relic.id} 缺少觸發時機`);
+    if (!relic.effect.trim()) errors.push(`${relic.id} 缺少效果說明`);
+    if (!relic.detail.trim()) errors.push(`${relic.id} 缺少白話說明`);
+  }
+  if (catalog.relics.filter((relic) => relic.category === "battle").length < Math.ceil(catalog.relics.length / 2)) errors.push("遺物池至少一半必須影響十三支戰鬥");
+  for (const blessing of catalog.blessings) {
+    if (!blessing.name.trim()) errors.push(`${blessing.id} 缺少祝福名稱`);
+    if (!blessing.trigger.trim()) errors.push(`${blessing.id} 缺少祝福觸發時機`);
+    if (!blessing.effect.trim()) errors.push(`${blessing.id} 缺少祝福效果`);
+    if (!blessing.detail.trim()) errors.push(`${blessing.id} 缺少祝福說明`);
+  }
   for (const event of catalog.events) {
     if (!event.name.trim()) errors.push(`${event.id} 缺少事件名稱`);
     if (!event.content.trim()) errors.push(`${event.id} 缺少事件內容`);

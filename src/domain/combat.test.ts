@@ -9,11 +9,11 @@ describe("three-lane combat", () => {
   it("applies element counter after matching hand category", () => {
     const base = [deck[0], deck[13], deck[27], ...deck.slice(39, 49)];
     const player = applySuitTemplate(base, [
-      { suit: "water", tier: 1 }, { suit: "water", tier: 1 }, { suit: "fire", tier: 1 },
+      { suit: "water" }, { suit: "water" }, { suit: "fire" },
       ...Array.from({ length: 10 }, () => null),
     ]).slice(0, 3);
     const enemy = applySuitTemplate(base, [
-      { suit: "fire", tier: 1 }, { suit: "fire", tier: 1 }, { suit: "wind", tier: 1 },
+      { suit: "fire" }, { suit: "fire" }, { suit: "wind" },
       ...Array.from({ length: 10 }, () => null),
     ]).slice(0, 3);
     const result = compareLane("front", player, enemy);
@@ -43,6 +43,7 @@ describe("three-lane combat", () => {
     const player = cards("water");
     expect(compareLane("back", player, enemy).winner).toBe("player");
     expect(compareLane("back", player, enemy, { bossRuleId: "boss-neutralize-earth" }).winner).toBe("tie");
+    expect(compareLane("back", player, enemy, { bossRuleId: "boss-neutralize-earth", disabledBossRuleIds: ["boss-neutralize-earth"] }).winner).toBe("player");
   });
 
   it("allows the spark ability to break an otherwise tied front lane", () => {
@@ -75,5 +76,6 @@ describe("three-lane combat", () => {
   it("gives the deep sea boss water advantage in the front lane", () => {
     const cards = (suit: Card["suit"], currentSuit: Card["suit"]): Card[] => [1, 4, 7].map((rank, index) => ({ id: `${suit}-${index}`, rank: rank as Card["rank"], suit, currentSuit }));
     expect(compareLane("front", cards("fire", "fire"), cards("water", "water"), { bossRuleId: "boss-water-advantage" }).winner).toBe("enemy");
+    expect(compareLane("front", cards("earth", "earth"), cards("water", "water"), { bossRuleId: "boss-water-advantage", disabledBossRuleIds: ["boss-water-advantage"] }).winner).toBe("player");
   });
 });

@@ -11,7 +11,7 @@ describe("run state", () => {
   });
 
   it("starts the next Run with the account gene inventory", () => {
-    const chain = { id: "permanent-chain", factors: [{ suit: "water" as const, tier: 1 as const }, { suit: "fire" as const, tier: 1 as const }, { suit: "wind" as const, tier: 1 as const }] };
+    const chain = { id: "permanent-chain", targetSlot: "short3" as const, factors: [{ suit: "water" as const }, { suit: "fire" as const }, { suit: "wind" as const }], enabledSlots: [true, true, true] };
     expect(createRunState("inventory-seed", ["water-scout"], [chain]).geneInventory).toEqual([chain]);
   });
 
@@ -65,7 +65,7 @@ describe("run state", () => {
     const node = arrived.map.nodes.find((candidate) => candidate.id === nextId)!;
     const completed = completeCurrentNode(arrived);
     const reward = rewardForNode(node);
-    const claimed = claimCurrentNodeReward(completed, { ...reward, geneChain: { id: "test-chain", factors: [{ suit: "water", tier: 1 }, { suit: "fire", tier: 1 }, { suit: "wind", tier: 1 }] } });
+    const claimed = claimCurrentNodeReward(completed, { ...reward, geneChain: { id: "test-chain", targetSlot: "short3", factors: [{ suit: "water" }, { suit: "fire" }, { suit: "wind" }], enabledSlots: [true, true, true] } });
 
     expect(claimed.completedNodeIds).toContain(nextId);
     expect(claimed.claimedRewardNodeIds).toEqual([nextId]);
@@ -80,11 +80,11 @@ describe("run state", () => {
     const nextId = run.map.nodes[0].nextNodeIds[0];
     const arrived = moveToNode(run, nextId);
     const completed = completeCurrentNode(arrived);
-    const fullInventory: RunState["geneInventory"] = Array.from({ length: completed.geneCapacity }, (_, index) => ({ id: `chain-${index}`, factors: [{ suit: "water" as const, tier: 1 as const }, { suit: "fire" as const, tier: 1 as const }, { suit: "wind" as const, tier: 1 as const }] }));
+    const fullInventory: RunState["geneInventory"] = Array.from({ length: completed.geneCapacity }, (_, index) => ({ id: `chain-${index}`, targetSlot: "short3" as const, factors: [{ suit: "water" as const }, { suit: "fire" as const }, { suit: "wind" as const }], enabledSlots: [true, true, true] }));
     const fullRun = { ...completed, geneInventory: fullInventory };
     const node = fullRun.map.nodes.find((candidate) => candidate.id === nextId)!;
     const reward = rewardForNode(node);
-    const geneChain: RunState["geneInventory"][number] = { id: "new-chain", factors: [{ suit: "earth", tier: 1 }, { suit: "water", tier: 1 }, { suit: "fire", tier: 1 }] };
+    const geneChain: RunState["geneInventory"][number] = { id: "new-chain", targetSlot: "short3", factors: [{ suit: "earth" }, { suit: "water" }, { suit: "fire" }], enabledSlots: [true, true, true] };
     expect(() => claimCurrentNodeReward(fullRun, { ...reward, geneChain })).toThrow("基因庫已滿");
     const claimed = claimCurrentNodeReward(fullRun, { ...reward, geneChain }, { takeGene: false });
     expect(claimed.earnedCrystals).toBe(reward.crystals);

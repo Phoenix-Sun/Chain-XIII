@@ -12,10 +12,10 @@ describe("TownView", () => {
 
   it("selects a facility directly on the pixel scene", () => {
     render(<TownView onNavigate={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "鍊成篝火" }));
+    fireEvent.click(screen.getByRole("button", { name: "配置篝火" }));
     const panel = screen.getByRole("complementary");
-    expect(within(panel).getByRole("heading", { name: "鍊成篝火" })).toBeInTheDocument();
-    expect(within(panel).getByText(/合成基因鏈/)).toBeInTheDocument();
+    expect(within(panel).getByRole("heading", { name: "配置篝火" })).toBeInTheDocument();
+    expect(within(panel).getByText(/選擇基因鏈/)).toBeInTheDocument();
   });
 
   it("gives immediate feedback from the large facility action", () => {

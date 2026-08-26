@@ -1,18 +1,14 @@
 import { useMemo, useState } from "react";
-import { drawThirteen, SUIT_LABELS, type Suit } from "../domain/cards";
-import { canEquip, commitFusion, previewFusion } from "../domain/genes";
-import { applySuitTemplate, buildSuitTemplate, type EquippedGenes, type GeneChain } from "../domain/template";
+import { drawThirteen, SUIT_LABELS, SUIT_SYMBOLS, type Suit } from "../domain/cards";
+import { slotForChain, slotLabel, toggleGeneSlot } from "../domain/genes";
+import { applySuitTemplate, buildSuitTemplate, normalizeGeneChain, type EquippedGenes, type GeneChain, type GeneSlot } from "../domain/template";
 import { executeEffect } from "../domain/effects";
 import type { RunState } from "../domain/run";
 import { catalog } from "../content/catalog";
 
-const STARTING_CHAINS: GeneChain[] = [
-  { id: "chain-water-wind", sourceMonsterId: "monster-water", factors: [{ suit: "water", tier: 1 }, { suit: "fire", tier: 1 }, { suit: "wind", tier: 1 }] },
-  { id: "chain-earth-fire", sourceMonsterId: "monster-earth", factors: [{ suit: "wind", tier: 1 }, { suit: "earth", tier: 1 }, { suit: "water", tier: 1 }, { suit: "fire", tier: 1 }, { suit: "earth", tier: 1 }] },
-  { id: "chain-fire-water", sourceMonsterId: "monster-fire", factors: [{ suit: "fire", tier: 1 }, { suit: "wind", tier: 1 }, { suit: "earth", tier: 1 }, { suit: "water", tier: 1 }, { suit: "fire", tier: 1 }] },
-];
+const GENE_SLOTS: GeneSlot[] = ["short3", "long5A", "long5B"];
 const SUIT_CLASS: Record<Suit, string> = { water: "gene-water", fire: "gene-fire", wind: "gene-wind", earth: "gene-earth" };
-const SLOT_LABELS = { short3: "頭墩・3 格", long5A: "中墩・5 格 A", long5B: "尾墩・5 格 B" } as const;
+const SLOT_HINTS: Record<GeneSlot, string> = { short3: "頭墩使用 3 格配置", long5A: "中墩使用 5 格配置", long5B: "尾墩使用 5 格配置" };
 
 interface GeneWorkshopViewProps {
   initialInventory?: GeneChain[];
@@ -25,59 +21,116 @@ interface GeneWorkshopViewProps {
   onRunUpdated?: (run: RunState) => void;
 }
 
-function ChainStrip({ chain, selected, onClick }: { chain: GeneChain; selected: boolean; onClick: () => void }) {
-  return <button type="button" className={`chain-strip${selected ? " is-selected" : ""}`} onClick={onClick} aria-pressed={selected}><span className="chain-id">{chain.id}</span><span className="factor-row">{chain.factors.map((factor, index) => <i className={SUIT_CLASS[factor.suit]} key={`${chain.id}-${index}`} title={`${SUIT_LABELS[factor.suit]} ${factor.tier}階`}>{factor.suit.slice(0, 1).toUpperCase()}<small>{factor.tier}</small></i>)}</span><small>{chain.factors.length} 格 · {chain.sourceMonsterId ?? "未知來源"}</small></button>;
+function chainPattern(chain: GeneChain): string {
+  const normalized = normalizeGeneChain(chain);
+  return normalized.factors.map((factor, index) => normalized.enabledSlots[index] ? SUIT_LABELS[factor.suit] : "無").join("");
+}
+
+function ChainChoice({ chain, selected, onClick }: { chain: GeneChain; selected: boolean; onClick: () => void }) {
+  const normalized = normalizeGeneChain(chain);
+  return <button type="button" className={`chain-choice${selected ? " is-selected" : ""}`} onClick={onClick} aria-pressed={selected}>
+    <span className="chain-choice-heading"><strong>{normalized.name ?? "未命名基因鏈"}</strong><small>{selected ? "目前使用" : "點此切換"}</small></span>
+    <span className="gene-pattern gene-pattern-compact" aria-label={`目前配置 ${chainPattern(normalized)}`}>
+      {normalized.factors.map((factor, index) => <i className={`${SUIT_CLASS[factor.suit]}${normalized.enabledSlots[index] ? " is-enabled" : " is-disabled"}`} key={`${normalized.id}-${index}`} aria-hidden="true">{SUIT_SYMBOLS[factor.suit]}</i>)}
+    </span>
+    <small className="chain-choice-detail">{normalized.description ?? "固定元素排列，可自由開關每一格。"}</small>
+  </button>;
+}
+
+function GenePatternEditor({ chain, onToggle }: { chain: GeneChain; onToggle: (index: number) => void }) {
+  const normalized = normalizeGeneChain(chain);
+  return <div className="gene-pattern-editor">
+    <div className="gene-pattern-summary"><strong>目前配置：{chainPattern(normalized)}</strong><small>「無」代表保留該張牌原本花色</small></div>
+    <div className="gene-pattern gene-pattern-interactive" role="group" aria-label={`${normalized.name ?? "基因鏈"}元素啟用設定`}>
+      {normalized.factors.map((factor, index) => {
+        const enabled = normalized.enabledSlots[index];
+        return <button type="button" className={`${SUIT_CLASS[factor.suit]}${enabled ? " is-enabled" : " is-disabled"}`} key={`${normalized.id}-toggle-${index}`} aria-pressed={enabled} aria-label={`第 ${index + 1} 格 ${SUIT_LABELS[factor.suit]}元素${enabled ? "已啟用" : "未啟用"}`} onClick={() => onToggle(index)}><span>{SUIT_SYMBOLS[factor.suit]}</span><strong>{enabled ? SUIT_LABELS[factor.suit] : "無"}</strong><small>第 {index + 1} 格</small></button>;
+      })}
+    </div>
+    <p className="gene-pattern-help">點選格子即可開關；啟用時覆寫花色，關閉時回到原始牌面。</p>
+  </div>;
 }
 
 export default function GeneWorkshopView({ initialInventory, initialEquipped, onInventoryChange, onEquippedChange, onExit, run, partyCharacterIds = [], onRunUpdated }: GeneWorkshopViewProps = {}) {
-  const [inventory, setInventory] = useState(() => initialInventory ?? STARTING_CHAINS);
-  const [leftId, setLeftId] = useState(STARTING_CHAINS[0].id);
-  const [rightId, setRightId] = useState(STARTING_CHAINS[1].id);
-  const [equipped, setEquipped] = useState<EquippedGenes>(() => initialEquipped ?? { short3: STARTING_CHAINS[0], long5A: STARTING_CHAINS[1] });
-  const [notice, setNotice] = useState("選兩條基因鏈，先看預覽，再決定是否不可逆合成。");
+  const starterInventory = initialInventory === undefined ? catalog.geneChains : initialInventory;
+  const equippedChains = initialEquipped ? Object.values(initialEquipped).filter((chain): chain is GeneChain => Boolean(chain)) : [];
+  const initialInventoryWithEquipped = [...starterInventory, ...equippedChains.filter((equippedChain) => !starterInventory.some((chain) => chain.id === equippedChain.id))].map((chain) => normalizeGeneChain(chain));
+  const [inventory, setInventory] = useState(initialInventoryWithEquipped);
+  const [equipped, setEquipped] = useState<EquippedGenes>(() => {
+    const next: EquippedGenes = {};
+    GENE_SLOTS.forEach((slot) => {
+      const initial = initialEquipped?.[slot];
+      next[slot] = initial ? normalizeGeneChain(initial) : inventory.find((chain) => slotForChain(chain) === slot);
+    });
+    return next;
+  });
+  const [notice, setNotice] = useState("每條基因鏈都是固定配置；先選擇墩位，再點格子開關。");
   const [forgeUsed, setForgeUsed] = useState(false);
-  const left = inventory.find((chain) => chain.id === leftId) ?? inventory[0];
-  const right = inventory.find((chain) => chain.id === rightId) ?? inventory[1] ?? inventory[0];
-  const fusion = useMemo(() => left && right && left.id !== right.id ? previewFusion(left, right, 5) : null, [left, right]);
   const sampleCards = useMemo(() => drawThirteen("workshop-preview"), []);
   const convertedCards = useMemo(() => applySuitTemplate(sampleCards, buildSuitTemplate(equipped)), [equipped, sampleCards]);
   const hasForgeAbility = partyCharacterIds.some((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-forge");
 
+  function notifyEquipped(nextEquipped: EquippedGenes) {
+    setEquipped(nextEquipped);
+    onEquippedChange?.(nextEquipped);
+  }
+
+  function selectChain(slot: GeneSlot, chain: GeneChain) {
+    const nextEquipped = { ...equipped, [slot]: normalizeGeneChain(chain) };
+    notifyEquipped(nextEquipped);
+    setNotice(`${chain.name ?? "這條基因鏈"} 已套用到${slotLabel(slot)}。`);
+  }
+
+  function toggleSlot(slot: GeneSlot, index: number) {
+    const current = equipped[slot];
+    if (!current) return;
+    const nextChain = toggleGeneSlot(current, index);
+    const nextInventory = inventory.map((chain) => chain.id === nextChain.id ? nextChain : chain);
+    const nextEquipped = { ...equipped, [slot]: nextChain };
+    setInventory(nextInventory);
+    onInventoryChange?.(nextInventory);
+    notifyEquipped(nextEquipped);
+    setNotice(`${slotLabel(slot)}第 ${index + 1} 格已${nextChain.enabledSlots[index] ? "啟用" : "關閉"}。`);
+  }
+
+  function clearSlot(slot: GeneSlot) {
+    const nextEquipped = { ...equipped, [slot]: undefined };
+    notifyEquipped(nextEquipped);
+    setNotice(`${slotLabel(slot)}暫時不使用基因鏈，會保留原始牌面。`);
+  }
+
   function useForgeAbility() {
     if (!run || forgeUsed || run.discoveredRunFlags.includes("effect:ability-forge")) return;
     const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-forge") ?? "ability-forge";
-    const effectResult = executeEffect("ability-forge", { phase: "fusion-preview", run, sourceId });
+    const effectResult = executeEffect("ability-forge", { phase: "gene-config", run, sourceId });
     if (!effectResult.applied) return;
+    const nextEquipped = Object.fromEntries(GENE_SLOTS.map((slot) => {
+      const chain = equipped[slot];
+      return [slot, chain ? { ...chain, enabledSlots: chain.factors.map(() => true) } : undefined];
+    })) as EquippedGenes;
+    const nextInventory = inventory.map((chain) => nextEquipped[slotForChain(chain)]?.id === chain.id ? nextEquipped[slotForChain(chain)]! : chain);
     setForgeUsed(true);
-    setNotice(effectResult.messages[0] ?? "鍛造師保留了融合預覽。");
+    setInventory(nextInventory);
+    onInventoryChange?.(nextInventory);
+    notifyEquipped(nextEquipped);
+    setNotice("鍛造師已將目前裝備的基因格全部啟用。");
     onRunUpdated?.(effectResult.run);
   }
 
-  function commit() {
-    if (!fusion || !left || !right) return;
-    const result = commitFusion(fusion);
-    const preserveLeft = forgeUsed || run?.discoveredRunFlags.includes("effect:ability-forge") === true;
-    const nextInventory = [...inventory.filter((chain) => chain.id !== right.id && (preserveLeft || chain.id !== left.id)), result];
-    setInventory(nextInventory);
-    onInventoryChange?.(nextInventory);
-    setLeftId(result.id);
-    setRightId(STARTING_CHAINS[0].id);
-    setNotice(`已合成 ${result.id}。${preserveLeft ? "鍛造師保留了左鏈素材，" : "原鏈已消耗，"}這個結果無法復原。`);
-  }
-
-  function equip(chain: GeneChain, slot: keyof EquippedGenes) {
-    if (!canEquip(chain, slot)) { setNotice(`${SLOT_LABELS[slot]}不能裝備 ${chain.factors.length} 格鏈。`); return; }
-    const nextEquipped = { ...equipped, [slot]: chain };
-    setEquipped(nextEquipped);
-    onEquippedChange?.(nextEquipped);
-    setNotice(`${chain.id} 已裝入${SLOT_LABELS[slot]}。`);
-  }
-
-  return <div className="workshop-view"><div className="screen-title-row"><div><span className="pixel-kicker">GENE FORGE · P2</span><h1>花色鍊成工房</h1></div><div className="title-actions"><span className="rank-badge">不可逆</span>{onExit && <button type="button" className="link-button" onClick={onExit}>回到路線</button>}</div></div>
+  return <div className="workshop-view"><div className="screen-title-row"><div><span className="pixel-kicker">GENE PATTERNS · P2</span><h1>基因鏈配置</h1></div><div className="title-actions"><span className="rank-badge">固定配置</span>{onExit && <button type="button" className="link-button" onClick={onExit}>回到路線</button>}</div></div>
     <div className="workshop-notice" role="status"><span className="event-mark">!</span><span>{notice}</span></div>
-    {hasForgeAbility && <button type="button" className="ability-button" onClick={useForgeAbility} disabled={forgeUsed || run?.discoveredRunFlags.includes("effect:ability-forge")}>鍛造師・保留融合預覽{forgeUsed || run?.discoveredRunFlags.includes("effect:ability-forge") ? "・已用" : ""}</button>}
-    <section className="workshop-card"><div className="workshop-card-heading"><div><span className="pixel-kicker">RUN INVENTORY</span><h2>基因庫・{inventory.length} / 6</h2></div><span className="muted-light">同接點會升階</span></div><div className="chain-inventory">{inventory.map((chain) => <ChainStrip key={chain.id} chain={chain} selected={chain.id === leftId || chain.id === rightId} onClick={() => chain.id === leftId ? setLeftId(chain.id) : setRightId(chain.id)} />)}</div></section>
-    <section className="workshop-card fusion-card"><div className="workshop-card-heading"><div><span className="pixel-kicker">FUSION PREVIEW</span><h2>接合預覽</h2></div><span className="fusion-arrow">A ＋ B →</span></div>{left && right ? <div className="fusion-columns"><div><small>左鏈 A</small><ChainStrip chain={left} selected={false} onClick={() => undefined} /></div><div><small>右鏈 B</small><ChainStrip chain={right} selected={false} onClick={() => undefined} /></div></div> : null}{fusion ? <div className="fusion-result"><span className="result-label">{fusion.joined === "fused" ? "同元素融合升階" : "異元素直接串接"} · 前端擠出 {fusion.removedFromFront} 格</span><div className="factor-row large">{fusion.factors.map((factor, index) => <i className={SUIT_CLASS[factor.suit]} key={`preview-${index}`}>{factor.suit.slice(0, 1).toUpperCase()}<small>{factor.tier}</small></i>)}</div><button type="button" className="pixel-button gold-button" onClick={commit}>確認鍊成</button></div> : <p className="empty-workshop">{inventory.length < 2 ? "目前還沒有兩條可合成的基因鏈。完成更多節點後再回來整理。" : "選擇不同的兩條鏈以預覽。"}</p>}</section>
-    <section className="workshop-card"><div className="workshop-card-heading"><div><span className="pixel-kicker">EQUIPMENT · 3 / 5 / 5</span><h2>戰前裝備槽</h2></div><span className="muted-light">免費換裝</span></div><div className="equipment-slots">{(Object.keys(SLOT_LABELS) as Array<keyof EquippedGenes>).map((slot) => <div className="equipment-slot" key={slot}><div><span>{SLOT_LABELS[slot]}</span><small>{equipped[slot]?.id ?? "未裝備，保留原花色"}</small></div><div className="slot-actions">{inventory.map((chain) => <button type="button" key={`${slot}-${chain.id}`} disabled={!canEquip(chain, slot)} onClick={() => equip(chain, slot)}>{chain.factors.length}格</button>)}</div></div>)}</div><div className="converted-preview"><span className="pixel-kicker">CURRENT SUIT PREVIEW</span><div className="preview-cards">{convertedCards.map((card) => <span className={`preview-card ${SUIT_CLASS[card.currentSuit]}`} key={card.id}><strong>{card.currentSuit.slice(0, 1).toUpperCase()}</strong><small>{card.originalSuit.slice(0, 1).toUpperCase()}→{card.currentSuit.slice(0, 1).toUpperCase()}</small></span>)}</div></div></section>
+    <p className="gene-intro">基因鏈掉落時就已決定作用墩位與元素順序。你不用合成或升階，只要選一條鏈，再點選想啟用的元素格。</p>
+    {hasForgeAbility && <button type="button" className="ability-button" onClick={useForgeAbility} disabled={forgeUsed || run?.discoveredRunFlags.includes("effect:ability-forge")}>鍛造師・全部啟用{forgeUsed || run?.discoveredRunFlags.includes("effect:ability-forge") ? "・已用" : ""}</button>}
+    {GENE_SLOTS.map((slot) => {
+      const candidates = inventory.filter((chain) => slotForChain(chain) === slot);
+      const selected = equipped[slot];
+      return <section className="workshop-card gene-lane-card" key={slot} aria-labelledby={`gene-lane-${slot}`}>
+        <div className="workshop-card-heading"><div><span className="pixel-kicker">{slot === "short3" ? "FRONT" : slot === "long5A" ? "MIDDLE" : "BACK"}</span><h2 id={`gene-lane-${slot}`}>{slotLabel(slot)}</h2></div><span className="muted-light">{candidates.length} 條可選</span></div>
+        <p className="gene-lane-hint">{SLOT_HINTS[slot]}；同一墩同時只使用一條，其他是替換候選。</p>
+        {candidates.length > 0 ? <div className="gene-choice-list" role="group" aria-label={`${slotLabel(slot)}候選基因鏈`}>{candidates.map((chain) => <ChainChoice key={chain.id} chain={chain} selected={selected?.id === chain.id} onClick={() => selectChain(slot, chain)} />)}</div> : <p className="empty-workshop">目前沒有適合這個墩位的基因鏈。</p>}
+        {selected ? <><GenePatternEditor chain={selected} onToggle={(index) => toggleSlot(slot, index)} /><button type="button" className="link-button gene-clear-button" onClick={() => clearSlot(slot)}>清除這個墩位的基因</button></> : <p className="gene-empty-selected">未啟用基因鏈，這個墩位保留原始牌面。</p>}
+      </section>;
+    })}
+    <section className="workshop-card converted-preview"><div className="workshop-card-heading"><div><span className="pixel-kicker">CURRENT SUIT PREVIEW</span><h2>13 張牌花色預覽</h2></div><span className="muted-light">未啟用格保留原色</span></div><div className="preview-cards">{convertedCards.map((card) => <span className={`preview-card ${SUIT_CLASS[card.currentSuit]}`} key={card.id}><strong>{SUIT_SYMBOLS[card.currentSuit]}</strong><small>{card.originalSuit === card.currentSuit ? "原色" : `${SUIT_LABELS[card.originalSuit]}→${SUIT_LABELS[card.currentSuit]}`}</small></span>)}</div></section>
   </div>;
 }

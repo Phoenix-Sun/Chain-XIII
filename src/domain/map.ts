@@ -1,6 +1,6 @@
 import { SeededRandom } from "./random";
 
-export type MapNodeType = "battle" | "elite" | "event" | "relic" | "boss";
+export type MapNodeType = "battle" | "elite" | "event" | "relic" | "caravan" | "campfire" | "lookout" | "boss";
 export type RunChapter = 1 | 2 | 3;
 
 export interface RunMapNode {
@@ -25,9 +25,9 @@ export interface RunMap {
 }
 
 const NODE_TYPES_BY_CHAPTER: Record<RunChapter, MapNodeType[]> = {
-  1: ["battle", "battle", "event", "relic"],
-  2: ["battle", "battle", "event", "relic"],
-  3: ["battle", "event", "relic"],
+  1: ["battle", "battle", "event", "relic", "caravan", "campfire", "lookout"],
+  2: ["battle", "battle", "event", "relic", "caravan", "campfire", "lookout"],
+  3: ["battle", "event", "relic", "campfire", "lookout"],
 };
 const BOSS_IDS = ["boss-lava-turtle", "boss-storm-bird", "boss-deep-sea"] as const;
 export const RUN_CHAPTER_LENGTH_RANGES: ReadonlyArray<{ min: number; max: number }> = [
@@ -67,7 +67,7 @@ export function generateRunMap(seed: string): RunMap {
           : type === "battle"
             ? `monster-normal-${random.int(12) + 1}`
             : undefined;
-        nodes.push({ id: `r${row}n${column}`, row, column, chapter, type, monsterId, eventId: type === "event" ? `event-${(row + column) % 12 + 1}` : undefined, relicId: type === "relic" ? `relic-${(row + column) % 15 + 1}` : undefined, nextNodeIds: [] });
+        nodes.push({ id: `r${row}n${column}`, row, column, chapter, type, monsterId, eventId: type === "event" ? `event-${(row + column) % 12 + 1}` : undefined, relicId: type === "relic" ? `relic-${(row + column) % 19 + 1}` : undefined, nextNodeIds: [] });
       }
       row += 1;
     }

@@ -25,9 +25,15 @@ describe("versioned save envelope", () => {
 
   it("migrates version 1 metadata with empty progression collections", () => {
     const migrated = parseSave(JSON.stringify({ saveVersion: 1, meta: { saveVersion: 1, crystals: 20, characters: createEmptyMeta().characters, unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, lastUpdatedAt: "now" }));
-    expect(migrated.saveVersion).toBe(5);
+    expect(migrated.saveVersion).toBe(7);
     expect(migrated.meta.geneInventory).toEqual([]);
     expect(migrated.meta.relicIds).toEqual([]);
+  });
+
+  it("migrates legacy tiered genes into fixed patterns with all slots enabled", () => {
+    const migrated = parseSave(JSON.stringify({ saveVersion: 5, meta: { saveVersion: 5, crystals: 0, characters: createEmptyMeta().characters, geneInventory: [{ id: "legacy-chain", factors: [{ suit: "water", tier: 3 }, { suit: "fire", tier: 2 }, { suit: "wind", tier: 1 }] }], unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, lastUpdatedAt: "now" }));
+    expect(migrated.meta.geneInventory[0]).toMatchObject({ id: "legacy-chain", targetSlot: "short3", enabledSlots: [true, true, true], factors: [{ suit: "water" }, { suit: "fire" }, { suit: "wind" }] });
+    expect(migrated.meta.geneInventory[0].factors[0]).not.toHaveProperty("tier");
   });
 
   it("fills defaults for a version 1 active Run instead of returning an unsafe partial object", () => {
@@ -57,7 +63,7 @@ describe("versioned save envelope", () => {
   it("merges a settled Run into permanent Meta collections exactly once", () => {
     const run = createRunState("settle-seed", [STARTER_CHARACTER_ID]);
     const monsterNode = run.map.nodes.find((node) => node.monsterId)!;
-    const settled = { ...run, completedNodeIds: [run.map.startNodeId, monsterNode.id], earnedCrystals: 25, geneInventory: [{ id: "gene-test", factors: [{ suit: "water" as const, tier: 1 as const }, { suit: "fire" as const, tier: 1 as const }, { suit: "wind" as const, tier: 1 as const }] }], relicIds: ["relic-1"] };
+    const settled = { ...run, completedNodeIds: [run.map.startNodeId, monsterNode.id], earnedCrystals: 25, geneInventory: [{ id: "gene-test", targetSlot: "short3" as const, factors: [{ suit: "water" as const }, { suit: "fire" as const }, { suit: "wind" as const }], enabledSlots: [true, true, true] }], relicIds: ["relic-1"] };
     const meta = mergeRunIntoMeta(createEmptyMeta(), settled);
     expect(meta.crystals).toBe(25);
     expect(meta.geneInventory.map((chain) => chain.id)).toEqual(["gene-test"]);

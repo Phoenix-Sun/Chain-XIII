@@ -13,14 +13,14 @@ import type { GameView } from "./types";
 const VIEW_ITEMS: Array<{ id: Exclude<GameView, "party" | "battle">; label: string; icon: string; hint: string }> = [
   { id: "town", label: "營地", icon: "營", hint: "目前位置" },
   { id: "route", label: "路線", icon: "路", hint: "選擇下一站" },
-  { id: "workshop", label: "鍊成", icon: "鍊", hint: "改造花色" },
+  { id: "workshop", label: "配置", icon: "配", hint: "選擇花色" },
   { id: "gacha", label: "抽卡", icon: "抽", hint: "取得角色" },
   { id: "codex", label: "圖鑑", icon: "鑑", hint: "查看遭遇" },
 ];
 
-const VIEW_LABELS: Record<GameView, string> = { town: "遠征營地", party: "出戰隊伍", route: "遠征進行中", battle: "十三支戰鬥", workshop: "基因鏈鍊成", gacha: "角色抽卡", codex: "遠征圖鑑" };
-const VIEW_RIBBONS: Record<GameView, string> = { town: "整備遠征隊：先選擇下一步要處理的事情", party: "隊伍編成：選 1～3 名角色組成出戰隊列", route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", workshop: "鍊成篝火：調整下一趟遠征的牌組方向", gacha: "角色召集：用水晶擴充你的出戰選擇", codex: "遠征圖鑑：回看已遭遇的怪物與帶回的遺物" };
-const RUN_PHASE_RIBBONS: Record<RunSessionPhase, string> = { route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", exploration: "事件現場：完成目標，決定這趟遠征的代價與收穫", reward: "節點完成：領取獎勵，再選擇下一個方向", workshop: "鍊成篝火：調整下一場戰鬥的牌組方向", settlement: "遠征結算：確認本趟收穫並回到營地" };
+const VIEW_LABELS: Record<GameView, string> = { town: "遠征營地", party: "出戰隊伍", route: "遠征進行中", battle: "十三支戰鬥", workshop: "基因鏈配置", gacha: "角色抽卡", codex: "遠征圖鑑" };
+const VIEW_RIBBONS: Record<GameView, string> = { town: "整備遠征隊：先選擇下一步要處理的事情", party: "隊伍編成：選 1～3 名角色組成出戰隊列", route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", workshop: "基因鏈配置：選擇墩位配置，再點選要啟用的元素格", gacha: "角色召集：用水晶擴充你的出戰選擇", codex: "遠征圖鑑：回看已遭遇的怪物與帶回的遺物" };
+const RUN_PHASE_RIBBONS: Record<RunSessionPhase, string> = { route: "遠征地圖：只選擇與目前位置相連的下一站", battle: "戰鬥進行中：用 13 張牌完成頭／中／尾三墩", exploration: "事件現場：完成目標，決定這趟遠征的代價與收穫", altar: "遺物祭壇：保留想要的骰面，別讓 Skull 累積到 3 個", service: "遠征補給：用水晶、命數或情報換取下一步優勢", reward: "節點完成：領取獎勵，再選擇下一個方向", workshop: "基因鏈配置：選擇墩位配置，再點選要啟用的元素格", settlement: "遠征結算：確認本趟收穫並回到營地" };
 const createRunSeed = () => `run-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export default function GameShell({ initialSeed }: { initialSeed?: string } = {}) {

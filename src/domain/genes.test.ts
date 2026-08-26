@@ -1,32 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { canEquip, commitFusion, previewFusion } from "./genes";
+import { canEquip, slotForChain, toggleGeneSlot } from "./genes";
 import type { GeneChain } from "./template";
 
-const chain = (id: string, suits: Array<"water" | "fire" | "wind" | "earth">): GeneChain => ({ id, factors: suits.map((suit) => ({ suit, tier: 1 as const })) });
+const chain = (id: string, targetSlot: GeneChain["targetSlot"], suits: Array<"water" | "fire" | "wind" | "earth">): GeneChain => ({ id, targetSlot, factors: suits.map((suit) => ({ suit })), enabledSlots: suits.map(() => true) });
 
-describe("gene fusion", () => {
-  it("fuses equal junction suits and upgrades the junction factor", () => {
-    const preview = previewFusion(chain("a", ["water", "fire", "wind"]), chain("b", ["wind", "earth", "water"]), 5);
-    expect(preview.joined).toBe("fused");
-    expect(preview.factors).toEqual([
-      { suit: "water", tier: 1 },
-      { suit: "fire", tier: 1 },
-      { suit: "wind", tier: 2 },
-      { suit: "earth", tier: 1 },
-      { suit: "water", tier: 1 },
-    ]);
-    expect(commitFusion(preview).id).toBe("fusion:a+b");
+describe("visual gene patterns", () => {
+  it("keeps the dropped lane and pattern fixed", () => {
+    const dropped = chain("a", "long5B", ["fire", "water", "water", "fire", "fire"]);
+    expect(slotForChain(dropped)).toBe("long5B");
+    expect(dropped.factors.map((factor) => factor.suit)).toEqual(["fire", "water", "water", "fire", "fire"]);
   });
 
-  it("links different junctions and trims from the front", () => {
-    const preview = previewFusion(chain("a", ["water", "fire", "wind"]), chain("b", ["earth", "water", "fire"]), 4);
-    expect(preview.joined).toBe("linked");
-    expect(preview.removedFromFront).toBe(2);
-    expect(preview.factors.map((factor) => factor.suit)).toEqual(["wind", "earth", "water", "fire"]);
+  it("toggles any element slot without changing the fixed pattern", () => {
+    const toggled = toggleGeneSlot(chain("a", "long5B", ["fire", "water", "water", "fire", "fire"]), 0);
+    expect(toggled.enabledSlots).toEqual([false, true, true, true, true]);
+    expect(toggled.factors.map((factor) => factor.suit)).toEqual(["fire", "water", "water", "fire", "fire"]);
   });
 
-  it("enforces the 3/5/5 equipment slots", () => {
-    expect(canEquip(chain("short", ["water", "fire", "wind"]), "short3")).toBe(true);
-    expect(canEquip(chain("short", ["water", "fire", "wind"]), "long5A")).toBe(false);
+  it("enforces the dropped 3/5/5 lane", () => {
+    expect(canEquip(chain("short", "short3", ["water", "fire", "wind"]), "short3")).toBe(true);
+    expect(canEquip(chain("short", "short3", ["water", "fire", "wind"]), "long5A")).toBe(false);
   });
 });
