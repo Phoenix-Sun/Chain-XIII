@@ -221,3 +221,15 @@
 - targeted difficulty／save／party／run tests：通過。
 - 完整 `npm run check`：32 個 test files、123 個 tests 通過，typecheck、production build 通過。
 - `git diff --check`：通過。
+
+## 2026-08-25：難度風險／獎勵比例
+
+- 將容易／中等／困難的水晶獎勵倍率固定為 0.75x／1.00x／1.50x，讓多命與高風險形成明顯的風險／回報差異。
+- 普通戰鬥、Elite、事件、遺物、Boss 與事件失敗保底獎勵都經過同一個 scaling service，避免只改單一路線。
+- Reward preview 會直接顯示難度倍率與實際水晶數，玩家能在領取前理解差異。
+
+### 驗證
+
+- reward scaling targeted tests：2 個 tests 通過，覆蓋倍率與全部節點類型。
+- targeted Run／save／Party／session tests：35 個 tests 通過。
+- typecheck：通過。

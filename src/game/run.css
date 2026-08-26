@@ -6,6 +6,10 @@
 .run-reward-card h1, .run-settlement-card h1 { margin: 7px 0 10px; font-size: clamp(1.35rem, 7vw, 2rem); }
 .run-reward-card p, .run-settlement-card p { margin: 0 auto 16px; max-width: 42ch; color: #735b54; font-size: 0.78rem; line-height: 1.6; }
 .reward-source { margin: 0 auto 16px; color: #80665c; font-size: 0.7rem; font-weight: 800; }
+.reward-difficulty { display: grid; gap: 3px; margin: 0 auto 15px; padding: 9px 10px; border: 3px solid #80658a; border-radius: 9px; background: #f6dfa8; }
+.reward-difficulty span { color: #80658a; font-size: 0.62rem; font-weight: 900; }
+.reward-difficulty strong { color: #9b4e36; font-size: 0.8rem; }
+.reward-difficulty small { color: #735b54; font-size: 0.58rem; font-weight: 800; }
 .reward-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 16px 0 20px; }
 .reward-item { display: grid; gap: 4px; padding: 13px 8px; border: 3px solid #80658a; border-radius: 10px; background: #f6dfa8; }
 .reward-item strong { color: #2d754d; font-size: 1.05rem; }

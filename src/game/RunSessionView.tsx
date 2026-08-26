@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, type RunDifficulty, type RunState } from "../domain/run";
-import { rewardForNode, type RewardChoice, type RunReward } from "../domain/runRewards";
+import { rewardForNode, scaleRewardCrystals, type RewardChoice, type RunReward } from "../domain/runRewards";
 import type { BattleResult } from "../domain/combat";
 import type { Navigate } from "./types";
 import RunRouteView from "./RunRouteView";
@@ -14,8 +14,8 @@ import ExplorationView from "./ExplorationView";
 
 export type RunSessionPhase = "route" | "battle" | "exploration" | "reward" | "workshop" | "settlement";
 
-function rewardForRunNode(node: RunMapNode): RunReward {
-  const reward = rewardForNode(node);
+function rewardForRunNode(node: RunMapNode, difficulty: RunDifficulty): RunReward {
+  const reward = rewardForNode(node, difficulty);
   if (node.type !== "event") {
     const geneChain = reward.geneChainId ? catalog.geneChains.find((chain) => chain.id === reward.geneChainId) : undefined;
     return geneChain ? { ...reward, geneChain } : reward;
@@ -51,7 +51,7 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
   const [reward, setReward] = useState<RunReward | null>(() => {
     const activeRun = initialSession;
     const node = getCurrentNode(activeRun);
-    return node.id !== activeRun.map.startNodeId && activeRun.completedNodeIds.includes(node.id) && !activeRun.claimedRewardNodeIds.includes(node.id) ? rewardForRunNode(node) : null;
+    return node.id !== activeRun.map.startNodeId && activeRun.completedNodeIds.includes(node.id) && !activeRun.claimedRewardNodeIds.includes(node.id) ? rewardForRunNode(node, activeRun.difficulty) : null;
   });
   const [rewardError, setRewardError] = useState<string | null>(null);
   const [battleAttempt, setBattleAttempt] = useState(0);
@@ -67,7 +67,7 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
   }, [onPhaseChange, phase]);
 
   function rewardForCurrentNode(node: typeof currentNode): RunReward {
-    return rewardForRunNode(node);
+    return rewardForRunNode(node, run.difficulty);
   }
 
   function selectNode(nextRun: RunState, node: typeof currentNode) {
@@ -110,7 +110,7 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
   function handleExplorationComplete(success: boolean) {
     const completed = completeCurrentNode(run);
     const baseReward = rewardForCurrentNode(currentNode);
-    const nextReward = success ? baseReward : { crystals: 4, title: "事件退場", detail: "沒有達成事件目標，但你安全離開並保留了少量水晶。" };
+    const nextReward = success ? baseReward : { crystals: scaleRewardCrystals(4, run.difficulty), title: "事件退場", detail: "沒有達成事件目標，但你安全離開並保留了少量水晶。" };
     setRun(completed);
     setReward(nextReward);
     setRewardError(null);
@@ -139,7 +139,7 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
   if (phase === "route") return <div className="run-session"><div className="run-progress"><span>遠征進行中</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><RunRouteView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onNodeSelected={selectNode} onOpenWorkshop={() => setPhase("workshop")} /></div>;
   if (phase === "battle") return <div className="run-session"><div className="run-progress"><span>目前節點：{currentNode.type === "boss" ? "Boss" : currentNode.type === "elite" ? "強敵" : "戰鬥"}</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><BattleArenaView key={`battle-attempt-${currentNode.id}-${battleAttempt}`} partyCharacterIds={run.partyCharacterIds} node={currentNode} battleSeed={`${run.seed}:${currentNode.id}`} equippedGenes={run.equippedGenes} relicIds={run.relicIds} run={run} onRunUpdated={(nextRun) => setRun(nextRun)} onBattleComplete={handleBattleComplete} /></div>;
   if (phase === "exploration") return <div className="run-session"><div className="run-progress"><span>目前節點：事件</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><ExplorationView node={currentNode} seed={run.seed} run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onResolved={(result) => handleExplorationComplete(result.success)} /></div>;
-  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
+  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} difficulty={run.difficulty} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
   if (phase === "workshop") return <div className="run-session"><GeneWorkshopView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} initialInventory={run.geneInventory} initialEquipped={run.equippedGenes} onInventoryChange={(geneInventory) => setRun((current) => ({ ...current, geneInventory }))} onEquippedChange={(equippedGenes) => setRun((current) => ({ ...current, equippedGenes }))} onExit={() => setPhase("route")} /></div>;
   return <div className="run-session"><RunSettlementView run={run} onExit={leaveRun} /></div>;
 }

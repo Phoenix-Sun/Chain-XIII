@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { RewardChoice, RunReward } from "../domain/runRewards";
+import { rewardMultiplierForDifficulty } from "../domain/runRewards";
+import { RUN_DIFFICULTIES, type RunDifficulty } from "../domain/run";
 import type { RunMapNode } from "../domain/map";
 import { catalog } from "../content/catalog";
 
@@ -11,7 +13,7 @@ function readableRelicName(id: string): string {
   return catalog.relics.find((relic) => relic.id === id)?.name ?? id.replace(/^relic-/, "遺物 ");
 }
 
-export default function RunRewardView({ node, reward, inventoryCount, geneCapacity, error, onClaim, onSkipGene }: { node: RunMapNode; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
+export default function RunRewardView({ node, difficulty = "normal", reward, inventoryCount, geneCapacity, error, onClaim, onSkipGene }: { node: RunMapNode; difficulty?: RunDifficulty; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
   const [selectedChoiceId, setSelectedChoiceId] = useState(reward.choices?.[0]?.id);
   const selectedChoice = reward.choices?.find((choice) => choice.id === selectedChoiceId);
   const selectedGene = selectedChoice?.geneChain ?? reward.geneChain;
@@ -21,6 +23,7 @@ export default function RunRewardView({ node, reward, inventoryCount, geneCapaci
     <h1 id="run-reward-title">{reward.title}</h1>
     <p>{reward.detail}</p>
     <div className="reward-source">{node.type === "boss" ? "Boss 已擊敗" : "目前節點已完成"}</div>
+    <div className="reward-difficulty" aria-label="難度獎勵倍率"><span>{RUN_DIFFICULTIES[difficulty].label}難度</span><strong>水晶獎勵 ×{rewardMultiplierForDifficulty(difficulty)}</strong><small>高風險難度會給予更高的水晶回報。</small></div>
     <div className="reward-list">
       <div className="reward-item"><strong>+{reward.crystals}</strong><span>水晶</span></div>
       {reward.geneChainId && <div className="reward-item"><strong>基因鏈</strong><span>{readableGeneName(reward.geneChainId)}</span></div>}
