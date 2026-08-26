@@ -33,6 +33,6 @@ export function resolveServiceNode(run: RunState, node: RunMapNode, choice: Serv
   };
   if (choice === "caravan-heal" || choice === "campfire-rest") next = { ...next, livesRemaining: Math.min(next.maxLives, next.livesRemaining + 1) };
   if (choice === "caravan-focus" || choice === "campfire-focus") next = addFlag(next, "next-battle:focus");
-  if (choice === "caravan-scout" || choice === "lookout-reveal") next = addFlag(next, "route:next-layer-revealed");
+  if (choice === "caravan-scout" || choice === "lookout-reveal") next = addFlag(next, `route:next-layer-revealed:${node.id}`);
   return next;
 }

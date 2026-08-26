@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, failCurrentNode, moveToNode, validatePartyCharacterIds, type RunState } from "./run";
+import { applyRelicAltarSettlement, canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, failCurrentNode, moveToNode, validatePartyCharacterIds, type RunState } from "./run";
 import { rewardForNode } from "./runRewards";
 
 describe("run state", () => {
@@ -98,6 +98,19 @@ describe("run state", () => {
     const completed = completeCurrentNode(arrived);
     const claimed = claimCurrentNodeReward(completed, { crystals: 18, relicId: "relic-1", title: "遺物", detail: "找到遺物" });
     expect(claimed.relicIds).toEqual(["relic-1"]);
+  });
+
+  it("marks an altar node reward as claimed so reload cannot reopen it", () => {
+    const base = createRunState("altar-persist-seed", ["water-scout"]);
+    const node = base.map.nodes.find((candidate) => candidate.type === "relic")!;
+    const arrived = { ...base, currentNodeId: node.id };
+    const completed = completeCurrentNode(arrived);
+    const settled = applyRelicAltarSettlement(
+      { ...completed, altarState: { seed: "altar", candidateRelicIds: ["relic-1", "relic-2"], faces: ["crystal", "crystal", null, null, null], lockedSkullIndices: [], skullCount: 0, graceUsed: false, rollCount: 1, status: "stopped", pendingRewards: { crystalPairs: 1, blessingCount: 0, relicReady: false }, securedRewards: { crystalPairs: 0, blessingCount: 0 }, protectsSmallRewards: false } },
+      { status: "stopped", crystalPairs: 1, blessingCount: 0, relicReady: false, nextBattleSkullCurse: 0 },
+    );
+    expect(settled.claimedRewardNodeIds).toContain(node.id);
+    expect(settled.altarState).toBeUndefined();
   });
 
   it("marks the boss node as a won run", () => {

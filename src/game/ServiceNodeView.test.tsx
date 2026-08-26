@@ -12,7 +12,7 @@ describe("ServiceNodeView", () => {
     expect(screen.getByRole("heading", { name: "流動商隊" })).toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: /付費情報/ }));
-    expect(onResolved).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: expect.arrayContaining(["route:next-layer-revealed"]) }));
+    expect(onResolved).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: expect.arrayContaining(["route:next-layer-revealed:r1n0"]) }));
   });
 
   it("offers campfire recovery and lookout preview", () => {
@@ -25,5 +25,12 @@ describe("ServiceNodeView", () => {
     expect(onResolved).toHaveBeenCalledWith(expect.objectContaining({ livesRemaining: 2 }));
     rerender(<ServiceNodeView node={lookout} run={{ ...run, currentNodeId: lookout.id }} onResolved={onResolved} />);
     expect(screen.getByRole("heading", { name: "高地瞭望台" })).toBeInTheDocument();
+  });
+
+  it("explains why a paid service is unavailable", () => {
+    const run = createRunState("service-copy", ["water-scout"]);
+    const node = { ...run.map.nodes[1], type: "caravan" as const };
+    render(<ServiceNodeView node={node} run={{ ...run, currentNodeId: node.id, earnedCrystals: 0, livesRemaining: 1 }} onResolved={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /補給包.*水晶不足/ })).toBeDisabled();
   });
 });

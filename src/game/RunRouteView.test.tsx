@@ -134,6 +134,37 @@ describe("RunRouteView", () => {
     expect(screen.getByRole("button", { name: /石碑揭示下一層・已用/ })).toBeDisabled();
   });
 
+  it("shows route intelligence obtained from a support node", () => {
+    render(<RunRouteView run={{
+      seed: "service-reveal",
+      partyCharacterIds: ["water-scout"],
+      difficulty: "normal",
+      maxLives: 2,
+      livesRemaining: 2,
+      map: {
+        seed: "service-reveal",
+        startNodeId: "start",
+        bossNodeId: "boss",
+        chapterEndNodeIds: ["boss"],
+        chapterLengths: [3, 0, 0],
+        nodes: [
+          { id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["caravan"] },
+          { id: "caravan", row: 1, column: 0, type: "caravan", nextNodeIds: ["battle", "event"] },
+          { id: "battle", row: 2, column: 0, type: "battle", nextNodeIds: ["boss"] },
+          { id: "event", row: 2, column: 1, type: "event", eventId: "event-2", nextNodeIds: ["boss"] },
+          { id: "boss", row: 3, column: 0, type: "boss", monsterId: "boss-lava-turtle", nextNodeIds: [] },
+        ],
+      },
+      geneInventory: [], geneCapacity: 6, equippedGenes: {}, relicIds: [], discoveredRunFlags: ["route:next-layer-revealed:caravan"],
+      completedNodeIds: ["start", "caravan"], claimedRewardNodeIds: ["caravan"], earnedCrystals: 0, earnedGeneChainIds: [],
+      currentNodeId: "caravan", finalBossId: "boss", status: "active",
+    }} />);
+
+    const intelligence = screen.getByText("路線情報已揭示・下一層").parentElement;
+    expect(intelligence).toHaveTextContent("戰鬥");
+    expect(intelligence).toHaveTextContent("事件");
+  });
+
   it("renders a connected expedition map instead of a disconnected row list", () => {
     render(<RunRouteView run={{
       seed: "map-stage",

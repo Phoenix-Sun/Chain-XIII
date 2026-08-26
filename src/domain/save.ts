@@ -110,6 +110,8 @@ function migrateActiveRun(input: unknown): RunState | undefined {
   const difficulty: RunDifficulty = raw.difficulty === "easy" || raw.difficulty === "hard" ? raw.difficulty : "normal";
   const maxLives = startingLivesForDifficulty(difficulty);
   const livesRemaining = typeof raw.livesRemaining === "number" ? Math.min(maxLives, Math.max(0, Math.floor(raw.livesRemaining))) : maxLives;
+  const currentNodeId = validNodeId(raw.currentNodeId, map.startNodeId);
+  const discoveredRunFlags = (Array.isArray(raw.discoveredRunFlags) ? raw.discoveredRunFlags : []).map((flag) => flag === "route:next-layer-revealed" ? `route:next-layer-revealed:${currentNodeId}` : flag);
   return {
     seed: raw.seed,
     partyCharacterIds: Array.isArray(raw.partyCharacterIds) && raw.partyCharacterIds.length > 0 ? raw.partyCharacterIds : [STARTER_CHARACTER_ID],
@@ -125,12 +127,12 @@ function migrateActiveRun(input: unknown): RunState | undefined {
     nextBattleSkullCurse: typeof raw.nextBattleSkullCurse === "number" ? Math.max(0, Math.floor(raw.nextBattleSkullCurse)) : 0,
     altarState: normalizeAltarState(raw.altarState),
     permanentSkillNodeIds: Array.isArray(raw.permanentSkillNodeIds) ? raw.permanentSkillNodeIds : [],
-    discoveredRunFlags: Array.isArray(raw.discoveredRunFlags) ? raw.discoveredRunFlags : [],
+    discoveredRunFlags,
     completedNodeIds: Array.isArray(raw.completedNodeIds) ? raw.completedNodeIds : [map.startNodeId],
     claimedRewardNodeIds: Array.isArray(raw.claimedRewardNodeIds) ? raw.claimedRewardNodeIds : [],
     earnedCrystals: typeof raw.earnedCrystals === "number" ? raw.earnedCrystals : 0,
     earnedGeneChainIds: Array.isArray(raw.earnedGeneChainIds) ? raw.earnedGeneChainIds : [],
-    currentNodeId: validNodeId(raw.currentNodeId, map.startNodeId),
+    currentNodeId,
     finalBossId: validNodeId(raw.finalBossId, map.bossNodeId),
     status: raw.status === "won" ? "won" : raw.status === "lost" || livesRemaining === 0 ? "lost" : "active",
   };

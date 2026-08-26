@@ -53,6 +53,12 @@ describe("versioned save envelope", () => {
     expect(migrated.activeRun?.map.chapterLengths).toEqual([run.map.nodes.length, 0, 0]);
   });
 
+  it("scopes legacy route intelligence to the node where it was purchased", () => {
+    const run = createRunState("legacy-route-info", [STARTER_CHARACTER_ID]);
+    const migrated = parseSave(JSON.stringify({ saveVersion: 6, meta: { saveVersion: 6, crystals: 0, characters: createEmptyMeta().characters, unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, activeRun: { ...run, discoveredRunFlags: ["route:next-layer-revealed"] }, lastUpdatedAt: "now" }));
+    expect(migrated.activeRun?.discoveredRunFlags).toContain(`route:next-layer-revealed:${run.currentNodeId}`);
+  });
+
   it("restores the starter and removes unknown saved party members during migration", () => {
     const run = createRunState("legacy-party", [STARTER_CHARACTER_ID]);
     const migrated = parseSave(JSON.stringify({ saveVersion: 1, meta: { saveVersion: 1, crystals: 0, characters: [], unlockedMonsterCodexIds: [], permanentSkillNodeIds: [] }, activeRun: { ...run, partyCharacterIds: ["missing-character"] }, lastUpdatedAt: "now" }));

@@ -8,7 +8,7 @@ describe("route support nodes", () => {
     const node = { ...base.map.nodes[1], type: "caravan" as const };
     expect(resolveServiceNode({ ...base, currentNodeId: node.id, earnedCrystals: 10, livesRemaining: 1 }, node, "caravan-heal")).toMatchObject({ earnedCrystals: 0, livesRemaining: 2 });
     expect(resolveServiceNode({ ...base, currentNodeId: node.id, earnedCrystals: 8 }, node, "caravan-focus").discoveredRunFlags).toContain("next-battle:focus");
-    expect(resolveServiceNode({ ...base, currentNodeId: node.id, earnedCrystals: 6 }, node, "caravan-scout").discoveredRunFlags).toContain("route:next-layer-revealed");
+    expect(resolveServiceNode({ ...base, currentNodeId: node.id, earnedCrystals: 6 }, node, "caravan-scout").discoveredRunFlags).toContain(`route:next-layer-revealed:${node.id}`);
   });
 
   it("makes campfire healing free and marks a lookout as completed", () => {

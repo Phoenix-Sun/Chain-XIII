@@ -71,6 +71,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
   const reachableNodes = current.nextNodeIds.map((id) => activeRun.map.nodes.find((node) => node.id === id)).filter((node): node is RunMapNode => Boolean(node));
   const hasMapAbility = partyCharacterIds.some((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-map");
   const hasStarMapRelic = activeRun.relicIds.includes("relic-18");
+  const hasRouteReveal = activeRun.discoveredRunFlags.includes(`route:next-layer-revealed:${activeRun.currentNodeId}`);
   const chapterEnd = activeRun.map.nodes.find((node) => node.id === activeRun.map.chapterEndNodeIds[(current.chapter ?? 1) - 1])
     ?? activeRun.map.nodes.filter((node) => node.type === "boss").find((node) => node.chapter === current.chapter)
     ?? activeRun.map.nodes.find((node) => node.id === activeRun.map.bossNodeId)
@@ -109,7 +110,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
     <div className="route-heading"><div><span className="pixel-kicker">三章遠征地圖</span><h2 id="route-title">選擇下一站</h2></div><span className="route-boss">第 1／2 章菁英・第 3 章 Boss</span></div>
     <div className="route-status route-status-top"><span><b>第 {current.chapter ?? 1} 章</b>・{NODE_NAMES[current.type]}</span><span>距離本章終點：{Math.max(chapterEnd.row - current.row, 0)} 層</span><span>已完成：{activeRun.completedNodeIds.length} 個節點</span></div>
     <p className="route-intro">沿著發光路線穿過三個章節。第 1、2 章最後是菁英，第 3 章最後是 Boss；只有和目前位置相連的節點可以前往。</p>
-    {(hasMapAbility || hasStarMapRelic) && <div className="route-ability-panel">{hasMapAbility && <button type="button" className="ability-button" onClick={revealNextLayer} disabled={mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")}>石碑揭示下一層{mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map") ? "・已用" : ""}</button>}{hasStarMapRelic && <p className="route-relic-notice"><strong>星圖碎片</strong>你可以直接閱讀下一層節點類型。</p>}{mapNotice && <p role="status">{mapNotice}</p>}</div>}
+    {(hasMapAbility || hasStarMapRelic || hasRouteReveal) && <div className="route-ability-panel">{hasMapAbility && <button type="button" className="ability-button" onClick={revealNextLayer} disabled={mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")}>石碑揭示下一層{mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map") ? "・已用" : ""}</button>}{hasStarMapRelic && <p className="route-relic-notice"><strong>星圖碎片</strong>你可以直接閱讀下一層節點類型。</p>}{hasRouteReveal && <div className="route-next-layer"><strong>路線情報已揭示・下一層</strong>{activeRun.map.nodes.filter((node) => node.row === current.row + 1).map((node) => <span key={node.id}>{NODE_NAMES[node.type]}</span>)}</div>}{mapNotice && <p role="status">{mapNotice}</p>}</div>}
     <section className="expedition-map" aria-label="遠征地圖">
       <div className="expedition-map-legend" aria-label="路線圖例"><span><i className="legend-dot legend-current" />目前</span><span><i className="legend-dot legend-reachable" />可前往</span><span><i className="legend-dot legend-locked" />未開放</span></div>
       <div className="expedition-map-canvas" style={{ height: `${mapHeight}px` }}>

@@ -151,6 +151,7 @@ export function applyRelicAltarSettlement(run: RunState, settlement: AltarSettle
     earnedCrystals: run.earnedCrystals + settlement.crystalPairs * ALTAR_CRYSTALS_PER_PAIR,
     blessingIds: [...(run.blessingIds ?? []), ...newBlessings],
     relicIds: selectedRelicId && !run.relicIds.includes(selectedRelicId) ? [...run.relicIds, selectedRelicId] : run.relicIds,
+    claimedRewardNodeIds: run.claimedRewardNodeIds.includes(run.currentNodeId) ? run.claimedRewardNodeIds : [...run.claimedRewardNodeIds, run.currentNodeId],
     nextBattleSkullCurse: Math.max(run.nextBattleSkullCurse ?? 0, settlement.nextBattleSkullCurse),
     altarState: undefined,
   };
