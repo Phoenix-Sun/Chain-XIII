@@ -1,4 +1,5 @@
 import { startingLivesForDifficulty, type RunDifficulty, type RunState } from "./run";
+import { skillTreeModifiers } from "./skillTree";
 import { normalizeGeneChain, type EquippedGenes, type GeneChain, type GeneSlot } from "./template";
 import type { AltarFace, RelicAltarState } from "./relicAltar";
 
@@ -6,7 +7,7 @@ export const CURRENT_SAVE_VERSION = 7;
 export const STARTER_CHARACTER_ID = "water-scout";
 
 export interface CharacterProgress { characterId: string; star: 1 | 2 | 3 | 4 | 5; imprintCount: number; }
-export interface MetaState { saveVersion: number; crystals: number; characters: CharacterProgress[]; geneInventory: GeneChain[]; relicIds: string[]; unlockedMonsterCodexIds: string[]; permanentSkillNodeIds: string[]; }
+export interface MetaState { saveVersion: number; crystals: number; characters: CharacterProgress[]; geneInventory: GeneChain[]; relicIds: string[]; unlockedMonsterCodexIds: string[]; permanentSkillNodeIds: string[]; settledRunSeeds: string[]; }
 export interface SaveEnvelope { saveVersion: number; meta: MetaState; activeRun?: RunState; lastUpdatedAt: string; }
 
 export function createEmptyMeta(): MetaState {
@@ -18,6 +19,7 @@ export function createEmptyMeta(): MetaState {
     relicIds: [],
     unlockedMonsterCodexIds: [],
     permanentSkillNodeIds: [],
+    settledRunSeeds: [],
   };
 }
 
@@ -82,15 +84,46 @@ export function normalizeAltarState(input: unknown): RelicAltarState | undefined
   };
 }
 
+function normalizeExplorationState(input: unknown, nodeIds: Set<string>): RunState["explorationState"] {
+  if (!input || typeof input !== "object") return undefined;
+  const raw = input as { nodeId?: unknown; eventId?: unknown; attempt?: unknown; result?: unknown; usedTrade?: unknown };
+  if (typeof raw.nodeId !== "string" || !nodeIds.has(raw.nodeId) || typeof raw.eventId !== "string") return undefined;
+  const result = raw.result && typeof raw.result === "object" ? raw.result as Partial<NonNullable<RunState["explorationState"]>["result"]> : undefined;
+  const rolls = result && Array.isArray(result.rolls) && result.rolls.length === 3 && result.rolls.every((roll) => Number.isInteger(roll) && roll >= 1 && roll <= 6) ? result.rolls : undefined;
+  const safeResult = rolls && result && typeof result.total === "number" && Number.isFinite(result.total) && typeof result.hasPair === "boolean" && typeof result.isStraight === "boolean" && typeof result.success === "boolean"
+    ? { rolls, total: result.total, hasPair: result.hasPair, isStraight: result.isStraight, success: result.success }
+    : undefined;
+  return { nodeId: raw.nodeId, eventId: raw.eventId, attempt: typeof raw.attempt === "number" && Number.isFinite(raw.attempt) ? Math.max(0, Math.floor(raw.attempt)) : 0, result: safeResult, usedTrade: raw.usedTrade === true };
+}
+
+function normalizeBattleState(input: unknown, nodeIds: Set<string>): RunState["battleState"] {
+  if (!input || typeof input !== "object") return undefined;
+  const raw = input as { nodeId?: unknown; drawAttempt?: unknown; frontBonus?: unknown; laneElementOverrides?: unknown };
+  if (typeof raw.nodeId !== "string" || !nodeIds.has(raw.nodeId)) return undefined;
+  const laneElementOverrides: NonNullable<RunState["battleState"]>["laneElementOverrides"] = {};
+  if (raw.laneElementOverrides && typeof raw.laneElementOverrides === "object") {
+    (Object.keys(raw.laneElementOverrides) as Array<keyof typeof laneElementOverrides>).forEach((lane) => {
+      const suit = (raw.laneElementOverrides as Record<string, unknown>)[lane];
+      if ((lane === "front" || lane === "middle" || lane === "back") && typeof suit === "string" && VALID_SUITS.has(suit)) laneElementOverrides[lane] = suit as "water" | "fire" | "wind" | "earth";
+    });
+  }
+  return { nodeId: raw.nodeId, drawAttempt: typeof raw.drawAttempt === "number" && Number.isFinite(raw.drawAttempt) ? Math.max(0, Math.floor(raw.drawAttempt)) : 0, frontBonus: typeof raw.frontBonus === "number" && Number.isFinite(raw.frontBonus) ? raw.frontBonus : 0, laneElementOverrides };
+}
+
 export function mergeRunIntoMeta(meta: MetaState, run: RunState): MetaState {
-  const completedMonsterIds = run.map.nodes.filter((node) => run.completedNodeIds.includes(node.id) && node.monsterId).map((node) => node.monsterId!);
+  if (meta.settledRunSeeds.includes(run.seed)) return meta;
+  const completedMonsterIds = run.map.nodes.filter((node) => node.id !== run.map.startNodeId && run.completedNodeIds.includes(node.id) && node.monsterId).map((node) => node.monsterId!);
   const geneById = new Map([...meta.geneInventory, ...run.geneInventory].map((chain) => [chain.id, chain]));
+  const earnedCrystals = Math.max(0, run.earnedCrystals - Math.max(0, run.startingCrystals ?? 0));
+  const completedPartyIds = run.status === "won" ? new Set(run.partyCharacterIds) : new Set<string>();
   return {
     ...meta,
-    crystals: meta.crystals + run.earnedCrystals,
+    crystals: meta.crystals + earnedCrystals,
+    characters: meta.characters.map((character) => completedPartyIds.has(character.characterId) ? { ...character, imprintCount: character.imprintCount + 1 } : character),
     geneInventory: [...geneById.values()],
     relicIds: [...new Set([...meta.relicIds, ...run.relicIds])],
     unlockedMonsterCodexIds: [...new Set([...meta.unlockedMonsterCodexIds, ...completedMonsterIds])],
+    settledRunSeeds: [...meta.settledRunSeeds, run.seed],
   };
 }
 
@@ -112,6 +145,15 @@ function migrateActiveRun(input: unknown): RunState | undefined {
   const livesRemaining = typeof raw.livesRemaining === "number" ? Math.min(maxLives, Math.max(0, Math.floor(raw.livesRemaining))) : maxLives;
   const currentNodeId = validNodeId(raw.currentNodeId, map.startNodeId);
   const discoveredRunFlags = (Array.isArray(raw.discoveredRunFlags) ? raw.discoveredRunFlags : []).map((flag) => flag === "route:next-layer-revealed" ? `route:next-layer-revealed:${currentNodeId}` : flag);
+  const permanentSkillNodeIds = Array.isArray(raw.permanentSkillNodeIds) ? raw.permanentSkillNodeIds.filter((id): id is string => typeof id === "string") : [];
+  const startingCrystals = typeof raw.startingCrystals === "number" && Number.isFinite(raw.startingCrystals) && raw.startingCrystals >= 0 ? raw.startingCrystals : skillTreeModifiers(permanentSkillNodeIds).startingCrystals;
+  const explorationState = normalizeExplorationState(raw.explorationState, new Set(map.nodes.map((node) => node.id)));
+  const rawPendingChoice = raw.pendingRewardChoice;
+  const pendingRewardChoice = rawPendingChoice && typeof rawPendingChoice === "object" && typeof rawPendingChoice.nodeId === "string" && rawPendingChoice.nodeId === currentNodeId && typeof rawPendingChoice.choiceId === "string"
+    ? { nodeId: rawPendingChoice.nodeId, choiceId: rawPendingChoice.choiceId }
+    : undefined;
+  const battleState = normalizeBattleState(raw.battleState, new Set(map.nodes.map((node) => node.id)));
+  const endReason = raw.endReason === "victory" ? "victory" : raw.endReason === "abandoned" ? "abandoned" : raw.endReason === "defeat" ? "defeat" : raw.status === "won" ? "victory" : raw.status === "lost" && livesRemaining === 0 ? "defeat" : raw.status === "lost" ? "abandoned" : undefined;
   return {
     seed: raw.seed,
     partyCharacterIds: Array.isArray(raw.partyCharacterIds) && raw.partyCharacterIds.length > 0 ? raw.partyCharacterIds : [STARTER_CHARACTER_ID],
@@ -126,15 +168,20 @@ function migrateActiveRun(input: unknown): RunState | undefined {
     blessingIds: Array.isArray(raw.blessingIds) ? raw.blessingIds : [],
     nextBattleSkullCurse: typeof raw.nextBattleSkullCurse === "number" ? Math.max(0, Math.floor(raw.nextBattleSkullCurse)) : 0,
     altarState: normalizeAltarState(raw.altarState),
-    permanentSkillNodeIds: Array.isArray(raw.permanentSkillNodeIds) ? raw.permanentSkillNodeIds : [],
+    explorationState: explorationState?.nodeId === currentNodeId ? explorationState : undefined,
+    pendingRewardChoice,
+    battleState: battleState?.nodeId === currentNodeId ? battleState : undefined,
+    permanentSkillNodeIds,
     discoveredRunFlags,
     completedNodeIds: Array.isArray(raw.completedNodeIds) ? raw.completedNodeIds : [map.startNodeId],
     claimedRewardNodeIds: Array.isArray(raw.claimedRewardNodeIds) ? raw.claimedRewardNodeIds : [],
+    startingCrystals,
     earnedCrystals: typeof raw.earnedCrystals === "number" ? raw.earnedCrystals : 0,
     earnedGeneChainIds: Array.isArray(raw.earnedGeneChainIds) ? raw.earnedGeneChainIds : [],
     currentNodeId,
     finalBossId: validNodeId(raw.finalBossId, map.bossNodeId),
     status: raw.status === "won" ? "won" : raw.status === "lost" || livesRemaining === 0 ? "lost" : "active",
+    endReason,
   };
 }
 
@@ -159,7 +206,7 @@ export function migrateSave(input: unknown): SaveEnvelope {
   const ownedIds = new Set(characters.map((character) => character.characterId));
   const activeRun = migrateActiveRun(raw.activeRun);
   const safeRun = activeRun ? { ...activeRun, partyCharacterIds: activeRun.partyCharacterIds.filter((characterId) => ownedIds.has(characterId)).slice(0, 3) } : undefined;
-  return { saveVersion: CURRENT_SAVE_VERSION, meta: { saveVersion: CURRENT_SAVE_VERSION, crystals: meta.crystals, characters, geneInventory: normalizeGeneInventory(meta.geneInventory), relicIds: Array.isArray(meta.relicIds) ? meta.relicIds : [], unlockedMonsterCodexIds: meta.unlockedMonsterCodexIds, permanentSkillNodeIds: meta.permanentSkillNodeIds }, activeRun: safeRun && safeRun.partyCharacterIds.length > 0 ? safeRun : safeRun ? { ...safeRun, partyCharacterIds: [characters[0].characterId] } : undefined, lastUpdatedAt: raw.lastUpdatedAt };
+  return { saveVersion: CURRENT_SAVE_VERSION, meta: { saveVersion: CURRENT_SAVE_VERSION, crystals: meta.crystals, characters, geneInventory: normalizeGeneInventory(meta.geneInventory), relicIds: Array.isArray(meta.relicIds) ? meta.relicIds : [], unlockedMonsterCodexIds: meta.unlockedMonsterCodexIds, permanentSkillNodeIds: meta.permanentSkillNodeIds, settledRunSeeds: Array.isArray(meta.settledRunSeeds) ? meta.settledRunSeeds.filter((seed): seed is string => typeof seed === "string") : [] }, activeRun: safeRun && safeRun.partyCharacterIds.length > 0 ? safeRun : safeRun ? { ...safeRun, partyCharacterIds: [characters[0].characterId] } : undefined, lastUpdatedAt: raw.lastUpdatedAt };
 }
 
 export function parseSave(serialized: string): SaveEnvelope { return migrateSave(JSON.parse(serialized) as unknown); }

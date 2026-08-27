@@ -114,7 +114,7 @@ export default function GeneWorkshopView({ initialInventory, initialEquipped, on
     onInventoryChange?.(nextInventory);
     notifyEquipped(nextEquipped);
     setNotice("鍛造師已將目前裝備的基因格全部啟用。");
-    onRunUpdated?.(effectResult.run);
+    onRunUpdated?.({ ...effectResult.run, geneInventory: nextInventory, equippedGenes: nextEquipped });
   }
 
   return <div className="workshop-view"><div className="screen-title-row"><div><span className="pixel-kicker">GENE PATTERNS · P2</span><h1>基因鏈配置</h1></div><div className="title-actions"><span className="rank-badge">固定配置</span>{onExit && <button type="button" className="link-button" onClick={onExit}>回到路線</button>}</div></div>

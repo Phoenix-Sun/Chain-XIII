@@ -422,3 +422,34 @@
 @media (max-width: 370px) {
   .camp-command-card { grid-template-columns: 28px 1fr auto; gap: 5px; padding: 6px; }
 }
+
+.camp-command-card { grid-template-columns: minmax(0, 1fr) auto; }
+
+@media (max-width: 600px) {
+  .game-hud { min-height: 72px; gap: 7px; padding: max(8px, env(safe-area-inset-top)) 10px 8px; }
+  .brand-mark { width: 42px; height: 42px; font-size: 0.75rem; }
+  .game-brand strong { font-size: 0.8rem; }
+  .screen-context { padding-left: 9px; }
+  .screen-context strong { font-size: 0.86rem; }
+  .hud-label { font-size: 0.68rem; }
+  .menu-button { min-width: 48px; min-height: 48px; font-size: 1.2rem; }
+  .quest-ribbon { min-height: 42px; padding: 7px 10px; font-size: 0.82rem; line-height: 1.35; }
+  .status-dot { width: 10px; height: 10px; }
+  .game-screen { padding: 55px 10px 16px; }
+  .game-screen-town { padding: 42px 0 0; }
+  .game-nav { min-height: calc(76px + env(safe-area-inset-bottom)); }
+  .game-nav-item { min-height: 72px; padding: 5px 2px; font-size: 0.78rem; }
+  .game-nav-item small { display: none; }
+  .nav-icon { width: 34px; height: 32px; font-size: 0.75rem; }
+  .facility-panel { min-height: 126px; }
+  .facility-panel h1 { font-size: 1.2rem; }
+  .facility-panel p { font-size: 0.86rem; }
+  .enter-button { min-width: 96px; min-height: 58px; font-size: 0.82rem; }
+  .screen-title-row h1 { font-size: 1.45rem; }
+  .rank-badge, .archive-stamp { font-size: 0.72rem; }
+  .system-window { width: min(100%, 340px); padding: 18px; }
+  .system-window h2 { font-size: 1.3rem; }
+  .system-window p { font-size: 0.9rem; }
+  .system-actions { display: grid; gap: 8px; }
+  .system-actions > button { min-height: 48px; }
+}

@@ -16,14 +16,14 @@ function readableRelicName(id: string): string {
   return catalog.relics.find((relic) => relic.id === id)?.name ?? id.replace(/^relic-/, "遺物 ");
 }
 
-export default function RunRewardView({ node, difficulty = "normal", isFinalBoss = false, reward, inventoryCount, geneCapacity, error, onClaim, onSkipGene }: { node: RunMapNode; difficulty?: RunDifficulty; isFinalBoss?: boolean; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
-  const [selectedChoiceId, setSelectedChoiceId] = useState(reward.choices?.[0]?.id);
+export default function RunRewardView({ node, difficulty = "normal", isFinalBoss = false, reward, inventoryCount, geneCapacity, error, initialChoiceId, onChoiceChange, onClaim, onSkipGene }: { node: RunMapNode; difficulty?: RunDifficulty; isFinalBoss?: boolean; reward: RunReward; inventoryCount: number; geneCapacity: number; error?: string | null; initialChoiceId?: string; onChoiceChange?: (choiceId: string) => void; onClaim: (choice?: RewardChoice) => void; onSkipGene?: () => void }) {
+  const [selectedChoiceId, setSelectedChoiceId] = useState(initialChoiceId ?? reward.choices?.[0]?.id);
   const selectedChoice = reward.choices?.find((choice) => choice.id === selectedChoiceId);
   const selectedGene = selectedChoice?.geneChain ?? reward.geneChain;
   const inventoryFull = Boolean(selectedGene && inventoryCount >= geneCapacity);
   const normalizedGene = selectedGene ? normalizeGeneChain(selectedGene) : undefined;
   return <section className="run-reward-card" aria-labelledby="run-reward-title">
-    <span className="pixel-kicker">節點完成</span>
+
     <h1 id="run-reward-title">{reward.title}</h1>
     <p>{reward.detail}</p>
     <div className="reward-source">{node.type === "boss" ? "Boss 已擊敗" : node.type === "elite" ? "菁英已擊敗" : "目前節點已完成"}</div>
@@ -36,7 +36,7 @@ export default function RunRewardView({ node, difficulty = "normal", isFinalBoss
     {reward.choices && <div className="reward-choices" role="radiogroup" aria-label="事件獎勵選擇">
       <strong>選一項帶走</strong>
       {reward.choices.map((choice) => <label className={`reward-choice${selectedChoiceId === choice.id ? " is-selected" : ""}`} key={choice.id}>
-        <input type="radio" name="event-reward" value={choice.id} checked={selectedChoiceId === choice.id} onChange={() => setSelectedChoiceId(choice.id)} />
+        <input type="radio" name="event-reward" value={choice.id} checked={selectedChoiceId === choice.id} onChange={() => { setSelectedChoiceId(choice.id); onChoiceChange?.(choice.id); }} />
         <span><b>{choice.label}</b><small>{choice.geneChainId ? readableGeneName(choice.geneChainId) : choice.relicId ? readableRelicName(choice.relicId) : choice.id}</small>{choice.relicId && <small>{catalog.relics.find((relic) => relic.id === choice.relicId)?.effect}</small>}<em>{choice.detail}</em></span>
       </label>)}
     </div>}

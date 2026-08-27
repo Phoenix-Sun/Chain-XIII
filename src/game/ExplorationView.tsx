@@ -6,16 +6,19 @@ import type { RunState } from "../domain/run";
 import { catalog } from "../content/catalog";
 
 export default function ExplorationView({ node, seed, run, partyCharacterIds = [], onRunUpdated, onResolved }: { node: RunMapNode; seed: string; run?: RunState; partyCharacterIds?: string[]; onRunUpdated?: (run: RunState) => void; onResolved: (result: ExplorationResult) => void }) {
-  const [result, setResult] = useState<ExplorationResult>();
-  const [attempt, setAttempt] = useState(0);
-  const [usedTrade, setUsedTrade] = useState(false);
+  const persistedState = run?.explorationState?.nodeId === node.id ? run.explorationState : undefined;
+  const eventId = persistedState?.eventId ?? node.eventId ?? "event-1";
+  const [result, setResult] = useState<ExplorationResult | undefined>(() => persistedState?.result);
+  const [attempt, setAttempt] = useState(() => persistedState?.attempt ?? 0);
+  const [usedTrade, setUsedTrade] = useState(() => persistedState?.usedTrade ?? false);
   const event = catalog.events.find((candidate) => candidate.id === node.eventId);
   const hasTradeAbility = partyCharacterIds.some((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-trade");
-  const objective = event?.objective ?? objectiveLabel(objectiveForEvent(node.eventId ?? "event-1"));
+  const objective = event?.objective ?? objectiveLabel(objectiveForEvent(eventId));
 
   function roll() {
-    const next = rollExploration(seed, node.eventId ?? "event-1", attempt);
+    const next = rollExploration(seed, eventId, attempt);
     setResult(next);
+    if (run) onRunUpdated?.({ ...run, explorationState: { nodeId: node.id, eventId, attempt, result: next, usedTrade } });
   }
 
   function rerollWithMerchant() {
@@ -23,14 +26,14 @@ export default function ExplorationView({ node, seed, run, partyCharacterIds = [
     const sourceId = partyCharacterIds.find((characterId) => catalog.characters.find((character) => character.id === characterId)?.activeAbilityId === "ability-trade") ?? "ability-trade";
     const effectResult = executeEffect("ability-trade", { phase: "exploration", run, sourceId });
     if (!effectResult.applied) return;
-    onRunUpdated?.(effectResult.run);
+    const nextAttempt = attempt + 1;
+    onRunUpdated?.({ ...effectResult.run, explorationState: { nodeId: node.id, eventId, attempt: nextAttempt, result: undefined, usedTrade: true } });
     setUsedTrade(true);
-    setAttempt((current) => current + 1);
+    setAttempt(nextAttempt);
     setResult(undefined);
   }
 
   return <section className="exploration-card" aria-labelledby="exploration-title">
-    <span className="pixel-kicker">EXPLORATION · D6</span>
     <h1 id="exploration-title">{event?.name ?? "路線事件"}</h1>
     <p>{event?.content ?? "石桌上的骰子等待你做出決定。"}</p>
     <div className="exploration-objective"><strong>本次目標</strong><span>{objective}</span></div>

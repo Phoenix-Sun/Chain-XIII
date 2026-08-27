@@ -15,7 +15,7 @@ export interface Card {
   currentSuit?: Suit;
 }
 
-export type CardSortMode = "deal" | "rank" | "suit-rank";
+export type CardSortMode = "rank" | "suit-rank";
 
 export const SUIT_SYMBOLS: Record<Suit, string> = { water: "💧", fire: "🔥", wind: "🍃", earth: "🪨" };
 export const SUIT_LABELS: Record<Suit, string> = { water: "水", fire: "火", wind: "風", earth: "地" };
@@ -51,12 +51,11 @@ export function drawThirteen(seed: string): Card[] {
 }
 
 export function sortCards(cards: Card[], mode: CardSortMode): Card[] {
-  if (mode === "deal") return [...cards];
   const suitOrder = new Map(SUITS.map((suit, index) => [suit, index]));
   return cards
     .map((card, index) => ({ card, index }))
     .sort((left, right) => {
-      const rankDifference = rankValue(left.card.rank) - rankValue(right.card.rank);
+      const rankDifference = left.card.rank - right.card.rank;
       const leftSuit = left.card.currentSuit ?? left.card.suit;
       const rightSuit = right.card.currentSuit ?? right.card.suit;
       const suitDifference = (suitOrder.get(leftSuit) ?? 0) - (suitOrder.get(rightSuit) ?? 0);

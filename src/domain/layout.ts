@@ -26,6 +26,19 @@ export function emptyLanes(): Lanes {
   return { front: [], middle: [], back: [] };
 }
 
+export function swapLanes(lanes: Lanes, first: LaneId, second: LaneId): Lanes {
+  return { ...lanes, [first]: lanes[second], [second]: lanes[first] };
+}
+
+export function fillLastOpenLane(lanes: Lanes, hand: Card[]): { lane: LaneId; lanes: Lanes } | undefined {
+  const openLanes = (Object.keys(LANE_SIZES) as LaneId[]).filter((lane) => lanes[lane].length === 0);
+  const fullLanes = (Object.keys(LANE_SIZES) as LaneId[]).every((lane) => lanes[lane].length === 0 || lanes[lane].length === LANE_SIZES[lane]);
+  if (openLanes.length !== 1 || !fullLanes) return undefined;
+  const lane = openLanes[0];
+  if (hand.length !== LANE_SIZES[lane]) return undefined;
+  return { lane, lanes: { ...lanes, [lane]: [...hand] } };
+}
+
 export function validateLayout(lanes: Lanes): LayoutValidation {
   const errors: string[] = [];
   const allCards = [...lanes.front, ...lanes.middle, ...lanes.back];

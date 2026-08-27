@@ -38,7 +38,6 @@ export default function RelicAltarView({ seed, relicIds, initialState, candidate
 
   const isRolling = state.status === "ready" || state.status === "rolling";
   return <section className="relic-altar-card" aria-labelledby="relic-altar-title">
-    <span className="pixel-kicker">RELIC ALTAR · PUSH YOUR LUCK</span>
     <h1 id="relic-altar-title">遺物祭壇</h1>
     <p>五顆定制骰一起投擲。保留想要的面，重骰其他非 Skull 骰；Skull 一旦鎖定就不能再選。</p>
     <div className={`altar-skull-counter${state.skullCount === 2 ? " is-danger" : ""}`} role="status"><strong>Skull：{state.skullCount} / 3</strong><span>{state.lockedSkullIndices.length} 顆 Skull 已鎖定{state.skullCount === 2 ? "・下一顆就會爆骰" : ""}</span></div>

@@ -15,6 +15,7 @@ describe("Chain XIII game shell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "選擇隊伍" }));
     expect(screen.getByRole("heading", { name: "組成你的遠征隊" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /主動技：水紋回響・重抽/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "開始遠征" }));
     expect(screen.getByRole("heading", { name: "選擇下一站" })).toBeInTheDocument();
@@ -36,10 +37,28 @@ describe("Chain XIII game shell", () => {
 
   it("pauses into a touch-friendly system overlay", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "開啟選單" }));
-    expect(screen.getByRole("dialog", { name: "系統選單" })).toBeInTheDocument();
+    const menuButton = screen.getByRole("button", { name: "開啟選單" });
+    fireEvent.click(menuButton);
+    expect(screen.getByRole("dialog", { name: "遊戲暫停" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "返回遊戲" })).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(menuButton).toHaveFocus();
+    expect(screen.queryByRole("dialog", { name: "遊戲暫停" })).not.toBeInTheDocument();
+    fireEvent.click(menuButton);
     fireEvent.click(screen.getByRole("button", { name: "返回遊戲" }));
-    expect(screen.queryByRole("dialog", { name: "系統選單" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "遊戲暫停" })).not.toBeInTheDocument();
+  });
+
+  it("uses one run-level abandon action and returns to camp without keeping the run active", () => {
+    render(<App initialSeed="CHAIN-XIII-ABANDON-001" />);
+    fireEvent.click(screen.getByRole("button", { name: "選擇隊伍" }));
+    fireEvent.click(screen.getByRole("button", { name: "開始遠征" }));
+    fireEvent.click(screen.getByRole("button", { name: "開啟選單" }));
+    fireEvent.click(screen.getByRole("button", { name: "放棄這趟遠征" }));
+    expect(screen.getByRole("heading", { name: "放棄這趟遠征？" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "確認放棄這趟遠征" }));
+    expect(screen.getByRole("heading", { name: "隊伍帳篷" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "放棄這趟遠征" })).not.toBeInTheDocument();
   });
 
   it("routes a first-time player through party setup instead of starting a Run directly", () => {

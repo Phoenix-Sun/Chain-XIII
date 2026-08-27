@@ -37,6 +37,20 @@ describe("three-lane combat", () => {
     expect(["win", "loss", "draw"]).toContain(result.outcome);
   });
 
+  it("keeps a three-lane tie explicit for the Run layer to treat as defeat", () => {
+    const make = (prefix: string) => ({
+      front: [1, 4, 7].map((rank, index) => ({ id: `${prefix}-front-${index}`, rank: rank as Card["rank"], suit: "water" as const, currentSuit: "water" as const })),
+      middle: [1, 1, 4, 7, 9].map((rank, index) => ({ id: `${prefix}-middle-${index}`, rank: rank as Card["rank"], suit: "water" as const, currentSuit: "water" as const })),
+      back: [2, 2, 2, 5, 9].map((rank, index) => ({ id: `${prefix}-back-${index}`, rank: rank as Card["rank"], suit: "water" as const, currentSuit: "water" as const })),
+    });
+
+    const result = resolveBattle(make("player"), make("enemy"));
+    expect(result.playerWins).toBe(0);
+    expect(result.enemyWins).toBe(0);
+    expect(result.lanes.every((lane) => lane.winner === "tie")).toBe(true);
+    expect(result.outcome).toBe("draw");
+  });
+
   it("lets the lava turtle neutralize the first earth counter in the back lane", () => {
     const cards = (suit: Card["suit"]): Card[] => [1, 1, 4, 7, 9].map((rank, index) => ({ id: `${suit}-${index}`, rank: rank as Card["rank"], suit, currentSuit: "wind" }));
     const enemy = cards("fire").map((card) => ({ ...card, currentSuit: "earth" as const }));

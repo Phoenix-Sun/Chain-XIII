@@ -64,3 +64,38 @@
   .battle-stage { padding-bottom: 16px; }
   .battle-table { padding: 10px; }
 }
+
+@media (max-width: 600px) {
+  .battle-table .element-shift-lane .link-button { min-height: 46px; }
+  .battle-abilities .ability-button { min-height: 46px; }
+}
+
+.battle-exit { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.battle-exit > .link-button { color: #ffe0a3; }
+.battle-exit-confirm { display: grid; gap: 9px; width: min(100%, 430px); margin-left: auto; padding: 12px; border: 3px solid #d16a5b; background: #3b202d; color: #ffe8b2; box-shadow: 3px 3px #1d111d; }
+.battle-exit-confirm h2 { margin: 0; color: #ffe8b2; font-size: 0.9rem; }
+.battle-exit-confirm p { margin: 0; color: #f2c8bd; font-size: 0.72rem; line-height: 1.5; }
+.battle-exit-confirm > div { display: flex; gap: 7px; justify-content: flex-end; }
+.danger-button { min-height: 44px; padding: 7px 10px; border: 3px solid #6f3038; background: #d36a58; color: #fff1cf; cursor: pointer; font: inherit; font-size: 0.68rem; font-weight: 900; box-shadow: inset -3px -3px #8b3d42; }
+
+@media (max-width: 600px) {
+  .battle-stage { padding-bottom: 10px; }
+  .battle-enemy-panel { padding: 12px; }
+  .enemy-copy strong { font-size: 1.05rem; }
+  .enemy-copy small { font-size: 0.78rem; }
+  .enemy-intent span { font-size: 0.68rem; }
+  .enemy-intent strong { font-size: 0.82rem; }
+  .battle-turn-guide { padding: 12px; }
+  .battle-turn-guide span { font-size: 0.78rem; }
+  .battle-turn-guide strong { font-size: 0.95rem; line-height: 1.4; }
+  .battle-turn-guide small, .battle-context { font-size: 0.78rem; line-height: 1.4; }
+  .battle-rule-callout { font-size: 0.86rem; }
+  .battle-exit-confirm { width: 100%; }
+  .battle-exit-confirm h2 { font-size: 1rem; }
+  .battle-exit-confirm p { font-size: 0.84rem; }
+  .battle-exit-confirm > div { display: grid; grid-template-columns: 1fr 1fr; }
+  .danger-button { min-height: 48px; font-size: 0.8rem; }
+  .battle-result-card h2 { font-size: 1.25rem; }
+  .battle-result-card p, .lane-result { font-size: 0.82rem; }
+  .lane-result small { font-size: 0.72rem; }
+}

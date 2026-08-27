@@ -3,11 +3,15 @@ import type { EquippedGenes, GeneChain } from "./template";
 import { generateRunMap, type RunMap } from "./map";
 import type { RunReward } from "./runRewards";
 import { blessingIdsForCount } from "./blessings";
-import type { AltarSettlement } from "./relicAltar";
+import { settleAltar, type AltarSettlement } from "./relicAltar";
 import { ALTAR_CRYSTALS_PER_PAIR } from "./relicAltar";
 import { battleVictoryCrystalBonus } from "./relics";
+import type { ExplorationResult } from "./exploration";
+import type { LaneId } from "./layout";
+import type { Suit } from "./cards";
 
 export type RunStatus = "active" | "won" | "lost";
+export type RunEndReason = "defeat" | "abandoned" | "victory";
 export type RunDifficulty = "easy" | "normal" | "hard";
 
 export const RUN_DIFFICULTIES: Record<RunDifficulty, { label: string; lives: number; detail: string }> = {
@@ -21,6 +25,21 @@ export function startingLivesForDifficulty(difficulty: RunDifficulty): number {
 }
 
 export const MAX_PARTY_SIZE = 3;
+
+export interface ExplorationState {
+  nodeId: string;
+  eventId: string;
+  attempt: number;
+  result?: ExplorationResult;
+  usedTrade: boolean;
+}
+
+export interface BattleState {
+  nodeId: string;
+  drawAttempt: number;
+  frontBonus: number;
+  laneElementOverrides: Partial<Record<LaneId, Suit>>;
+}
 
 export function validatePartyCharacterIds(partyCharacterIds: string[]): string[] {
   const errors: string[] = [];
@@ -45,15 +64,21 @@ export interface RunState {
   blessingIds?: string[];
   nextBattleSkullCurse?: number;
   altarState?: import("./relicAltar").RelicAltarState;
+  explorationState?: ExplorationState;
+  pendingRewardChoice?: { nodeId: string; choiceId: string };
+  battleState?: BattleState;
   permanentSkillNodeIds?: string[];
   discoveredRunFlags: string[];
   completedNodeIds: string[];
   claimedRewardNodeIds: string[];
+  /** 本趟由永久技能提供的開局補給；結算時不可當作收入重複帶回。 */
+  startingCrystals?: number;
   earnedCrystals: number;
   earnedGeneChainIds: string[];
   currentNodeId: string;
   finalBossId: string;
   status: RunStatus;
+  endReason?: RunEndReason;
 }
 
 export function createRunState(seed: string, partyCharacterIds: string[], initialGeneInventory: GeneChain[] = [], permanentSkillNodeIds: string[] = [], difficulty: RunDifficulty = "normal"): RunState {
@@ -75,15 +100,20 @@ export function createRunState(seed: string, partyCharacterIds: string[], initia
     relicIds: [],
     blessingIds: [],
     nextBattleSkullCurse: 0,
+    explorationState: undefined,
+    pendingRewardChoice: undefined,
+    battleState: undefined,
     permanentSkillNodeIds: [...permanentSkillNodeIds],
     discoveredRunFlags: [],
     completedNodeIds: [map.startNodeId],
     claimedRewardNodeIds: [],
+    startingCrystals: modifiers.startingCrystals,
     earnedCrystals: modifiers.startingCrystals,
     earnedGeneChainIds: [],
     currentNodeId: map.startNodeId,
     finalBossId: map.bossNodeId,
     status: "active",
+    endReason: undefined,
   };
 }
 
@@ -112,7 +142,10 @@ export function completeCurrentNode(run: RunState): RunState {
   return {
     ...run,
     completedNodeIds: [...run.completedNodeIds, current.id],
+    explorationState: undefined,
     status: current.id === run.finalBossId ? "won" : "active",
+    endReason: current.id === run.finalBossId ? "victory" : undefined,
+    battleState: undefined,
   };
 }
 
@@ -121,7 +154,20 @@ export function failCurrentNode(run: RunState): RunState {
   const current = getCurrentNode(run);
   const damage = current.type === "boss" ? run.livesRemaining : current.type === "elite" ? 2 : 1;
   const livesRemaining = Math.max(0, run.livesRemaining - damage);
-  return { ...run, livesRemaining, status: livesRemaining === 0 ? "lost" : "active" };
+  return { ...run, livesRemaining, status: livesRemaining === 0 ? "lost" : "active", endReason: livesRemaining === 0 ? "defeat" : undefined };
+}
+
+export function abandonRun(run: RunState): RunState {
+  if (run.status !== "active") return run;
+  return {
+    ...run,
+    status: "lost",
+    endReason: "abandoned",
+    blessingIds: [],
+    nextBattleSkullCurse: 0,
+    altarState: undefined,
+    discoveredRunFlags: run.discoveredRunFlags.filter((flag) => flag !== "next-battle:focus"),
+  };
 }
 
 export function claimCurrentNodeReward(run: RunState, reward: RunReward, options: { takeGene?: boolean } = {}): RunState {
@@ -131,28 +177,39 @@ export function claimCurrentNodeReward(run: RunState, reward: RunReward, options
   const takeGene = options.takeGene ?? true;
   const shouldAddGene = Boolean(takeGene && reward.geneChain && !run.geneInventory.some((chain) => chain.id === reward.geneChain?.id));
   if (shouldAddGene && run.geneInventory.length >= run.geneCapacity) throw new Error("基因庫已滿，請先替換或放棄一條基因鏈");
+  const shouldRecordGene = Boolean(takeGene && reward.geneChainId && !run.earnedGeneChainIds.includes(reward.geneChainId));
   return {
     ...run,
     claimedRewardNodeIds: [...run.claimedRewardNodeIds, current.id],
+    pendingRewardChoice: undefined,
     geneInventory: shouldAddGene && reward.geneChain ? [...run.geneInventory, reward.geneChain] : run.geneInventory,
     relicIds: reward.relicId && !run.relicIds.includes(reward.relicId) ? [...run.relicIds, reward.relicId] : run.relicIds,
     earnedCrystals: run.earnedCrystals + reward.crystals,
-    earnedGeneChainIds: takeGene && reward.geneChainId ? [...run.earnedGeneChainIds, reward.geneChainId] : run.earnedGeneChainIds,
+    earnedGeneChainIds: shouldRecordGene && reward.geneChainId ? [...run.earnedGeneChainIds, reward.geneChainId] : run.earnedGeneChainIds,
   };
 }
 
 export function applyRelicAltarSettlement(run: RunState, settlement: AltarSettlement, selectedRelicId?: string): RunState {
   const altar = run.altarState;
   if (!altar) throw new Error("目前沒有進行中的遺物祭壇");
-  if (settlement.relicReady && (!selectedRelicId || !altar.candidateRelicIds.includes(selectedRelicId))) throw new Error("遺物三連成立後必須選擇一件遺物");
-  const newBlessings = blessingIdsForCount(settlement.blessingCount, `${run.seed}:${run.currentNodeId}`);
+  if (altar.status !== "stopped" && altar.status !== "bust") throw new Error("祭壇尚未完成，不能結算");
+  const expected = settleAltar(altar);
+  const settlementMatches = settlement.status === expected.status
+    && settlement.crystalPairs === expected.crystalPairs
+    && settlement.blessingCount === expected.blessingCount
+    && settlement.relicReady === expected.relicReady
+    && settlement.nextBattleSkullCurse === expected.nextBattleSkullCurse;
+  if (!settlementMatches) throw new Error("祭壇結算資料已失效，請重新整理祭壇");
+  if (expected.relicReady && (!selectedRelicId || !altar.candidateRelicIds.includes(selectedRelicId))) throw new Error("遺物三連成立後必須選擇一件遺物");
+  if (!expected.relicReady && selectedRelicId) throw new Error("目前祭壇沒有可選的遺物");
+  const newBlessings = blessingIdsForCount(expected.blessingCount, `${run.seed}:${run.currentNodeId}`);
   return {
     ...run,
-    earnedCrystals: run.earnedCrystals + settlement.crystalPairs * ALTAR_CRYSTALS_PER_PAIR,
+    earnedCrystals: run.earnedCrystals + expected.crystalPairs * ALTAR_CRYSTALS_PER_PAIR,
     blessingIds: [...(run.blessingIds ?? []), ...newBlessings],
     relicIds: selectedRelicId && !run.relicIds.includes(selectedRelicId) ? [...run.relicIds, selectedRelicId] : run.relicIds,
     claimedRewardNodeIds: run.claimedRewardNodeIds.includes(run.currentNodeId) ? run.claimedRewardNodeIds : [...run.claimedRewardNodeIds, run.currentNodeId],
-    nextBattleSkullCurse: Math.max(run.nextBattleSkullCurse ?? 0, settlement.nextBattleSkullCurse),
+    nextBattleSkullCurse: Math.max(run.nextBattleSkullCurse ?? 0, expected.nextBattleSkullCurse),
     altarState: undefined,
   };
 }
@@ -162,6 +219,8 @@ export function resolveBattleAftermath(run: RunState, usedActiveAbility: boolean
     ...run,
     blessingIds: [],
     nextBattleSkullCurse: 0,
+    discoveredRunFlags: run.discoveredRunFlags.filter((flag) => flag !== "next-battle:focus"),
     earnedCrystals: run.earnedCrystals + (won ? battleVictoryCrystalBonus(run.relicIds, usedActiveAbility) : 0),
+    battleState: undefined,
   };
 }

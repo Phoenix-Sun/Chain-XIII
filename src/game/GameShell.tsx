@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createEmptyMeta, createSaveEnvelope, mergeRunIntoMeta } from "../domain/save";
-import { MAX_PARTY_SIZE, type RunDifficulty, type RunState } from "../domain/run";
+import { abandonRun, MAX_PARTY_SIZE, type RunDifficulty, type RunState } from "../domain/run";
 import { loadFromIndexedDb, saveToIndexedDb } from "../services/persistence/indexedDb";
 import GeneWorkshopView from "./GeneWorkshopView";
 import GachaView from "./GachaView";
@@ -27,35 +27,105 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
   const persistenceSupported = typeof indexedDB !== "undefined";
   const [activeView, setActiveView] = useState<GameView>("town");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmAbandonRun, setConfirmAbandonRun] = useState(false);
   const [meta, setMeta] = useState(() => createEmptyMeta());
   const [activeRun, setActiveRun] = useState<RunState>();
   const [hydrated, setHydrated] = useState(!persistenceSupported);
-  const [persistenceFailed, setPersistenceFailed] = useState(false);
+  const [persistenceError, setPersistenceError] = useState<"unsupported" | "load" | "save" | null>(() => persistenceSupported ? null : "unsupported");
+  const [persistenceReady, setPersistenceReady] = useState(!persistenceSupported);
   const [partyCharacterIds, setPartyCharacterIds] = useState(() => meta.characters.map((character) => character.characterId));
   const [nextRunSeed, setNextRunSeed] = useState(() => initialSeed ?? createRunSeed());
   const [runDifficulty, setRunDifficulty] = useState<RunDifficulty>("normal");
   const [hasStartedRun, setHasStartedRun] = useState(false);
   const [runPhase, setRunPhase] = useState<RunSessionPhase>("route");
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuDialogRef = useRef<HTMLDivElement>(null);
+  const menuWasOpen = useRef(false);
   const ownedCharacterIds = meta.characters.map((character) => character.characterId);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      if (menuWasOpen.current) menuButtonRef.current?.focus();
+      menuWasOpen.current = false;
+      return;
+    }
+    menuWasOpen.current = true;
+    const dialog = menuDialogRef.current;
+    if (!dialog) return;
+    const getFocusable = () => Array.from(dialog.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"));
+    getFocusable()[0]?.focus();
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setConfirmAbandonRun(false);
+        setMenuOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [confirmAbandonRun, menuOpen]);
 
   useEffect(() => {
     if (!persistenceSupported) return;
     loadFromIndexedDb("default")
       .then((save) => {
-        if (!save) return;
-        setMeta(save.meta);
-        setActiveRun(save.activeRun);
-        if (save.activeRun) setActiveView("route");
-        setPartyCharacterIds((save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId)).slice(0, MAX_PARTY_SIZE));
+        if (save) {
+          setMeta(save.meta);
+          setActiveRun(save.activeRun);
+          if (save.activeRun) setActiveView("route");
+          setPartyCharacterIds((save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId)).slice(0, MAX_PARTY_SIZE));
+        }
+        setPersistenceReady(true);
+        setPersistenceError(null);
       })
-      .catch(() => setPersistenceFailed(true))
+      .catch(() => setPersistenceError("load"))
       .finally(() => setHydrated(true));
   }, [persistenceSupported]);
 
   useEffect(() => {
-    if (!hydrated || persistenceFailed || !persistenceSupported) return;
-    saveToIndexedDb("default", createSaveEnvelope(meta, activeRun)).catch(() => undefined);
-  }, [activeRun, hydrated, meta, persistenceFailed, persistenceSupported]);
+    if (!hydrated || !persistenceReady || !persistenceSupported) return;
+    saveToIndexedDb("default", createSaveEnvelope(meta, activeRun)).then(() => setPersistenceError((current) => current === "save" ? null : current)).catch(() => setPersistenceError("save"));
+  }, [activeRun, hydrated, meta, persistenceReady, persistenceSupported]);
+
+  async function retryPersistence() {
+    if (!persistenceSupported) return;
+    if (persistenceError === "load") {
+      try {
+        const save = await loadFromIndexedDb("default");
+        if (save) {
+          setMeta(save.meta);
+          setActiveRun(save.activeRun);
+          if (save.activeRun) setActiveView("route");
+          setPartyCharacterIds((save.activeRun?.partyCharacterIds ?? save.meta.characters.map((character) => character.characterId)).slice(0, MAX_PARTY_SIZE));
+        }
+        setPersistenceReady(true);
+        setPersistenceError(null);
+      } catch {
+        setPersistenceError("load");
+      }
+      return;
+    }
+    try {
+      await saveToIndexedDb("default", createSaveEnvelope(meta, activeRun));
+      setPersistenceReady(true);
+      setPersistenceError(null);
+    } catch {
+      setPersistenceError("save");
+    }
+  }
 
   function navigate(view: GameView) {
     if (view === "route" && !activeRun && activeView !== "party") {
@@ -74,6 +144,13 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
     setNextRunSeed(createRunSeed());
     setRunPhase("route");
     setActiveView("town");
+    setMenuOpen(false);
+    setConfirmAbandonRun(false);
+  }
+
+  function requestAbandonRun() {
+    if (!activeRun || activeRun.status !== "active") return;
+    setConfirmAbandonRun(true);
   }
 
   function confirmParty(characterIds: string[], difficulty: RunDifficulty) {
@@ -99,13 +176,13 @@ export default function GameShell({ initialSeed }: { initialSeed?: string } = {}
     <header className="game-hud">
       <div className="game-brand"><span className="brand-mark">XIII</span><div><strong>CHAIN XIII</strong><span>花色鍊成版</span></div></div>
       <div className="screen-context" aria-live="polite"><span className="hud-label">現在</span><strong>{VIEW_LABELS[activeView]}</strong></div>
-      <button type="button" className="menu-button" onClick={() => setMenuOpen(true)} aria-label="開啟選單">≡</button>
+      <button ref={menuButtonRef} type="button" className="menu-button" onClick={() => setMenuOpen(true)} aria-label="開啟選單">≡</button>
     </header>
 
     <div className="game-viewport">
-      <div className="quest-ribbon"><span className="status-dot" />{persistenceFailed ? "本機存檔暫時不可用，本次進度只保留在目前頁面。" : activeRun ? RUN_PHASE_RIBBONS[runPhase] : VIEW_RIBBONS[activeView]}</div>
+      <div className="quest-ribbon"><span className="status-dot" />{persistenceError === "unsupported" ? "本環境不支援本機存檔，本次進度只保留在目前頁面。" : persistenceError === "load" ? "本機存檔讀取失敗，請重試後再開始。" : persistenceError === "save" ? "進度未保存：本機存檔寫入失敗，請重試。" : activeRun ? RUN_PHASE_RIBBONS[runPhase] : VIEW_RIBBONS[activeView]}</div>
       <section className={`game-screen game-screen-${activeView}`} aria-label="遊戲畫面">{renderView()}</section>
-      {menuOpen && <div className="system-overlay" role="dialog" aria-modal="true" aria-label="系統選單"><div className="system-window"><span className="pixel-kicker">SYSTEM</span><h2>遊戲暫停</h2><p>目前進度會自動保存到這台裝置，回到遊戲即可繼續遠征。</p><button type="button" className="pixel-button" onClick={() => setMenuOpen(false)}>返回遊戲</button></div></div>}
+      {menuOpen && <div className="system-overlay" role="dialog" aria-modal="true" aria-labelledby="system-dialog-title"><div ref={menuDialogRef} className="system-window"><h2 id="system-dialog-title">{confirmAbandonRun ? "放棄這趟遠征？" : "遊戲暫停"}</h2>{confirmAbandonRun ? <><p>這會清除目前遠征、放棄尚未領取的本趟獎勵，並回到營地。已經寫入的累積收穫會保留。</p><div className="system-actions"><button type="button" className="secondary-button" onClick={() => setConfirmAbandonRun(false)}>繼續遠征</button><button type="button" className="danger-button" onClick={() => activeRun && settleRun(abandonRun(activeRun))}>確認放棄這趟遠征</button></div></> : <><p>{persistenceError === "unsupported" ? "此環境不支援本機存檔，本次進度只會保留在目前頁面。" : persistenceError === "load" ? "本機存檔讀取失敗，尚未確認舊進度；請先重試。" : persistenceError === "save" ? "進度未保存：本機存檔寫入失敗。請重試保存後再離開。" : "目前進度會自動保存到這台裝置，回到遊戲即可繼續遠征。"}</p><div className="system-actions"><button type="button" className="pixel-button" onClick={() => setMenuOpen(false)}>返回遊戲</button>{persistenceError !== null && persistenceError !== "unsupported" && <button type="button" className="secondary-button" onClick={retryPersistence}>{persistenceError === "load" ? "重試讀取" : "重試保存"}</button>}{activeRun?.status === "active" && runPhase !== "battle" && <button type="button" className="danger-button" onClick={requestAbandonRun}>放棄這趟遠征</button>}</div></>}</div></div>}
     </div>
 
     <nav className="game-nav" aria-label="主要選單">{VIEW_ITEMS.filter((item) => activeRun ? item.id === "route" : true).map((item) => <button type="button" key={item.id} className={`game-nav-item${activeView === item.id ? " is-active" : ""}`} onClick={() => navigate(item.id)} aria-current={activeView === item.id ? "page" : undefined}><span className="nav-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span><small>{item.hint}</small></button>)}</nav>

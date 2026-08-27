@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { applyRelicAltarSettlement, completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, resolveBattleAftermath, type RunDifficulty, type RunState } from "../domain/run";
+import { abandonRun, applyRelicAltarSettlement, completeCurrentNode, claimCurrentNodeReward, createRunState, failCurrentNode, getCurrentNode, resolveBattleAftermath, type RunDifficulty, type RunState } from "../domain/run";
 import { rewardForNode, scaleRewardCrystals, type RewardChoice, type RunReward } from "../domain/runRewards";
 import type { BattleResult } from "../domain/combat";
 import type { Navigate } from "./types";
@@ -90,7 +90,7 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
       return;
     }
     if (node.type === "event") {
-      setRun(nextRun);
+      setRun({ ...nextRun, explorationState: { nodeId: node.id, eventId: node.eventId ?? "event-1", attempt: 0, result: undefined, usedTrade: false } });
       setPhase("exploration");
       return;
     }
@@ -171,12 +171,17 @@ export default function RunSessionView({ partyCharacterIds = ["water-scout"], di
     onNavigate?.("town");
   }
 
+  function abandonCurrentRun() {
+    onRunSettled?.(abandonRun(run));
+    onNavigate?.("town");
+  }
+
   if (phase === "route") return <div className="run-session"><div className="run-progress"><span>遠征進行中</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶 · 祝福 {run.blessingIds?.length ?? 0}</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><RunRouteView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onNodeSelected={selectNode} onOpenWorkshop={() => setPhase("workshop")} /></div>;
-  if (phase === "battle") return <div className="run-session"><div className="run-progress"><span>第 {currentNode.chapter ?? 1} 章・目前節點：{currentNode.type === "boss" ? "Boss" : currentNode.type === "elite" ? "菁英" : "戰鬥"}</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><BattleArenaView key={`battle-attempt-${currentNode.id}-${battleAttempt}`} partyCharacterIds={run.partyCharacterIds} node={currentNode} battleSeed={`${run.seed}:${currentNode.id}`} equippedGenes={run.equippedGenes} relicIds={run.relicIds} run={run} onRunUpdated={(nextRun) => setRun(nextRun)} onBattleComplete={handleBattleComplete} /></div>;
+  if (phase === "battle") return <div className="run-session"><div className="run-progress"><span>第 {currentNode.chapter ?? 1} 章・目前節點：{currentNode.type === "boss" ? "Boss" : currentNode.type === "elite" ? "菁英" : "戰鬥"}</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><BattleArenaView key={`battle-attempt-${currentNode.id}-${battleAttempt}`} partyCharacterIds={run.partyCharacterIds} node={currentNode} battleSeed={`${run.seed}:${currentNode.id}`} equippedGenes={run.equippedGenes} relicIds={run.relicIds} run={run} onRunUpdated={(nextRun) => setRun(nextRun)} onBattleComplete={handleBattleComplete} onAbandonRun={abandonCurrentRun} /></div>;
   if (phase === "exploration") return <div className="run-session"><div className="run-progress"><span>目前節點：事件</span><strong>{run.livesRemaining}/{run.maxLives} 命 · {run.earnedCrystals} 水晶</strong></div><p className="run-party-summary" aria-label="本次出戰隊伍">本次出戰：{partySummary(run.partyCharacterIds)}</p><ExplorationView node={currentNode} seed={run.seed} run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} onResolved={(result) => handleExplorationComplete(result.success)} /></div>;
   if (phase === "altar") return <div className="run-session"><RelicAltarView seed={`${run.seed}:${currentNode.id}`} relicIds={run.relicIds} initialState={run.altarState} candidateRelicIds={run.altarState?.candidateRelicIds ?? relicCandidatesForNode(currentNode)} onStateChange={handleAltarStateChange} onResolved={handleAltarResolved} /></div>;
   if (phase === "service") return <div className="run-session"><ServiceNodeView node={currentNode} run={run} onResolved={(nextRun) => { setRun(nextRun); setPhase("route"); }} /></div>;
-  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} difficulty={run.difficulty} isFinalBoss={currentNode.id === run.finalBossId} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
+  if (phase === "reward" && reward) return <div className="run-session"><RunRewardView node={currentNode} difficulty={run.difficulty} isFinalBoss={currentNode.id === run.finalBossId} reward={reward} inventoryCount={run.geneInventory.length} geneCapacity={run.geneCapacity} error={rewardError} initialChoiceId={run.pendingRewardChoice?.nodeId === currentNode.id ? run.pendingRewardChoice.choiceId : undefined} onChoiceChange={(choiceId) => setRun((current) => ({ ...current, pendingRewardChoice: { nodeId: currentNode.id, choiceId } }))} onClaim={(choice) => claimReward(true, choice)} onSkipGene={reward.geneChain ? () => claimReward(false) : undefined} /></div>;
   if (phase === "workshop") return <div className="run-session"><GeneWorkshopView run={run} partyCharacterIds={run.partyCharacterIds} onRunUpdated={setRun} initialInventory={run.geneInventory} initialEquipped={run.equippedGenes} onInventoryChange={(geneInventory) => setRun((current) => ({ ...current, geneInventory }))} onEquippedChange={(equippedGenes) => setRun((current) => ({ ...current, equippedGenes }))} onExit={() => setPhase("route")} /></div>;
   return <div className="run-session"><RunSettlementView run={run} onExit={leaveRun} /></div>;
 }

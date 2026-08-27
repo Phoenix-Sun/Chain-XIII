@@ -103,3 +103,39 @@
 .ability-button { min-height: 38px; padding: 7px 10px; border: 2px solid #80658a; border-radius: 8px; background: #f6dfa8; color: #503747; font-size: 0.68rem; font-weight: 800; }
 .ability-button:disabled { opacity: 0.5; }
 .enemy-preview { margin: 10px 0; padding: 10px; border: 2px dashed #80658a; border-radius: 8px; background: #fff0bf; color: #503747; font-size: 0.68rem; line-height: 1.5; }
+
+@media (max-width: 600px) {
+  .run-progress { display: grid; gap: 5px; margin-bottom: 8px; padding: 11px; font-size: 0.9rem; line-height: 1.35; }
+  .run-progress strong { font-size: 1rem; }
+  .run-party-summary { margin: -2px 0 8px; font-size: 0.82rem; }
+  .run-reward-card, .run-settlement-card, .relic-altar-card, .service-node-card, .exploration-card { margin: 10px auto; padding: 16px 12px; border-width: 3px; border-radius: 8px; }
+  .run-reward-card h1, .run-settlement-card h1, .relic-altar-card h1, .service-node-card h1, .exploration-card h1 { margin: 5px 0 9px; font-size: 1.55rem; }
+  .run-reward-card p, .run-settlement-card p, .relic-altar-card > p, .service-node-card > p, .exploration-card > p { font-size: 0.9rem; line-height: 1.55; }
+  .reward-source, .reward-capacity, .reward-error { font-size: 0.82rem; line-height: 1.45; }
+  .reward-item strong { font-size: 1.25rem; }
+  .reward-item span, .reward-choice b { font-size: 0.82rem; }
+  .reward-choice small, .reward-choice em { font-size: 0.76rem; }
+  .settlement-stats { gap: 5px; margin: 12px 0 16px; }
+  .settlement-stats strong { font-size: 1.25rem; }
+  .settlement-stats span { font-size: 0.72rem; }
+  .service-choice { min-height: 64px; padding: 11px; }
+  .service-choice b { font-size: 0.9rem; }
+  .service-choice small { font-size: 0.76rem; }
+  .altar-dice { gap: 5px; }
+  .altar-die { min-height: 84px; }
+  .altar-die strong { font-size: 1.3rem; }
+  .altar-die span { font-size: 0.68rem; }
+  .altar-die small { font-size: 0.62rem; }
+}
+
+@media (max-width: 600px) {
+  .route-preview-item { font-size: 0.8rem; }
+  .route-preview-item small { font-size: 0.76rem; }
+  .ability-button { min-height: 46px; }
+}
+
+@media (max-width: 390px) {
+  .altar-die { min-height: 76px; }
+  .altar-die strong { font-size: 1.1rem; }
+  .altar-die span { font-size: 0.48rem; }
+}

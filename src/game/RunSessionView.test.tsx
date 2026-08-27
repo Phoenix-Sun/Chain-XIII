@@ -89,6 +89,14 @@ describe("RunSessionView", () => {
     expect(screen.getByText("剩餘命").parentElement).toHaveTextContent("0/2");
   });
 
+  it("explains active abandonment separately from a life-exhaustion defeat", () => {
+    const base = createRunState("abandoned-settlement", ["water-scout"]);
+    render(<RunSessionView initialRun={{ ...base, status: "lost", endReason: "abandoned" }} />);
+
+    expect(screen.getByText(/主動放棄了這趟遠征/)).toBeInTheDocument();
+    expect(screen.queryByText(/戰敗耗盡/)).not.toBeInTheDocument();
+  });
+
   it("claims only the selected relic when an event offers a gene-or-relic choice", () => {
     const base = createRunState("event-choice-0", ["water-scout"]);
     const onRunUpdated = vi.fn();
@@ -106,8 +114,38 @@ describe("RunSessionView", () => {
     fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
     fireEvent.click(screen.getByRole("button", { name: "查看事件獎勵" }));
     fireEvent.click(screen.getAllByRole("radio")[1]);
+    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ pendingRewardChoice: { nodeId: "event", choiceId: "relic:relic-1" } }));
     fireEvent.click(screen.getByRole("button", { name: "領取獎勵" }));
 
-    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ relicIds: ["relic-1"], geneInventory: [] }));
+    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ relicIds: ["relic-1"], geneInventory: [], pendingRewardChoice: undefined }));
+  });
+
+  it("restores the selected event reward after a saved Run is reloaded", () => {
+    const base = createRunState("event-choice-reload", ["water-scout"]);
+    const initialRun: RunState = {
+      ...base,
+      map: { ...base.map, startNodeId: "start", nodes: [{ id: "start", row: 0, column: 0, type: "battle", nextNodeIds: ["event"] }, { id: "event", row: 1, column: 0, type: "event", eventId: "event-1", nextNodeIds: [] }] },
+      currentNodeId: "event",
+      completedNodeIds: ["start", "event"],
+      pendingRewardChoice: { nodeId: "event", choiceId: "relic:relic-1" },
+    };
+
+    render(<RunSessionView initialRun={initialRun} />);
+
+    expect(screen.getAllByRole("radio")[1]).toBeChecked();
+  });
+
+  it("abandons the whole expedition from battle and returns to camp", () => {
+    const base = createRunState("abandon-battle", ["water-scout"]);
+    const battle = base.map.nodes.find((node) => node.type === "battle" && !base.completedNodeIds.includes(node.id))!;
+    const onRunSettled = vi.fn();
+    const onNavigate = vi.fn();
+    render(<RunSessionView initialRun={{ ...base, currentNodeId: battle.id }} onRunSettled={onRunSettled} onNavigate={onNavigate} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "放棄這趟遠征" }));
+    fireEvent.click(screen.getByRole("button", { name: "確認放棄這趟遠征" }));
+
+    expect(onRunSettled).toHaveBeenCalledWith(expect.objectContaining({ status: "lost", endReason: "abandoned", currentNodeId: battle.id }));
+    expect(onNavigate).toHaveBeenCalledWith("town");
   });
 });

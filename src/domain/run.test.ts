@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyRelicAltarSettlement, canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, failCurrentNode, moveToNode, validatePartyCharacterIds, type RunState } from "./run";
+import { abandonRun, applyRelicAltarSettlement, canMoveToNode, claimCurrentNodeReward, completeCurrentNode, createRunState, failCurrentNode, moveToNode, resolveBattleAftermath, validatePartyCharacterIds, type RunState } from "./run";
 import { rewardForNode } from "./runRewards";
 
 describe("run state", () => {
@@ -49,6 +49,20 @@ describe("run state", () => {
     expect(failCurrentNode({ ...boss, currentNodeId: boss.finalBossId })).toMatchObject({ status: "lost", livesRemaining: 0 });
   });
 
+  it("abandons an active Run without battle damage and clears pending battle effects", () => {
+    const run = { ...createRunState("abandon-seed", ["water-scout"]), blessingIds: ["blessing-1"], nextBattleSkullCurse: 1, discoveredRunFlags: ["next-battle:focus", "effect:ability-sight"], earnedCrystals: 12 };
+    const abandoned = abandonRun(run);
+
+    expect(abandoned).toMatchObject({ status: "lost", endReason: "abandoned", livesRemaining: run.livesRemaining, earnedCrystals: 12, blessingIds: [], nextBattleSkullCurse: 0 });
+    expect(abandoned.discoveredRunFlags).toEqual(["effect:ability-sight"]);
+    expect(abandonRun(abandoned)).toBe(abandoned);
+  });
+
+  it("consumes the next-battle focus effect after battle aftermath", () => {
+    const run = { ...createRunState("focus-seed", ["water-scout"]), discoveredRunFlags: ["next-battle:focus", "effect:ability-sight"] };
+    expect(resolveBattleAftermath(run, false, true).discoveredRunFlags).toEqual(["effect:ability-sight"]);
+  });
+
   it("only permits moving to a connected next node", () => {
     const run = createRunState("move-seed", ["a", "b", "c"]);
     const nextId = run.map.nodes[0].nextNodeIds[0];
@@ -91,6 +105,27 @@ describe("run state", () => {
     expect(claimed.geneInventory).toHaveLength(fullRun.geneCapacity);
   });
 
+  it("counts a repeated gene reward only once in the Run summary", () => {
+    const base = createRunState("duplicate-gene-reward", ["water-scout"]);
+    const firstNodeId = base.map.nodes[0].nextNodeIds[0];
+    const firstNode = base.map.nodes.find((node) => node.id === firstNodeId)!;
+    const firstClaim = claimCurrentNodeReward(completeCurrentNode(moveToNode(base, firstNodeId)), {
+      ...rewardForNode(firstNode),
+      geneChainId: "shared-gene",
+      geneChain: { id: "shared-gene", targetSlot: "short3", factors: [{ suit: "water" }, { suit: "fire" }, { suit: "wind" }], enabledSlots: [true, true, true] },
+    });
+    const secondNodeId = firstNode.nextNodeIds[0];
+    const secondNode = firstClaim.map.nodes.find((node) => node.id === secondNodeId)!;
+    const secondClaim = claimCurrentNodeReward(completeCurrentNode(moveToNode(firstClaim, secondNodeId)), {
+      ...rewardForNode(secondNode),
+      geneChainId: "shared-gene",
+      geneChain: { id: "shared-gene", targetSlot: "short3", factors: [{ suit: "water" }, { suit: "fire" }, { suit: "wind" }], enabledSlots: [true, true, true] },
+    });
+
+    expect(secondClaim.geneInventory.map((chain) => chain.id)).toEqual(["shared-gene"]);
+    expect(secondClaim.earnedGeneChainIds).toEqual(["shared-gene"]);
+  });
+
   it("stores relic rewards in the active Run", () => {
     const run = createRunState("relic-seed", ["water-scout"]);
     const nextId = run.map.nodes[0].nextNodeIds[0];
@@ -111,6 +146,17 @@ describe("run state", () => {
     );
     expect(settled.claimedRewardNodeIds).toContain(node.id);
     expect(settled.altarState).toBeUndefined();
+  });
+
+  it("rejects forged altar reward quantities instead of trusting the UI caller", () => {
+    const base = createRunState("altar-forgery", ["water-scout"]);
+    const node = base.map.nodes.find((candidate) => candidate.type === "relic")!;
+    const run = {
+      ...completeCurrentNode({ ...base, currentNodeId: node.id }),
+      altarState: { seed: "altar", candidateRelicIds: ["relic-1", "relic-2"], faces: ["crystal", "crystal", null, null, null] as Array<"crystal" | "relic" | "blessing" | "skull" | null>, lockedSkullIndices: [], skullCount: 0, graceUsed: false, rollCount: 1, status: "stopped" as const, pendingRewards: { crystalPairs: 1, blessingCount: 0, relicReady: false }, securedRewards: { crystalPairs: 0, blessingCount: 0 }, protectsSmallRewards: false },
+    };
+
+    expect(() => applyRelicAltarSettlement(run, { status: "stopped", crystalPairs: 999, blessingCount: 999, relicReady: false, nextBattleSkullCurse: 0 })).toThrow("祭壇結算資料已失效");
   });
 
   it("marks the boss node as a won run", () => {

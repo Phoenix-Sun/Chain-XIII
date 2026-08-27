@@ -30,11 +30,11 @@ export default function CodexView({ meta }: { meta: MetaState }) {
   const ownedRelicCount = catalog.relics.filter((relic) => ownedRelics.has(relic.id)).length;
 
   return <section className="codex-view" aria-label="收藏圖鑑">
-    <div className="screen-title-row"><div><span className="pixel-kicker">FIELD RECORDS</span><h1>遠征圖鑑</h1></div><span className="rank-badge">{discoveredCount + ownedRelicCount} 項</span></div>
+    <div className="screen-title-row"><div><h1>遠征圖鑑</h1></div><span className="rank-badge">{discoveredCount + ownedRelicCount} 項</span></div>
     <p className="codex-intro">每次擊敗怪物都會留下戰鬥紀錄；帶回營地的遺物則會永久保存在收藏中。先看懂敵人的規則，再決定下一趟要帶誰出發。</p>
 
     <section className="codex-section" aria-labelledby="monster-codex-title">
-      <div className="codex-heading"><div><span className="pixel-kicker">ENCOUNTER LOG</span><h2 id="monster-codex-title">怪物圖鑑</h2></div><strong>{discoveredCount} / {catalog.monsters.length}</strong></div>
+      <div className="codex-heading"><div><h2 id="monster-codex-title">怪物圖鑑</h2></div><strong>{discoveredCount} / {catalog.monsters.length}</strong></div>
       <div className="codex-grid">{catalog.monsters.map((monster) => {
         const isKnown = discovered.has(monster.id);
         return <article className={`codex-entry${isKnown ? " is-known" : " is-unknown"}`} key={monster.id}>
@@ -45,7 +45,7 @@ export default function CodexView({ meta }: { meta: MetaState }) {
     </section>
 
     <section className="codex-section" aria-labelledby="relic-codex-title">
-      <div className="codex-heading"><div><span className="pixel-kicker">RELIC ARCHIVE</span><h2 id="relic-codex-title">遺物收藏</h2></div><strong>已發現 {ownedRelicCount} / {catalog.relics.length}</strong></div>
+      <div className="codex-heading"><div><h2 id="relic-codex-title">遺物收藏</h2></div><strong>已發現 {ownedRelicCount} / {catalog.relics.length}</strong></div>
       <div className="relic-codex-grid">{catalog.relics.map((relic) => { const isOwned = ownedRelics.has(relic.id); return <article className={`relic-codex-entry${isOwned ? " is-owned" : ""}`} key={relic.id}><span className="relic-codex-icon">{isOwned ? "◆" : "?"}</span><div><strong>{isOwned ? relic.name : "未辨識遺物"}</strong><small>{isOwned ? `${relic.rarity.toUpperCase()}・${relic.trigger}` : "尚未帶回營地"}</small>{isOwned && <p><b>效果</b>{relic.effect}</p>}</div></article>; })}</div>
     </section>
   </section>;

@@ -26,14 +26,22 @@ describe("cards", () => {
     expect(rankLabel(13)).toBe("K");
   });
 
-  it("sorts the same hand by deal order, rank, or suit then rank", () => {
+  it("sorts the same hand by rank or suit then rank", () => {
     const hand = [
       { id: "wind-13", suit: "wind" as const, rank: 13 as const },
       { id: "water-2", suit: "water" as const, rank: 2 as const },
       { id: "fire-2", suit: "fire" as const, rank: 2 as const },
     ];
-    expect(sortCards(hand, "deal").map((card) => card.id)).toEqual(["wind-13", "water-2", "fire-2"]);
     expect(sortCards(hand, "rank").map((card) => card.id)).toEqual(["water-2", "fire-2", "wind-13"]);
     expect(sortCards(hand, "suit-rank").map((card) => card.id)).toEqual(["water-2", "fire-2", "wind-13"]);
+  });
+
+  it("shows Ace first in player-facing rank sorting while keeping stable ties", () => {
+    const hand = [
+      { id: "fire-2", suit: "fire" as const, rank: 2 as const },
+      { id: "water-1", suit: "water" as const, rank: 1 as const },
+      { id: "wind-2", suit: "wind" as const, rank: 2 as const },
+    ];
+    expect(sortCards(hand, "rank").map((card) => card.id)).toEqual(["water-1", "fire-2", "wind-2"]);
   });
 });

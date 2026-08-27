@@ -26,8 +26,20 @@ describe("ExplorationView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "擲出 3 顆骰子" }));
     fireEvent.click(screen.getByRole("button", { name: /風行商人/ }));
-    expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-trade"] }));
+    expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({
+      discoveredRunFlags: ["effect:ability-trade"],
+      explorationState: expect.objectContaining({ attempt: 1, usedTrade: true, result: undefined }),
+    }));
     expect(screen.getByRole("button", { name: "擲出 3 顆骰子" })).toBeInTheDocument();
+  });
+
+  it("resumes a persisted roll instead of returning to the unrolled event", () => {
+    const run = createRunState("exploration-resume", ["water-scout"]);
+    const result = { rolls: [2, 2, 5], total: 9, hasPair: true, isStraight: false, success: true };
+    render(<ExplorationView node={{ id: "event", row: 1, column: 0, type: "event", eventId: "event-2", nextNodeIds: [] }} seed="exploration-resume" run={{ ...run, currentNodeId: "event", explorationState: { nodeId: "event", eventId: "event-2", attempt: 0, result, usedTrade: false } }} onResolved={vi.fn()} />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("2 · 2 · 5");
+    expect(screen.getByRole("button", { name: "查看事件獎勵" })).toBeInTheDocument();
   });
 
   it("shows a distinct straight objective and result signal", () => {

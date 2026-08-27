@@ -120,3 +120,51 @@ footer { padding-top: 22px; color: #5f7694; font-size: 0.75rem; line-height: 1.5
   .lane-cards { grid-template-columns: repeat(5, 68px); }
   .lane-front .lane-cards { grid-template-columns: repeat(3, 68px); }
 }
+
+@media (max-width: 600px) {
+  .game-screen .lab-card { padding: 10px; }
+  .game-screen .lab-card .lab-intro { margin-bottom: 10px; font-size: 0.95rem; }
+  .game-screen .lab-card h2 { font-size: 1.35rem; }
+  .game-screen .lab-card h3 { font-size: 1.1rem; }
+  .hand-area-primary { padding-top: 10px; }
+  .hand-instruction { display: block; margin-top: 3px; color: #c4d5e7; font-size: 0.82rem; }
+  .hand-area-primary > .subsection-heading > strong { color: #fff0a8; font-size: 1.1rem; }
+  .sort-control { gap: 7px; margin-bottom: 12px; }
+  .sort-control > span { font-size: 0.85rem; }
+  .sort-control button { min-height: 42px; padding: 7px 14px; font-size: 0.88rem; }
+  .card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .playing-card { min-height: 92px; border-width: 3px; border-radius: 8px; }
+  .playing-card-rank { font-size: clamp(1.45rem, 7vw, 1.9rem); }
+  .playing-card-suit { margin-top: 5px; font-size: clamp(1.15rem, 6vw, 1.55rem); }
+  .playing-card-name { margin-top: 5px; font-size: 0.78rem; }
+  .selection-order { width: 22px; height: 22px; font-size: 0.78rem; }
+  .placement-actions { position: static; margin: 10px 0; padding: 9px; border-radius: 8px; }
+  .action-label { font-size: 0.92rem; line-height: 1.45; }
+  .lane-action, .link-button { min-height: 46px; font-size: 0.88rem; }
+  .lane-action { flex: 1 1 calc(50% - 7px); }
+  .lanes { gap: 7px; }
+  .lane { padding: 8px; border-radius: 8px; }
+  .lane-heading { margin-bottom: 6px; }
+  .lane-label { font-size: 1rem; }
+  .lane-size, .lane-hint { font-size: 0.82rem; }
+  .lane-cards { min-height: 38px; gap: 4px; }
+  .lane .playing-card { min-height: 70px; }
+  .lane .playing-card-rank { font-size: 1.15rem; }
+  .lane .playing-card-suit { font-size: 1rem; }
+  .lane .playing-card-name { font-size: 0.62rem; }
+  .lane-clear { min-width: 48px; min-height: 36px; padding: 5px 8px; border: 2px solid #80658a; background: #33283a; color: #f6dfa8; font: inherit; font-size: 0.78rem; font-weight: 900; }
+  .lane-clear:disabled { cursor: not-allowed; opacity: 0.4; }
+  .validation { margin-top: 10px; padding: 12px; font-size: 0.9rem; }
+  .primary-button { min-height: 54px; font-size: 1rem; }
+}
+
+.lane-heading-actions { display: flex; align-items: center; gap: 6px; }
+.lane-clear { min-height: 32px; padding: 4px 8px; border: 2px solid #80658a; border-radius: 7px; background: #33283a; color: #f6dfa8; cursor: pointer; font: inherit; font-size: 0.72rem; font-weight: 900; }
+.lane-clear:disabled { cursor: not-allowed; opacity: 0.4; }
+.action-fill { background: #c4b5fd; }
+.action-swap { background: #fbcfe8; }
+
+@media (max-width: 600px) {
+  .sort-control button, .lane-clear { min-height: 46px; }
+  .lane-clear { min-width: 48px; font-size: 0.78rem; }
+}

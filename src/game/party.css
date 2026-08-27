@@ -91,3 +91,28 @@
   .roster-heading .pixel-kicker { grid-column: 1 / -1; }
   .roster-heading small { grid-column: 1 / -1; }
 }
+
+@media (max-width: 600px) {
+  .party-intro { font-size: 0.88rem; line-height: 1.55; }
+  .character-card { min-height: 76px; padding: 10px; }
+  .character-info strong { font-size: 0.88rem; }
+  .character-info small { font-size: 0.76rem; }
+  .formation-heading strong, .difficulty-heading strong, .skill-tree-heading strong, .roster-heading strong { font-size: 0.95rem; }
+  .formation-heading small, .difficulty-heading small, .skill-tree-heading small, .roster-heading small { font-size: 0.76rem; }
+  .formation-slot strong { font-size: 0.72rem; }
+  .formation-slot small, .formation-empty { font-size: 0.64rem; }
+  .difficulty-option strong { font-size: 0.86rem; }
+  .difficulty-option span { font-size: 0.76rem; }
+  .difficulty-option small { font-size: 0.7rem; }
+  .party-hint, .party-error { font-size: 0.8rem; }
+  .party-actions .secondary-button, .party-actions .enter-button { min-height: 54px; font-size: 0.8rem; }
+}
+
+@media (max-width: 600px) {
+  .character-upgrade, .skill-unlock { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  .formation-slot strong { font-size: 0.55rem; }
+  .formation-slot small { font-size: 0.45rem; }
+}

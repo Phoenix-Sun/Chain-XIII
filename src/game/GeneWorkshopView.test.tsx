@@ -40,7 +40,11 @@ describe("GeneWorkshopView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /鍛造師・全部啟用/ }));
     expect(screen.getByRole("status")).toHaveTextContent(/全部啟用/);
-    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-forge"] }));
+    expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({
+      discoveredRunFlags: ["effect:ability-forge"],
+      equippedGenes: expect.objectContaining({ short3: expect.objectContaining({ enabledSlots: [true, true, true] }) }),
+      geneInventory: expect.arrayContaining([expect.objectContaining({ enabledSlots: [true, true, true] })]),
+    }));
     expect(screen.getByRole("button", { name: /鍛造師・全部啟用・已用/ })).toBeDisabled();
     expect(onInventoryChange).toHaveBeenCalled();
   });

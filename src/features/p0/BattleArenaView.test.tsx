@@ -87,6 +87,7 @@ describe("BattleArenaView", () => {
     fireEvent.click(screen.getByRole("button", { name: "風之預視・看敵牌" }));
 
     expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-sight"] }));
+    expect(onRunUpdated).toHaveBeenCalledWith(expect.objectContaining({ battleState: { nodeId: run.currentNodeId, drawAttempt: 0, frontBonus: 0, laneElementOverrides: {} } }));
   });
 
   it("shows the collected relic effect before the player commits a layout", () => {
@@ -95,5 +96,23 @@ describe("BattleArenaView", () => {
 
     expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("雙月中堅");
     expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent(/中堅同牌型比較 \+2～\+4（本場 \+[2-4]）/);
+  });
+
+  it("uses the run-level abandon wording from inside battle", () => {
+    const onAbandonRun = vi.fn();
+    render(<BattleArenaView onAbandonRun={onAbandonRun} />);
+
+    const abandonButton = screen.getByRole("button", { name: "放棄這趟遠征" });
+    fireEvent.click(abandonButton);
+    const dialog = screen.getByRole("alertdialog", { name: "確定放棄這趟遠征？" });
+    expect(dialog).toHaveTextContent("無法取得本場獎勵");
+    expect(screen.getByRole("button", { name: "繼續戰鬥" })).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(abandonButton).toHaveFocus();
+    expect(screen.queryByRole("alertdialog", { name: "確定放棄這趟遠征？" })).not.toBeInTheDocument();
+    fireEvent.click(abandonButton);
+    fireEvent.click(screen.getByRole("button", { name: "確認放棄這趟遠征" }));
+
+    expect(onAbandonRun).toHaveBeenCalledTimes(1);
   });
 });

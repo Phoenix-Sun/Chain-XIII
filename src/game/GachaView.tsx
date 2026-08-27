@@ -26,7 +26,7 @@ export default function GachaView({ meta, onMetaChange, onNavigate }: { meta: Me
   }
 
   return <section className="gacha-view" aria-labelledby="gacha-title">
-    <div className="screen-title-row"><div><span className="pixel-kicker">CHARACTER DRAW</span><h1 id="gacha-title">角色抽卡</h1></div><span className="rank-badge">水晶 {meta.crystals}</span></div>
+    <div className="screen-title-row"><div><h1 id="gacha-title">角色抽卡</h1></div><span className="rank-badge">水晶 {meta.crystals}</span></div>
     <p className="gacha-intro">用遠征取得的水晶抽取角色。重複角色會轉成角色印記，不會浪費。</p>
     <div className="gacha-panel"><div className="gacha-result" role="status">{message}</div><button type="button" className="primary-button" disabled={meta.crystals < CHARACTER_DRAW_COST} onClick={draw}>抽 1 次 · {CHARACTER_DRAW_COST} 水晶</button>{meta.crystals < CHARACTER_DRAW_COST && <small>還需要 {CHARACTER_DRAW_COST - meta.crystals} 水晶</small>}</div>
     <section className="account-collection" aria-label="帳號收藏進度"><strong>永久收藏</strong><span>基因鏈 {meta.geneInventory.length} 條</span><span>遺物 {meta.relicIds.length} 件</span><span>怪物圖鑑 {meta.unlockedMonsterCodexIds.length} 種</span></section>
