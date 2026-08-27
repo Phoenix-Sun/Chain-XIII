@@ -296,6 +296,8 @@
 .game-screen .lab-card .lab-intro, .game-screen .lab-card .lane-hint, .game-screen .lab-card .lane-size, .game-screen .lab-card .subsection-heading span { color: #c2aebe; }
 .game-screen .lab-card .hand-area { border-color: #54445b; }
 .game-screen .lab-card .lane, .game-screen .lab-card .placement-actions { border-color: #54445b; background: #211c29; }
+.game-screen .lab-card .lane.is-target { border-color: #e8b557; box-shadow: 0 0 0 2px #e8b55766, 0 5px 0 #171323; }
+.game-screen .lab-card .lane.is-target .lane-label, .game-screen .lab-card .lane.is-target .lane-hint { color: #ffe49b; }
 .game-screen .lab-card .notice { background: #211c29; color: #dfcce0; border-left-color: #d1aa65; }
 .game-screen .lab-card .validation.is-invalid { background: #4a2934; }
 .game-screen .lab-card .validation.is-valid { background: #28503d; }

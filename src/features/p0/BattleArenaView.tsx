@@ -162,12 +162,14 @@ export default function BattleArenaView({ partyCharacterIds = ["water-scout"], n
     </section>
     <div className="battle-turn-guide"><span>本回合目標</span><strong>用 13 張牌排出頭／中／尾三墩</strong><small>頭墩 3 張・中墩 5 張・尾墩 5 張</small></div>
     <div className="battle-context"><span>{node?.chapter ? `第 ${node.chapter} 章・` : ""}{nodeLabel}{monster ? `：${enemyName}` : ""}</span><span>本次出戰：{partyCharacterIds.length} 名角色</span></div>
-    {candidateCount > 1 && <p className="battle-rule-callout"><strong>{node?.type === "boss" ? "Boss 三組候選牌" : "菁英兩組候選牌"}</strong>敵方會從候選牌組中選出牌型結構較高的一組。</p>}
-    {chapterEnemyBonus > 0 && <p className="battle-rule-callout"><strong>章節強度 +{chapterEnemyBonus}</strong>同牌型與元素都未分出勝負時，敵方取得比較加成。</p>}
-    {bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}
-    {(run?.blessingIds?.length ?? 0) > 0 && <div className="battle-blessing-strip" aria-label="下一場祝福"><strong>祝福已啟用</strong>{run?.blessingIds?.map((id) => <span key={id}>{blessingForId(id)?.name ?? id}：{blessingForId(id)?.effect}</span>)}</div>}
-    {(run?.nextBattleSkullCurse ?? 0) > 0 && <p className="battle-rule-callout"><strong>Skull 詛咒</strong>本場同牌型比較 -{run?.nextBattleSkullCurse}；戰鬥結束後解除。</p>}
-    {relicIds.length > 0 && <div className="battle-relic-strip" aria-label="本場遺物效果"><strong>遺物已生效</strong>{relicIds.map((relicId) => { const relic = catalog.relics.find((candidate) => candidate.id === relicId); return <span key={relicId}><b>{relic?.name ?? relicId}</b><small>{relic?.trigger ?? "戰鬥被動"}</small>{relicEffectLabel(relicId, relicContext)}</span>; })}</div>}
+    <details className="battle-details"><summary>查看戰鬥詳情</summary><div className="battle-details-content">
+      {candidateCount > 1 && <p className="battle-rule-callout"><strong>{node?.type === "boss" ? "Boss 三組候選牌" : "菁英兩組候選牌"}</strong>敵方會從候選牌組中選出牌型結構較高的一組。</p>}
+      {chapterEnemyBonus > 0 && <p className="battle-rule-callout"><strong>章節強度 +{chapterEnemyBonus}</strong>同牌型與元素都未分出勝負時，敵方取得比較加成。</p>}
+      {bossRule && <p className="battle-rule-callout"><strong>Boss 特性</strong>{bossRule}</p>}
+      {(run?.blessingIds?.length ?? 0) > 0 && <div className="battle-blessing-strip" aria-label="下一場祝福"><strong>祝福已啟用</strong>{run?.blessingIds?.map((id) => <span key={id}>{blessingForId(id)?.name ?? id}：{blessingForId(id)?.effect}</span>)}</div>}
+      {(run?.nextBattleSkullCurse ?? 0) > 0 && <p className="battle-rule-callout"><strong>Skull 詛咒</strong>本場同牌型比較 -{run?.nextBattleSkullCurse}；戰鬥結束後解除。</p>}
+      {relicIds.length > 0 && <div className="battle-relic-strip" aria-label="本場遺物效果"><strong>遺物已生效</strong>{relicIds.map((relicId) => { const relic = catalog.relics.find((candidate) => candidate.id === relicId); return <span key={relicId}><b>{relic?.name ?? relicId}</b><small>{relic?.trigger ?? "戰鬥被動"}</small>{relicEffectLabel(relicId, relicContext)}</span>; })}</div>}
+    </div></details>
     <div className="battle-abilities" aria-label="本場可用技能">{activeAbilityIds.filter((abilityId) => abilityLabels[abilityId]).map((abilityId) => <button type="button" key={abilityId} className="ability-button" disabled={usedAbilities.includes(abilityId) || Boolean(result)} onClick={() => useAbility(abilityId)}>{abilityLabels[abilityId]}{usedAbilities.includes(abilityId) ? "・已用" : ""}</button>)}</div>
     {showHarmony && <p className="battle-rule-callout"><strong>三墩提示</strong>先確保牌型順序，再用元素克制爭取同牌型時的勝負。</p>}
     {showEnemy && <div className="enemy-preview" aria-label="敵方牌面預覽">敵方目前花色：{enemyCards.map((card) => `${ELEMENT_LABELS[currentSuitOf(card)]}${card.rank}`).join("、")}</div>}

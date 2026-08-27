@@ -13,6 +13,9 @@
 .battle-turn-guide strong { font-size: 0.76rem; }
 .battle-turn-guide small { color: #80665c; font-size: 0.58rem; }
 .battle-context { display: flex; justify-content: space-between; gap: 8px; margin: 9px 0; color: #80665c; font-size: 0.58rem; font-weight: 900; }
+.battle-details { margin: 10px 0; border: 2px solid #d0a478; border-radius: 8px; background: rgba(255, 248, 224, 0.78); }
+.battle-details summary { min-height: 46px; padding: 12px 14px; color: #744c39; cursor: pointer; font-size: 0.78rem; font-weight: 900; list-style-position: inside; }
+.battle-details-content { padding: 0 10px 10px; }
 .battle-abilities { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0; }
 .ability-button { min-height: 40px; padding: 7px 10px; border: 3px solid #80658a; background: #f6dfa8; color: #503747; cursor: pointer; font: inherit; font-size: 0.62rem; font-weight: 900; box-shadow: 2px 2px #49384566; }
 .ability-button:disabled { cursor: not-allowed; opacity: 0.5; }

@@ -53,4 +53,13 @@ describe("seeded run map", () => {
       expect(map.chapterEndNodeIds.every((endId, index) => map.nodes.some((node) => node.id === endId && node.type === (index === 2 ? "boss" : "elite")))).toBe(true);
     }
   });
+
+  it("always offers a reachable first battle after the camp start", () => {
+    for (const seed of ["first-a", "first-b", "first-c", "first-d", "first-e"]) {
+      const map = generateRunMap(seed);
+      const firstBattle = map.nodes.find((node) => node.row === 1 && node.type === "battle");
+      expect(firstBattle).toBeDefined();
+      expect(map.nodes[0].nextNodeIds).toContain(firstBattle!.id);
+    }
+  });
 });

@@ -94,8 +94,13 @@ describe("BattleArenaView", () => {
     const run = createRunState("relic-ui", ["water-scout"]);
     render(<BattleArenaView run={run} relicIds={["relic-2"]} />);
 
+    const details = document.querySelector(".battle-details");
+    expect(screen.getByText("查看戰鬥詳情")).toBeInTheDocument();
+    expect(details).not.toHaveAttribute("open");
     expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent("雙月中堅");
     expect(screen.getByLabelText("本場遺物效果")).toHaveTextContent(/中堅同牌型比較 \+2～\+4（本場 \+[2-4]）/);
+    fireEvent.click(screen.getByText("查看戰鬥詳情"));
+    expect(details).toHaveAttribute("open");
   });
 
   it("uses the run-level abandon wording from inside battle", () => {

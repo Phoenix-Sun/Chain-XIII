@@ -27,11 +27,12 @@ function PlayingCard({ card, selected, selectionOrder, onClick }: { card: Card; 
   </button>;
 }
 
-function Lane({ lane, cards, selectedIds, selectionOrder, onSelect, onClear }: { lane: LaneId; cards: Card[]; selectedIds: Set<string>; selectionOrder: Map<string, number>; onSelect: (card: Card) => void; onClear: () => void }) {
+function Lane({ lane, cards, selectedIds, selectionOrder, targetLane, onSelect, onClear }: { lane: LaneId; cards: Card[]; selectedIds: Set<string>; selectionOrder: Map<string, number>; targetLane: LaneId | null; onSelect: (card: Card) => void; onClear: () => void }) {
   const expected = LANE_SIZES[lane];
   const rank = cards.length === expected ? evaluateHand(cards) : null;
-  return <section className={`lane lane-${lane}`} aria-labelledby={`${lane}-lane-title`}>
-    <div className="lane-heading"><div><span className="lane-label" id={`${lane}-lane-title`}>{LANE_LABELS[lane]}</span><span className="lane-size">{cards.length}/{expected}</span></div><div className="lane-heading-actions"><span className="lane-hint">{rank?.label ?? "待配置"}</span><button type="button" className="lane-clear" disabled={cards.length === 0} onClick={onClear}>收回{LANE_LABELS[lane]}</button></div></div>
+  const isTarget = targetLane === lane && cards.length < expected;
+  return <section className={`lane lane-${lane}${isTarget ? " is-target" : ""}`} aria-labelledby={`${lane}-lane-title`} aria-current={isTarget ? "step" : undefined}>
+    <div className="lane-heading"><div><span className="lane-label" id={`${lane}-lane-title`}>{LANE_LABELS[lane]}</span><span className="lane-size">{cards.length}/{expected}</span></div><div className="lane-heading-actions"><span className="lane-hint">{rank?.label ?? (isTarget ? "下一步" : "待配置")}</span><button type="button" className="lane-clear" disabled={cards.length === 0} onClick={onClear}>收回{LANE_LABELS[lane]}</button></div></div>
     <div className="lane-cards">
       {cards.length === 0 && <span className="lane-empty">從手牌選 {expected} 張後一次放入</span>}
       {cards.map((card) => <PlayingCard key={card.id} card={card} selected={selectedIds.has(card.id)} selectionOrder={selectionOrder.get(card.id)} onClick={() => onSelect(card)} />)}
@@ -60,6 +61,16 @@ export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards, c
   const assignedCount = cards.length - hand.length;
   const selectedCount = selectedIds.length;
   const lastLaneFill = useMemo(() => fillLastOpenLane(lanes, hand), [hand, lanes]);
+  const targetLane = useMemo<LaneId | null>(() => {
+    if (selectedZone && selectedZone !== "hand") return selectedZone;
+    const emptyLanes = (["front", "middle", "back"] as LaneId[]).filter((lane) => lanes[lane].length === 0);
+    if (emptyLanes.length === 0) return null;
+    if (selectedCount >= 3 && selectedCount <= 5) {
+      if (selectedCount === 3 && emptyLanes.includes("front")) return "front";
+      return emptyLanes.find((lane) => lane === "middle" || lane === "back") ?? null;
+    }
+    return emptyLanes[0] ?? null;
+  }, [lanes, selectedCount, selectedZone]);
 
   function toggleCard(card: Card, zone: CardZone) {
     if (selectedSet.has(card.id)) {
@@ -205,9 +216,9 @@ export default function P0BattleLab({ onLayoutConfirmed, cards: providedCards, c
     </div>
 
     <div className="lanes" aria-label="十三支分墩區">
-      <Lane lane="front" cards={lanes.front} selectedIds={selectedSet} selectionOrder={selectionOrder} onSelect={(card) => toggleCard(card, "front")} onClear={() => clearLane("front")} />
-      <Lane lane="middle" cards={lanes.middle} selectedIds={selectedSet} selectionOrder={selectionOrder} onSelect={(card) => toggleCard(card, "middle")} onClear={() => clearLane("middle")} />
-      <Lane lane="back" cards={lanes.back} selectedIds={selectedSet} selectionOrder={selectionOrder} onSelect={(card) => toggleCard(card, "back")} onClear={() => clearLane("back")} />
+      <Lane lane="front" cards={lanes.front} selectedIds={selectedSet} selectionOrder={selectionOrder} targetLane={targetLane} onSelect={(card) => toggleCard(card, "front")} onClear={() => clearLane("front")} />
+      <Lane lane="middle" cards={lanes.middle} selectedIds={selectedSet} selectionOrder={selectionOrder} targetLane={targetLane} onSelect={(card) => toggleCard(card, "middle")} onClear={() => clearLane("middle")} />
+      <Lane lane="back" cards={lanes.back} selectedIds={selectedSet} selectionOrder={selectionOrder} targetLane={targetLane} onSelect={(card) => toggleCard(card, "back")} onClear={() => clearLane("back")} />
     </div>
 
     <div className={`validation ${validation.valid ? "is-valid" : "is-invalid"}`}><strong>{validation.valid ? "合法分墩" : "尚未成立"}</strong>{!validation.valid && <span>{validation.errors[0] ?? "繼續配置 13 張牌。"}</span>}{validation.valid && <span>尾墩 ≥ 中墩 ≥ 頭墩，可以確認。</span>}</div>

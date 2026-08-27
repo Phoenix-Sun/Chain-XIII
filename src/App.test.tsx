@@ -19,6 +19,7 @@ describe("Chain XIII game shell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "開始遠征" }));
     expect(screen.getByRole("heading", { name: "選擇下一站" })).toBeInTheDocument();
+    expect(screen.getByText(/先從第一場戰鬥開始/)).toBeInTheDocument();
 
     expect(screen.getByRole("button", { name: "路線選擇下一站" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "配置選擇花色" })).not.toBeInTheDocument();

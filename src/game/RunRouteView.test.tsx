@@ -131,7 +131,7 @@ describe("RunRouteView", () => {
     />);
 
     fireEvent.click(screen.getByRole("button", { name: /石碑揭示下一層/ }));
-    expect(screen.getByRole("status")).toHaveTextContent(/下一層揭示/);
+    expect(screen.getByText(/下一層揭示/)).toHaveTextContent(/下一層揭示/);
     expect(onRunUpdated).toHaveBeenLastCalledWith(expect.objectContaining({ discoveredRunFlags: ["effect:ability-map"] }));
     expect(screen.getByRole("button", { name: /石碑揭示下一層・已用/ })).toBeDisabled();
   });

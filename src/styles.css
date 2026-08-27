@@ -77,6 +77,8 @@ h3 { margin: 0; font-size: 0.95rem; }
 .lane-back { border-color: #a1620755; }
 .lane-middle { border-color: #0f766e66; }
 .lane-front { border-color: #0369a166; }
+.lane.is-target { border-color: #e8b557; box-shadow: 0 0 0 2px #e8b55766, 0 5px 0 #241923; }
+.lane.is-target .lane-label, .lane.is-target .lane-hint { color: #ffe49b; }
 .lane-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
 .lane-heading > div { display: flex; gap: 8px; align-items: baseline; }
 .lane-label { font-weight: 900; }

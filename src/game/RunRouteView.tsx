@@ -20,8 +20,8 @@ function nodeAccessibleLabel(node: RunMapNode, monsterName?: string): string {
   return [NODE_NAMES[node.type], location, detail].filter(Boolean).join("・");
 }
 
-function routePreviewDetail(node: RunMapNode, monsterDropCount: number | undefined, reward: ReturnType<typeof rewardForNode>): string {
-  if (monsterDropCount !== undefined) return `危險：${NODE_NAMES[node.type]}・水晶 +${reward.crystals}・可能掉落 ${monsterDropCount} 種基因鏈`;
+function routePreviewDetail(node: RunMapNode, monsterDropCount: number | undefined, reward: ReturnType<typeof rewardForNode>, isFirstBattle = false): string {
+  if (monsterDropCount !== undefined) return `${isFirstBattle ? "第一場戰鬥・" : ""}危險：${NODE_NAMES[node.type]}・水晶 +${reward.crystals}・可能掉落 ${monsterDropCount} 種基因鏈`;
   if (node.type === "relic" && reward.relicId) {
     const relic = catalog.relics.find((candidate) => candidate.id === reward.relicId);
     if (relic) return `水晶 +${reward.crystals}・可取得：${relic.name}`;
@@ -76,6 +76,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
     ?? activeRun.map.nodes.filter((node) => node.type === "boss").find((node) => node.chapter === current.chapter)
     ?? activeRun.map.nodes.find((node) => node.id === activeRun.map.bossNodeId)
     ?? current;
+  const isFirstRouteChoice = current.id === activeRun.map.startNodeId && activeRun.completedNodeIds.length === 1;
 
   function revealNextLayer() {
     if (!hasMapAbility || mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")) return;
@@ -110,6 +111,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
     <div className="route-heading"><div><h2 id="route-title">選擇下一站</h2></div><span className="route-boss">第 1／2 章菁英・第 3 章 Boss</span></div>
     <div className="route-status route-status-top"><span><b>第 {current.chapter ?? 1} 章</b>・{NODE_NAMES[current.type]}</span><span>距離本章終點：{Math.max(chapterEnd.row - current.row, 0)} 層</span><span>已完成：{activeRun.completedNodeIds.length} 個節點</span></div>
     <p className="route-intro">沿著發光路線穿過三個章節。第 1、2 章最後是菁英，第 3 章最後是 Boss；只有和目前位置相連的節點可以前往。</p>
+    {isFirstRouteChoice && <p className="route-first-battle" role="status"><strong>先從第一場戰鬥開始</strong>這場會教你用 13 張牌排成頭／中／尾三墩。</p>}
     {(hasMapAbility || hasStarMapRelic || hasRouteReveal) && <div className="route-ability-panel">{hasMapAbility && <button type="button" className="ability-button" onClick={revealNextLayer} disabled={mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map")}>石碑揭示下一層{mapUsed || activeRun.discoveredRunFlags.includes("effect:ability-map") ? "・已用" : ""}</button>}{hasStarMapRelic && <p className="route-relic-notice"><strong>星圖碎片</strong>你可以直接閱讀下一層節點類型。</p>}{hasRouteReveal && <div className="route-next-layer"><strong>路線情報已揭示・下一層</strong>{activeRun.map.nodes.filter((node) => node.row === current.row + 1).map((node) => <span key={node.id}>{NODE_NAMES[node.type]}</span>)}</div>}{mapNotice && <p role="status">{mapNotice}</p>}</div>}
     <section className="expedition-map" aria-label="遠征地圖">
       <div className="expedition-map-legend" aria-label="路線圖例"><span><i className="legend-dot legend-current" />目前</span><span><i className="legend-dot legend-reachable" />可前往</span><span><i className="legend-dot legend-locked" />未開放</span></div>
@@ -129,7 +131,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
           const state = routeNodeState(node, activeRun.currentNodeId, reachableIds, completedIds);
           const position = nodePosition(node, maxColumns, maxRow, rowHeight);
           return <div className={`route-map-node node-${node.type} state-${state === "目前位置" ? "current" : state === "可前往" ? "reachable" : state === "已完成" ? "completed" : "locked"}`} key={node.id} style={{ left: `${position.x}%`, top: `${position.y}px` }}>
-            <button type="button" className={`route-node${node.id === activeRun.currentNodeId ? " is-current" : ""}${reachableIds.has(node.id) ? " is-reachable" : ""}${completedIds.has(node.id) ? " is-completed" : ""}`} disabled={!reachableIds.has(node.id)} onClick={() => travel(node.id)} aria-label={`${nodeAccessibleLabel(node, monster ? monsterDisplayName(monster) : undefined)}・${state}`} aria-pressed={node.id === activeRun.currentNodeId}>
+            <button type="button" className={`route-node${node.id === activeRun.currentNodeId ? " is-current" : ""}${reachableIds.has(node.id) ? " is-reachable" : ""}${completedIds.has(node.id) ? " is-completed" : ""}`} disabled={!reachableIds.has(node.id)} onClick={() => travel(node.id)} aria-label={`${nodeAccessibleLabel(node, monster ? monsterDisplayName(monster) : undefined)}・${state}${isFirstRouteChoice && node.type === "battle" ? "・第一場戰鬥" : ""}`} aria-pressed={node.id === activeRun.currentNodeId}>
               <span className="route-node-icon">{NODE_LABELS[node.type]}</span>
               <span className="route-node-name">{NODE_NAMES[node.type]}</span>
               <span className="route-node-state">{state}</span>
@@ -138,7 +140,7 @@ export default function RunRouteView({ partyCharacterIds = ["water-scout"], run,
         })}
       </div>
     </section>
-    <div className="route-preview destination-sheet" aria-label="下一站資訊"><div className="destination-sheet-heading"><strong>下一站資訊</strong><small>點擊地圖節點查看路線</small></div>{reachableNodes.map((node) => { const monster = node.monsterId ? catalog.monsters.find((candidate) => candidate.id === node.monsterId) : undefined; const reward = rewardForNode(node); return <div className="route-preview-item" key={node.id}><span><strong>{NODE_NAMES[node.type]}{monster ? `・${monsterDisplayName(monster)}` : ""}</strong><small className="route-location">第 {node.row + 1} 層・第 {node.column + 1} 格</small></span><small>{routePreviewDetail(node, monster?.dropChainPoolIds.length, reward)}</small></div>; })}{hasStarMapRelic && <div className="route-next-layer"><strong>星圖碎片・下一層預覽</strong>{activeRun.map.nodes.filter((node) => node.row === current.row + 1).map((node) => <span key={node.id}>{NODE_NAMES[node.type]}</span>)}</div>}</div>
+    <div className="route-preview destination-sheet" aria-label="下一站資訊"><div className="destination-sheet-heading"><strong>下一站資訊</strong><small>點擊地圖節點查看路線</small></div>{reachableNodes.map((node) => { const monster = node.monsterId ? catalog.monsters.find((candidate) => candidate.id === node.monsterId) : undefined; const reward = rewardForNode(node); return <div className="route-preview-item" key={node.id}><span><strong>{NODE_NAMES[node.type]}{monster ? `・${monsterDisplayName(monster)}` : ""}</strong><small className="route-location">第 {node.row + 1} 層・第 {node.column + 1} 格</small></span><small>{routePreviewDetail(node, monster?.dropChainPoolIds.length, reward, isFirstRouteChoice && node.type === "battle")}</small></div>; })}{hasStarMapRelic && <div className="route-next-layer"><strong>星圖碎片・下一層預覽</strong>{activeRun.map.nodes.filter((node) => node.row === current.row + 1).map((node) => <span key={node.id}>{NODE_NAMES[node.type]}</span>)}</div>}</div>
     <div className="route-status route-status-bottom"><span>下一步：{current.nextNodeIds.length} 個可達節點</span>{onOpenWorkshop && <button type="button" className="secondary-button" onClick={onOpenWorkshop}>配置基因鏈</button>}</div>
   </section>;
 }

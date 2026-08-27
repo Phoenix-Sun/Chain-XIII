@@ -59,7 +59,7 @@ export function generateRunMap(seed: string): RunMap {
       const endType: MapNodeType = chapter === 3 ? "boss" : "elite";
       const count = isStart || isChapterEnd ? 1 : 2 + random.int(2);
       for (let column = 0; column < count; column += 1) {
-        const type = isChapterEnd ? endType : isStart ? "battle" : random.pick(nodeTypesForChapter(chapter));
+        const type = isChapterEnd ? endType : isStart ? "battle" : chapter === 1 && localRow === 1 && column === 0 ? "battle" : random.pick(nodeTypesForChapter(chapter));
         const monsterId = type === "boss"
         ? finalBossId
         : type === "elite"
@@ -77,6 +77,8 @@ export function generateRunMap(seed: string): RunMap {
     node.nextNodeIds = next.map((candidate) => candidate.id).filter(() => random.next() > 0.35);
     if (node.nextNodeIds.length === 0 && next[0]) node.nextNodeIds = [next[0].id];
   }
+  const firstBattleNode = nodes.find((node) => node.chapter === 1 && node.row === 1 && node.type === "battle");
+  if (firstBattleNode) nodes[0].nextNodeIds = [firstBattleNode.id];
   const startNodeId = nodes[0].id;
   const bossNodeId = nodes[nodes.length - 1].id;
   return { seed, nodes, startNodeId, bossNodeId, chapterEndNodeIds: nodes.filter((node) => node.type === "elite" || node.type === "boss").map((node) => node.id), chapterLengths };

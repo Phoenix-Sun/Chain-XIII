@@ -9,7 +9,9 @@
 .route-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .route-card h2 { margin: 4px 0 0; color: #382a39; font-size: 1rem; }
 .route-boss { padding: 5px; border: 2px solid #af5d4f; color: #8e4a46; font-size: 0.55rem; font-weight: 900; }
-.route-intro { margin: 7px 0 12px; color: #80665c; font-size: 0.65rem; line-height: 1.45; }
+.route-intro { margin: 10px 0; color: #7d6258; font-size: 0.78rem; line-height: 1.5; }
+.route-first-battle { display: grid; gap: 3px; margin: 10px 0; padding: 10px 12px; border: 3px solid #b7793e; border-radius: 9px; background: #fff0bd; color: #603c36; font-size: 0.78rem; line-height: 1.45; }
+.route-first-battle strong { color: #9b4e36; }
 .route-status { display: flex; justify-content: space-between; gap: 6px; color: #735b54; font-size: 0.58rem; font-weight: 900; }
 .route-status-top { margin: 10px 0 0; padding: 7px 8px; border: 2px solid #80658a; background: #f6dfa8; }
 .route-status-top b { color: #73516a; }

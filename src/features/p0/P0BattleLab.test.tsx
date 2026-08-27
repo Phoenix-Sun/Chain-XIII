@@ -6,6 +6,7 @@ describe("P0BattleLab", () => {
   it("lets a player select three cards and place them into a lane at once", () => {
     render(<P0BattleLab />);
 
+    expect(screen.getByRole("region", { name: "頭墩" })).toHaveAttribute("aria-current", "step");
     const handCards = screen.getAllByRole("button").filter((button) => button.classList.contains("playing-card"));
     handCards.slice(0, 3).forEach((card) => fireEvent.click(card));
 
@@ -16,6 +17,7 @@ describe("P0BattleLab", () => {
     expect(screen.getByText("3/13")).toBeInTheDocument();
     expect(screen.getByText("頭墩", { selector: ".lane-label" })).toBeInTheDocument();
     expect(screen.getByText("3/3", { selector: ".lane-size" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "頭墩" })).not.toHaveAttribute("aria-current");
   });
 
   it("offers rank and suit sorting without changing the hand count", () => {
